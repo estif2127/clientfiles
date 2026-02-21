@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Client Quick Reference</title>
+  <style>
+    :root{
+      --bg:#0b0b10; --panel:#141425; --panel2:#10101b;
+      --border:#252545; --text:#ffffff; --muted:#b9b9cc;
+      --warn:#ffb4b4;
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text); }
+    header{
+      position:sticky; top:0; z-index:10;
+      background:rgba(11,11,16,.92); backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+    .wrap{ max-width:980px; margin:0 auto; padding:16px; }
+    .row{ display:flex; gap:10px; align-items:center; }
+    .row > * { flex: 1; }
+    .title{ font-size:18px; font-weight:800; margin:0 0 6px; }
+    .sub{ color:var(--muted); font-size:14px; }
+    .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
+    .card{ background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:14px; }
+    .card2{ background:var(--panel2); border:1px solid var(--border); border-radius:14px; padding:12px; margin-top:10px; }
+    button{
+      border:1px solid #2c2c52; background:#1b1b31; color:var(--text);
+      border-radius:12px; padding:12px; cursor:pointer;
+    }
+    button:hover{ background:#222241; }
+    .backBtn{ flex:0 0 auto; width:auto; padding:10px 12px; }
+    input{
+      width:100%; padding:12px; border-radius:12px;
+      border:1px solid #2c2c52; background:#0f0f18; color:var(--text);
+    }
+    .sectionTitle{ margin:16px 0 8px; font-weight:800; }
+    .pillChip{
+      display:inline-block; padding:8px 10px; border-radius:999px;
+      border:1px solid #2c2c52; margin:6px 6px 0 0; cursor:pointer;
+      background:#15152a;
+    }
+    .pillChip:hover{ background:#1d1d39; }
+    .muted{ color:var(--muted); font-size:14px; }
+    .warn{ color:var(--warn); }
+    .hidden{ display:none; }
+    .kvs{ display:grid; grid-template-columns: 140px 1fr; gap:8px 12px; margin-top:10px; }
+    .kvKey{ color:var(--muted); font-size:13px; }
+    .kvVal{ font-size:14px; }
+    .badge{ display:inline-block; padding:4px 8px; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted); }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap row">
+    <button id="backBtn" class="backBtn hidden" onclick="goHome()">← Back</button>
+    <div>
+      <div class="title" id="hdrTitle">Clients</div>
+      <div class="sub" id="hdrSub">Personal quick reference only. Always follow the official med list / delegation instructions.</div>
+    </div>
+    <div style="flex:0 0 220px;">
+      <button onclick="toggleLookup()" style="width:100%;">Lookup</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HOME -->
+  <div id="homeView">
+    <div class="grid" id="clientGrid"></div>
+
+    <div class="card" id="lookupPanel" style="margin-top:14px; display:none;">
+      <div class="sectionTitle" style="margin-top:0;">Medication Lookup</div>
+      <div class="muted">Type a med name (ex: “Adderall”, “buprenorphine”, “gabapentin”) then tap a result.</div>
+      <div class="row" style="margin-top:10px;">
+        <input id="lookupInput" placeholder="Search medication..." oninput="renderLookup()" />
+      </div>
+      <div id="lookupResults" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- CLIENT VIEW -->
+  <div id="clientView" class="hidden">
+    <div class="card">
+      <div class="row" style="align-items:flex-start;">
+        <div>
+          <div class="title" id="clientName"></div>
+          <div class="muted" id="clientMeta"></div>
+        </div>
+        <div style="flex:0 0 auto;">
+          <span class="badge">Morning only (for now)</span>
+        </div>
+      </div>
+
+      <div class="sectionTitle">Food preference</div>
+      <div class="card2" id="foodBox"></div>
+
+      <div class="sectionTitle">Morning meds</div>
+      <div id="morningBox"></div>
+
+      <div class="sectionTitle">Dinner meds</div>
+      <div class="card2 muted">Not added yet.</div>
+
+      <div class="sectionTitle">PRN / As-needed</div>
+      <div id="prnBox"></div>
+
+      <div class="sectionTitle">Taken separately</div>
+      <div id="separateBox"></div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <div class="sectionTitle" style="margin-top:0;">Quick med chips</div>
+      <div class="muted">Tap a pill to open the reference card.</div>
+      <div id="chipsBox" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- REFERENCE MODAL -->
+  <div id="refModal" class="hidden">
+    <div class="card" style="margin-top:14px;">
+      <div class="row">
+        <div>
+          <div class="title" id="refTitle"></div>
+          <div class="muted" id="refSub"></div>
+        </div>
+        <button class="backBtn" onclick="closeRef()">Close</button>
+      </div>
+
+      <div class="kvs" id="refDetails"></div>
+
+      <div class="sectionTitle warn">Notes / Warnings</div>
+      <div id="refNotes" class="muted"></div>
+
+      <div class="muted" style="margin-top:12px;">
+        This is your quick reference. If something isn’t on the official list or timing/dose is unclear, don’t guess.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/**
+ * Your data (from your message)
+ * - Kept first names only
+ * - Dinner meds are placeholders
+ */
+const CLIENTS = [
+  {
+    id: "jonathan",
+    name: "Jonathan",
+    food: "Eggs and muffin or bread",
+    morning: [
+      { raw: "Propranolol" },
+      { raw: "budesonide" },
+      { raw: "acetamin" },
+      { raw: "lisinopril" },
+      { raw: "colestiprol" },
+      { raw: "gapapentin" },
+      { raw: "omeprazole" },
+      { raw: "probiotic" },
+      { raw: "vitamin" }
+    ],
+    dinner: [],
+    prn: [],
+    separately: []
+  },
+  {
+    id: "tabatha",
+    name: "Tabatha",
+    food: "Cold coffee + half cocoa and the rest milk; muffin or cinnamon swirl (something sweet)",
+    morning: [
+      { raw: "clonazepam" },
+      { raw: "haloperidol" }
+    ],
+    dinner: [],
+    prn: [
+      { raw: "PRN medication (not specified yet)" }
+    ],
+    separately: []
+  },
+  {
+    id: "justice",
+    name: "Justice",
+    food: "Cereal with milk",
+    morning: [
+      { raw: "Amphetldextr" },
+      { raw: "senna" },
+      { raw: "savella" },
+      { raw: "lisinopril" },
+      { raw: "Asprin" },
+      { raw: "D3-1000" },
+      { raw: "Hydroxyz pam" },
+      { raw: "topiramate" },
+      { raw: "mathocarbam" },
+      { raw: "vitamin" }
+    ],
+    dinner: [],
+    prn: [],
+    separately: [
+      { raw: "bupenorphin" } // taken separately per your note
+    ]
+  },
+  {
+    id: "michael",
+    name: "Michael",
+    food: "Not sure yet",
+    morning: [
+      { raw: "Bupropin" },
+      { raw: "hydroxyz" },
+      { raw: "varensicle" },
+      { raw: "olanzapine" }
+    ],
+    dinner: [],
+    prn: [],
+    separately: []
+  }
+];
+
+/**
+ * Medication "normalization" (fix common misspellings / shorthand you wrote)
+ * Add more anytime.
+ */
+const ALIASES = new Map([
+  ["acetamin", "acetaminophen"],
+  ["gapapentin", "gabapentin"],
+  ["amphetldextr", "amphetamine/dextroamphetamine"],
+  ["asprin", "aspirin"],
+  ["hydroxyz pam", "hydroxyzine pamoate"],
+  ["mathocarbam", "methocarbamol"],
+  ["varensicle", "varenicline"],
+  ["bupropin", "bupropion"],
+  ["bupenorphin", "buprenorphine"],
+  ["d3-1000", "vitamin d3 (1000 IU)"]
+]);
+
+/**
+ * Optional med reference library (kept short + generic; NOT medical advice)
+ * You can expand these notes later.
+ */
+const MED_REF = {
+  "propranolol": { generic: "propranolol", type: "medication", notes: ["Follow the plan for timing and monitoring (if any)."] },
+  "budesonide": { generic: "budesonide", type: "medication", notes: ["Follow the plan for form (inhaler/nebulizer/oral) if relevant."] },
+  "acetaminophen": { generic: "acetaminophen", type: "medication", notes: ["Avoid double-dosing with other acetaminophen products."] },
+  "lisinopril": { generic: "lisinopril", type: "medication", notes: ["Watch for dizziness per care plan."] },
+  "colestipol": { generic: "colestipol", type: "medication", notes: ["Some meds must be spaced apart from it—follow the plan."] },
+  "gabapentin": { generic: "gabapentin", type: "medication", notes: ["Can cause drowsiness—follow the plan."] },
+  "omeprazole": { generic: "omeprazole", type: "medication", notes: ["Often taken before meals—follow the plan."] },
+
+  "clonazepam": { generic: "clonazepam", type: "medication", notes: ["Can cause sedation—follow the plan."] },
+  "haloperidol": { generic: "haloperidol", type: "medication", notes: ["Follow monitoring instructions in the plan if any."] },
+
+  "amphetamine/dextroamphetamine": { generic: "amphetamine/dextroamphetamine", type: "medication", notes: ["Controlled medication—follow storage/documentation rules.", "Don’t guess timing/dose—use the official order."] },
+  "senna": { generic: "senna", type: "medication", notes: ["Follow the plan."] },
+  "savella": { generic: "milnacipran (brand: Savella)", type: "medication", notes: ["Follow the plan."] },
+  "aspirin": { generic: "aspirin", type: "medication", notes: ["Follow the plan; note any bleeding-related instructions if present."] },
+  "vitamin d3 (1000 iu)": { generic: "cholecalciferol", type: "supplement", notes: ["Supplement—follow the plan."] },
+  "hydroxyzine pamoate": { generic: "hydroxyzine pamoate", type: "medication", notes: ["Can cause sedation—follow the plan."] },
+  "topiramate": { generic: "topiramate", type: "medication", notes: ["Follow the plan."] },
+  "methocarbamol": { generic: "methocarbamol", type: "medication", notes: ["Can cause drowsiness—follow the plan."] },
+  "buprenorphine": { generic: "buprenorphine", type: "medication", notes: ["Often has strict handling rules—follow the official instructions exactly."] },
+
+  "bupropion": { generic: "bupropion", type: "medication", notes: ["Follow the plan."] },
+  "hydroxyz": { generic: "hydroxyzine", type: "medication", notes: ["Can cause sedation—follow the plan."] },
+  "varenicline": { generic: "varenicline", type: "medication", notes: ["Follow the plan."] },
+  "olanzapine": { generic: "olanzapine", type: "medication", notes: ["Can cause sedation—follow the plan."] },
+
+  "probiotic": { generic: "probiotic", type: "supplement", notes: ["Supplement—follow the plan."] },
+  "vitamin": { generic: "vitamin", type: "supplement", notes: ["Supplement—follow the plan."] }
+};
+
+// -------- Helpers --------
+const $ = (id) => document.getElementById(id);
+
+function normalize(raw){
+  const key = (raw || "").trim().toLowerCase();
+  const fixed = ALIASES.get(key) || key;
+  return fixed;
+}
+
+function prettyName(norm){
+  // Keep original capitalization for known meds; otherwise Title Case
+  const known = Object.values(MED_REF).find(m => (m.generic || "").toLowerCase() === norm);
+  if (known) return norm.split(" ").map(w => w.length ? (w[0].toUpperCase()+w.slice(1)) : w).join(" ");
+  return norm.split(/[ /-]/).map(w => w ? (w[0].toUpperCase()+w.slice(1)) : w).join(" ").replaceAll("  "," ");
+}
+
+function getRef(norm){
+  return MED_REF[norm] || { generic: "", type: "medication", notes: ["(No notes added yet.)"] };
+}
+
+// -------- Render Home --------
+function renderClients(){
+  const grid = $("clientGrid");
+  grid.innerHTML = "";
+  CLIENTS.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <div class="title">${c.name}</div>
+      <div class="muted">${c.food ? `Food: ${c.food}` : ""}</div>
+      <div style="margin-top:10px;">
+        <button onclick="openClient('${c.id}')">Open</button>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function toggleLookup(){
+  const panel = $("lookupPanel");
+  panel.style.display = (panel.style.display === "none" || !panel.style.display) ? "block" : "none";
+  if (panel.style.display === "block") {
+    $("lookupInput").focus();
+    renderLookup();
+  }
+}
+
+function buildMedIndex(){
+  // Build a set of all meds mentioned across clients
+  const set = new Set();
+  CLIENTS.forEach(c => {
+    ["morning","prn","separately","dinner"].forEach(slot => {
+      (c[slot] || []).forEach(item => set.add(normalize(item.raw)));
+    });
+  });
+  return Array.from(set).sort();
+}
+const MED_INDEX = buildMedIndex();
+
+function renderLookup(){
+  const q = ($("lookupInput").value || "").trim().toLowerCase();
+  const out = $("lookupResults");
+  out.innerHTML = "";
+
+  const matches = MED_INDEX
+    .filter(m => !q || m.includes(q) || prettyName(m).toLowerCase().includes(q))
+    .slice(0, 15);
+
+  if (!matches.length){
+    out.innerHTML = `<div class="muted">No matches.</div>`;
+    return;
+  }
+
+  matches.forEach(norm => {
+    const chip = document.createElement("span");
+    chip.className = "pillChip";
+    chip.textContent = prettyName(norm);
+    chip.onclick = () => openRef(norm);
+    out.appendChild(chip);
+  });
+}
+
+// -------- Client view --------
+let ACTIVE_CLIENT = null;
+
+function openClient(id){
+  const c = CLIENTS.find(x => x.id === id);
+  if (!c) return;
+  ACTIVE_CLIENT = c;
+
+  $("homeView").classList.add("hidden");
+  $("clientView").classList.remove("hidden");
+  $("backBtn").classList.remove("hidden");
+  $("hdrTitle").textContent = c.name;
+  $("hdrSub").textContent = "Morning meds + quick reference (dinner meds not added yet).";
+
+  $("clientName").textContent = c.name;
+  $("clientMeta").textContent = "Personal reference only.";
+
+  $("foodBox").innerHTML = `<div class="kvVal">${c.food || "—"}</div>`;
+
+  renderMedList("morningBox", c.morning, "No morning meds listed.");
+  renderMedList("prnBox", c.prn, "No PRN meds listed.");
+  renderMedList("separateBox", c.separately, "None listed.");
+
+  renderChips(c);
+}
+
+function renderMedList(targetId, list, emptyText){
+  const box = $(targetId);
+  box.innerHTML = "";
+
+  if (!list || !list.length){
+    box.innerHTML = `<div class="card2 muted">${emptyText}</div>`;
+    return;
+  }
+
+  list.forEach(item => {
+    const norm = normalize(item.raw);
+    const ref = getRef(norm);
+    const display = prettyName(norm);
+    const div = document.createElement("div");
+    div.className = "card2";
+    div.innerHTML = `
+      <div class="row">
+        <div>
+          <div style="font-weight:800;">${display}</div>
+          <div class="muted">${ref.generic ? `Generic: ${ref.generic}` : ""}</div>
+        </div>
+        <button class="backBtn" onclick="openRef('${norm}', true)">Reference</button>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+}
+
+function renderChips(client){
+  const chips = $("chipsBox");
+  chips.innerHTML = "";
+  const all = []
+    .concat(client.morning || [], client.prn || [], client.separately || [], client.dinner || [])
+    .map(x => normalize(x.raw));
+  const unique = Array.from(new Set(all)).sort();
+
+  unique.forEach(norm => {
+    const chip = document.createElement("span");
+    chip.className = "pillChip";
+    chip.textContent = prettyName(norm);
+    chip.onclick = () => openRef(norm, true);
+    chips.appendChild(chip);
+  });
+}
+
+function goHome(){
+  ACTIVE_CLIENT = null;
+  $("clientView").classList.add("hidden");
+  $("homeView").classList.remove("hidden");
+  $("backBtn").classList.add("hidden");
+  $("hdrTitle").textContent = "Clients";
+  $("hdrSub").textContent = "Personal quick reference only. Always follow the official med list / delegation instructions.";
+  closeRef();
+}
+
+// -------- Reference modal --------
+function openRef(norm, showClientContext=false){
+  const ref = getRef(norm);
+  $("refModal").classList.remove("hidden");
+
+  $("refTitle").textContent = prettyName(norm);
+  const type = ref.type ? ref.type : "";
+  $("refSub").textContent = [
+    ref.generic ? `Generic: ${ref.generic}` : "",
+    type ? `Type: ${type}` : ""
+  ].filter(Boolean).join(" • ");
+
+  // Client context (if available)
+  let clientContext = "";
+  if (showClientContext && ACTIVE_CLIENT){
+    const who = ACTIVE_CLIENT.name;
+    const where = [];
+    const slots = [
+      ["Morning", ACTIVE_CLIENT.morning],
+      ["PRN", ACTIVE_CLIENT.prn],
+      ["Taken separately", ACTIVE_CLIENT.separately],
+      ["Dinner", ACTIVE_CLIENT.dinner]
+    ];
+    slots.forEach(([label, arr]) => {
+      if ((arr||[]).some(x => normalize(x.raw) === norm)) where.push(label);
+    });
+    clientContext = where.length ? `${who}: listed under ${where.join(", ")}` : `${who}: not listed`;
+  }
+
+  const details = [];
+  if (clientContext) details.push(["Client context", clientContext]);
+
+  details.push(["Normalized key", norm]);
+
+  $("refDetails").innerHTML = details.map(([k,v]) => `
+    <div class="kvKey">${k}</div><div class="kvVal">${v}</div>
+  `).join("");
+
+  const notes = (ref.notes || []).map(n => `• ${n}`).join("<br>");
+  $("refNotes").innerHTML = notes || "—";
+}
+
+function closeRef(){
+  $("refModal").classList.add("hidden");
+}
+
+// -------- init --------
+renderClients();
+renderLookup();
+</script>
+</body>
+</html>
