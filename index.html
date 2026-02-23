@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CareGuide — Home Care</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --cream: #faf7f2;
+  --warm-white: #fffefb;
+  --tan: #e8e0d0;
+  --tan2: #d8cfc0;
+  --ink: #1a1612;
+  --ink2: #3d3630;
+  --muted: #7a7268;
+  --accent: #c4622d;
+  --accent2: #e8845a;
+  --accent-light: #f5e8df;
+  --green: #3a7d55;
+  --green-light: #dff0e8;
+  --blue: #2d5fa0;
+  --blue-light: #deeaf7;
+  --red: #b83232;
+  --red-light: #fde8e8;
+  --amber: #b87a1a;
+  --amber-light: #fdf3db;
+  --card: #ffffff;
+  --shadow: 0 2px 12px rgba(26,22,18,.08);
+  --shadow-lg: 0 8px 40px rgba(26,22,18,.13);
+  --radius: 18px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ---- TOPBAR ---- */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,247,242,.93);
+  backdrop-filter: blur(14px);
+  border-bottom: 1.5px solid var(--tan);
+  padding: 0 20px;
+}
+.topbar-inner {
+  max-width: 860px; margin: 0 auto;
+  display: flex; align-items: center; gap: 14px;
+  height: 62px;
+}
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px; color: var(--accent);
+  letter-spacing: -.3px; flex: 1;
+  display: flex; align-items: center; gap: 8px;
+}
+.logo span { color: var(--ink); font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+.back-btn {
+  display: none; align-items: center; gap: 6px;
+  background: none; border: 1.5px solid var(--tan2);
+  border-radius: 999px; padding: 7px 14px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  font-weight: 600; color: var(--ink2); cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.back-btn:hover { background: var(--tan); border-color: var(--tan2); }
+.back-btn svg { width:16px; height:16px; }
+.date-chip {
+  background: var(--accent-light); color: var(--accent);
+  border-radius: 999px; padding: 6px 13px;
+  font-size: 12px; font-weight: 700; letter-spacing: .3px;
+  white-space: nowrap;
+}
+
+/* ---- CONTAINER ---- */
+.container { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+
+/* ---- HOME ---- */
+.home-hero {
+  margin-bottom: 28px;
+  animation: fadeUp .4s ease both;
+}
+.home-hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.15;
+  color: var(--ink);
+}
+.home-hero h1 em { color: var(--accent); font-style: italic; }
+.home-hero p { color: var(--muted); margin-top: 8px; font-size: 15px; line-height: 1.6; }
+
+.client-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.client-card {
+  background: var(--card);
+  border: 1.5px solid var(--tan);
+  border-radius: var(--radius);
+  padding: 22px;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s;
+  animation: fadeUp .4s ease both;
+  position: relative; overflow: hidden;
+}
+.client-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: var(--accent);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.client-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--tan2); }
+.client-card .initials {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--accent-light); color: var(--accent);
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+}
+.client-card h2 { font-size: 20px; font-weight: 700; }
+.client-card .room { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.client-card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.tag {
+  font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  padding: 4px 9px; border-radius: 999px; border: 1.5px solid;
+}
+.tag-green { background: var(--green-light); color: var(--green); border-color: #b0dcc4; }
+.tag-blue { background: var(--blue-light); color: var(--blue); border-color: #b0cef0; }
+.tag-amber { background: var(--amber-light); color: var(--amber); border-color: #e8d09a; }
+.tag-red { background: var(--red-light); color: var(--red); border-color: #f0b8b8; }
+.card-arrow {
+  position: absolute; bottom: 20px; right: 20px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent-light); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; transition: background .15s;
+}
+.client-card:hover .card-arrow { background: var(--accent); color: white; }
+
+/* ---- CLIENT VIEW ---- */
+.cv-header {
+  background: var(--card);
+  border: 1.5px solid var(--tan);
+  border-radius: var(--radius);
+  padding: 24px 26px;
+  margin-bottom: 20px;
+  display: flex; gap: 18px; align-items: flex-start;
+  animation: fadeUp .3s ease both;
+}
+.cv-avatar {
+  width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent-light); color: var(--accent);
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px; display: flex; align-items: center; justify-content: center;
+}
+.cv-name { font-family: 'DM Serif Display', serif; font-size: 26px; }
+.cv-meta { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.cv-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.shift-banner {
+  background: linear-gradient(135deg, var(--accent) 0%, #a84e22 100%);
+  color: white; border-radius: var(--radius);
+  padding: 18px 22px;
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 20px;
+  animation: fadeUp .35s ease both;
+}
+.shift-banner .shift-icon { font-size: 28px; }
+.shift-banner h3 { font-size: 16px; font-weight: 700; }
+.shift-banner p { font-size: 13px; opacity: .85; margin-top: 2px; }
+
+/* sections */
+.section { margin-bottom: 20px; animation: fadeUp .4s ease both; }
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.section-icon {
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.icon-green { background: var(--green-light); }
+.icon-blue { background: var(--blue-light); }
+.icon-amber { background: var(--amber-light); }
+.icon-red { background: var(--red-light); }
+.icon-purple { background: #ede8f5; }
+.icon-teal { background: #e0f3f0; }
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px; color: var(--ink);
+}
+.section-count { font-size: 12px; color: var(--muted); font-weight: 600; }
+
+/* checklist */
+.checklist { display: flex; flex-direction: column; gap: 8px; }
+.check-item {
+  background: var(--card);
+  border: 1.5px solid var(--tan);
+  border-radius: 13px;
+  padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 13px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  user-select: none;
+}
+.check-item:hover { border-color: var(--tan2); background: var(--warm-white); }
+.check-item.done { background: var(--green-light); border-color: #b0dcc4; }
+.check-box {
+  width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+  border: 2px solid var(--tan2); margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, border-color .15s;
+}
+.check-item.done .check-box { background: var(--green); border-color: var(--green); }
+.check-box svg { display: none; }
+.check-item.done .check-box svg { display: block; }
+.check-label { flex: 1; }
+.check-label strong { font-size: 14px; font-weight: 600; display: block; line-height: 1.3; }
+.check-label .check-note { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.check-item.done .check-label strong { text-decoration: line-through; opacity: .6; }
+.check-item.done .check-note { opacity: .5; }
+
+/* med cards */
+.med-list { display: flex; flex-direction: column; gap: 8px; }
+.med-card {
+  background: var(--card);
+  border: 1.5px solid var(--tan);
+  border-radius: 13px;
+  padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 13px;
+}
+.med-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent); margin-top: 6px; flex-shrink: 0;
+}
+.med-name { font-size: 14px; font-weight: 700; }
+.med-detail { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.med-badge {
+  margin-left: auto; flex-shrink: 0;
+  font-size: 11px; font-weight: 700; letter-spacing: .3px;
+  padding: 4px 9px; border-radius: 999px;
+  background: var(--accent-light); color: var(--accent); border: 1.5px solid #e8c4aa;
+}
+.med-badge.prn { background: var(--amber-light); color: var(--amber); border-color: #e8d09a; }
+.med-badge.sep { background: var(--blue-light); color: var(--blue); border-color: #b0cef0; }
+
+/* behavior */
+.behavior-list { display: flex; flex-direction: column; gap: 8px; }
+.behavior-card {
+  background: var(--card);
+  border: 1.5px solid var(--tan);
+  border-radius: 13px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--amber);
+}
+.behavior-card.trigger { border-left-color: var(--red); }
+.behavior-card.calming { border-left-color: var(--green); }
+.behavior-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  margin-bottom: 5px; color: var(--muted);
+}
+.behavior-text { font-size: 14px; line-height: 1.55; }
+
+/* diet */
+.diet-card {
+  background: var(--card);
+  border: 1.5px solid var(--tan);
+  border-radius: 13px;
+  padding: 14px 16px;
+}
+.diet-card + .diet-card { margin-top: 8px; }
+.diet-meal { font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.diet-text { font-size: 14px; line-height: 1.5; }
+.diet-restriction {
+  display: inline-block; margin-top: 8px;
+  font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+  background: var(--red-light); color: var(--red); border: 1.5px solid #f0b8b8;
+}
+
+/* emergency */
+.emerg-list { display: flex; flex-direction: column; gap: 8px; }
+.emerg-card {
+  background: var(--card);
+  border: 1.5px solid var(--tan);
+  border-radius: 13px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 14px;
+}
+.emerg-card.primary { border-color: #f0b8b8; background: var(--red-light); }
+.emerg-icon { font-size: 22px; flex-shrink: 0; }
+.emerg-name { font-size: 14px; font-weight: 700; }
+.emerg-role { font-size: 12px; color: var(--muted); }
+.emerg-phone {
+  margin-left: auto;
+  font-size: 15px; font-weight: 700; color: var(--blue);
+  text-decoration: none; letter-spacing: .3px;
+}
+.emerg-phone:hover { text-decoration: underline; }
+
+/* progress bar */
+.progress-wrap { margin-top: 14px; }
+.progress-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.progress-bar { height: 8px; background: var(--tan); border-radius: 99px; overflow: hidden; }
+.progress-fill {
+  height: 100%; background: var(--green); border-radius: 99px;
+  transition: width .4s ease;
+}
+
+/* notice box */
+.notice {
+  border-radius: 13px; padding: 14px 16px;
+  font-size: 14px; line-height: 1.5; margin-bottom: 8px;
+}
+.notice-amber { background: var(--amber-light); border: 1.5px solid #e8d09a; color: var(--amber); }
+.notice-red { background: var(--red-light); border: 1.5px solid #f0b8b8; color: var(--red); font-weight: 600; }
+
+/* ---- TABS ---- */
+.tab-bar {
+  display: flex; gap: 6px; margin-bottom: 20px;
+  background: var(--card); border: 1.5px solid var(--tan);
+  border-radius: var(--radius); padding: 6px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0;
+  border: none; background: none; border-radius: 12px;
+  padding: 9px 15px; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+  cursor: pointer; transition: background .15s, color .15s;
+  display: flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.tab:hover { background: var(--cream); color: var(--ink); }
+.tab.active { background: var(--accent); color: white; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ---- ANIMATIONS ---- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* stagger cards */
+.client-card:nth-child(1) { animation-delay: .05s; }
+.client-card:nth-child(2) { animation-delay: .1s; }
+.client-card:nth-child(3) { animation-delay: .15s; }
+.client-card:nth-child(4) { animation-delay: .2s; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <button class="back-btn" id="backBtn" onclick="goHome()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 3L5 8l5 5"/></svg>
+      Clients
+    </button>
+    <div class="logo" id="logoArea">
+      CareGuide <span id="clientSubtitle"></span>
+    </div>
+    <div class="date-chip" id="datechip"></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- HOME VIEW -->
+  <div id="homeView">
+    <div class="home-hero">
+      <h1>Good morning,<br><em>let's check in.</em></h1>
+      <p>Select a client below to view their shift guide, medications, and daily tasks.</p>
+    </div>
+    <div class="client-grid" id="clientGrid"></div>
+  </div>
+
+  <!-- CLIENT VIEW -->
+  <div id="clientView" class="hidden">
+    <div class="cv-header" id="cvHeader"></div>
+
+    <div class="shift-banner" id="shiftBanner">
+      <div class="shift-icon">☀️</div>
+      <div>
+        <h3>Morning Shift</h3>
+        <p id="shiftProgress">Loading tasks…</p>
+      </div>
+    </div>
+
+    <div class="tab-bar" id="tabBar">
+      <button class="tab active" onclick="switchTab('morning')" data-tab="morning">☀️ Morning</button>
+      <button class="tab" onclick="switchTab('meds')" data-tab="meds">💊 Meds</button>
+      <button class="tab" onclick="switchTab('behavior')" data-tab="behavior">🧠 Behavior</button>
+      <button class="tab" onclick="switchTab('evening')" data-tab="evening">🌙 Evening</button>
+      <button class="tab" onclick="switchTab('diet')" data-tab="diet">🍽 Diet</button>
+      <button class="tab" onclick="switchTab('emergency')" data-tab="emergency">🚨 Emergency</button>
+    </div>
+
+    <!-- Morning tab -->
+    <div class="tab-panel active" id="tab-morning">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon icon-amber">☀️</div>
+          <div>
+            <div class="section-title">Morning Routine</div>
+            <div class="section-count" id="morningCount"></div>
+          </div>
+        </div>
+        <div class="checklist" id="morningChecklist"></div>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>Progress</span>
+            <span id="morningPct">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="morningBar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meds tab -->
+    <div class="tab-panel" id="tab-meds">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon icon-blue">💊</div>
+          <div class="section-title">Morning Medications</div>
+        </div>
+        <div class="med-list" id="morningMeds"></div>
+      </div>
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon icon-purple">🌙</div>
+          <div class="section-title">Evening Medications</div>
+        </div>
+        <div class="med-list" id="eveningMeds"></div>
+      </div>
+      <div class="section" id="prnSection">
+        <div class="section-header">
+          <div class="section-icon icon-amber">⚡</div>
+          <div class="section-title">PRN / As-Needed</div>
+        </div>
+        <div class="med-list" id="prnMeds"></div>
+      </div>
+      <div class="section" id="sepSection">
+        <div class="section-header">
+          <div class="section-icon icon-teal">🔵</div>
+          <div class="section-title">Taken Separately</div>
+        </div>
+        <div class="med-list" id="sepMeds"></div>
+      </div>
+    </div>
+
+    <!-- Behavior tab -->
+    <div class="tab-panel" id="tab-behavior">
+      <div class="section" id="behaviorSection"></div>
+    </div>
+
+    <!-- Evening tab -->
+    <div class="tab-panel" id="tab-evening">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-icon icon-purple">🌙</div>
+          <div>
+            <div class="section-title">Evening & Bedtime Routine</div>
+            <div class="section-count" id="eveningCount"></div>
+          </div>
+        </div>
+        <div class="checklist" id="eveningChecklist"></div>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>Progress</span>
+            <span id="eveningPct">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="eveningBar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diet tab -->
+    <div class="tab-panel" id="tab-diet">
+      <div class="section" id="dietSection"></div>
+    </div>
+
+    <!-- Emergency tab -->
+    <div class="tab-panel" id="tab-emergency">
+      <div class="section" id="emergencySection"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// =============================================
+// DATA
+// =============================================
+const CLIENTS = [
+  {
+    id: "jonathan",
+    name: "Jonathan",
+    room: "Room 1",
+    tags: [{ label: "Cardiac", type: "red" }, { label: "Morning Meds", type: "blue" }, { label: "Probiotic", type: "green" }],
+    morningRoutine: [
+      { task: "Wake up & greet warmly", note: "Check mood and energy level" },
+      { task: "Assist with hygiene", note: "Brushing teeth, face wash, deodorant" },
+      { task: "Help get dressed", note: "He usually picks his own clothes" },
+      { task: "Prepare breakfast", note: "Eggs and muffin or bread" },
+      { task: "Administer morning medications", note: "See the Meds tab — give with food" },
+      { task: "Check blood pressure", note: "On lisinopril & propranolol — log reading" },
+      { task: "Encourage hydration", note: "At least one full glass of water with meds" },
+      { task: "Document morning notes", note: "Any changes in mood, appetite, or behavior" }
+    ],
+    eveningRoutine: [
+      { task: "Prepare light dinner", note: "Check dietary preferences" },
+      { task: "Assist with evening hygiene", note: "Handwashing, face wash, teeth" },
+      { task: "Administer evening meds", note: "See Meds tab (to be added)" },
+      { task: "Settle for the night", note: "Comfortable position, TV/music if preferred" },
+      { task: "Document end-of-shift notes", note: "Meals eaten, mood, any concerns" }
+    ],
+    meds: {
+      morning: [
+        { name: "Propranolol", detail: "Blood pressure / heart rate — give with food" },
+        { name: "Budesonide", detail: "Anti-inflammatory — follow form (inhaler/oral)" },
+        { name: "Acetaminophen", detail: "Pain/fever — do NOT double-dose with other products" },
+        { name: "Lisinopril", detail: "Blood pressure — watch for dizziness" },
+        { name: "Colestipol", detail: "Cholesterol — space apart from other meds per plan" },
+        { name: "Gabapentin", detail: "May cause drowsiness" },
+        { name: "Omeprazole", detail: "Stomach — take before meals" },
+        { name: "Probiotic", detail: "Supplement — give with breakfast" },
+        { name: "Vitamin", detail: "Supplement — give with breakfast" }
+      ],
+      evening: [],
+      prn: [],
+      separate: []
+    },
+    behavior: [
+      { type: "general", label: "Personality", text: "Generally cooperative and easy-going in the morning. Prefers a consistent routine." },
+      { type: "trigger", label: "Trigger", text: "Can become frustrated if rushed or if routine changes without warning. Give 5-minute heads-up before transitions." },
+      { type: "calming", label: "Calming Strategy", text: "Speak calmly and slowly. Giving him choices (e.g., 'Would you like eggs first or your meds?') helps him feel in control." }
+    ],
+    diet: [
+      { meal: "Breakfast", text: "Eggs and muffin or bread. He prefers warm food.", restrictions: [] },
+      { meal: "Lunch", text: "Check fridge for labeled items or ask preference.", restrictions: [] },
+      { meal: "Dinner", text: "Light meal preferred in the evening.", restrictions: [] }
+    ],
+    emergency: [
+      { name: "Dr. Smith (Primary Care)", role: "Primary Physician", phone: "555-000-0001", primary: false },
+      { name: "Agency On-Call", role: "Your supervisor — call first with any concerns", phone: "555-000-0002", primary: true },
+      { name: "Family Contact", role: "Next of kin", phone: "555-000-0003", primary: false }
+    ]
+  },
+  {
+    id: "tabatha",
+    name: "Tabatha",
+    room: "Room 2",
+    tags: [{ label: "Mental Health", type: "amber" }, { label: "PRN Meds", type: "amber" }, { label: "Routine Sensitive", type: "red" }],
+    morningRoutine: [
+      { task: "Gentle wake-up", note: "Knock first, give time to become alert — don't rush" },
+      { task: "Prepare coffee", note: "Cold coffee — half cocoa, rest milk. She is particular about this." },
+      { task: "Offer breakfast", note: "Muffin or cinnamon swirl — something sweet" },
+      { task: "Administer morning medications", note: "Clonazepam + Haloperidol — see Meds tab" },
+      { task: "Monitor after meds", note: "Watch for sedation — check in after 30 min" },
+      { task: "Offer morning activity", note: "Quiet options: TV, music, coloring, light walk" },
+      { task: "Document morning notes", note: "Mood, any behaviors, appetite" }
+    ],
+    eveningRoutine: [
+      { task: "Wind-down routine", note: "Dim lights, reduce stimulation by 7pm" },
+      { task: "Prepare evening snack", note: "Light, sweet preferred" },
+      { task: "Administer evening meds", note: "See Meds tab (to be added)" },
+      { task: "Assist with bedtime hygiene", note: "Gentle reminders, not directives" },
+      { task: "Document end-of-shift notes", note: "Mood, any PRN given, behavioral observations" }
+    ],
+    meds: {
+      morning: [
+        { name: "Clonazepam", detail: "Can cause significant sedation — monitor closely" },
+        { name: "Haloperidol", detail: "Antipsychotic — follow monitoring plan" }
+      ],
+      evening: [],
+      prn: [
+        { name: "PRN Medication", detail: "See official order for name and dose — only give as directed" }
+      ],
+      separate: []
+    },
+    behavior: [
+      { type: "general", label: "Personality", text: "Prefers a quiet, predictable morning. Small talk is welcome but keep it gentle and low-pressure." },
+      { type: "trigger", label: "Triggers", text: "Loud noises, unexpected changes to routine, and feeling rushed are common triggers. Avoid these whenever possible." },
+      { type: "trigger", label: "De-escalation Warning", text: "If she becomes agitated: step back, lower your voice, give space. Do NOT touch without permission. Call supervisor if escalation continues." },
+      { type: "calming", label: "Calming Strategy", text: "Offer her coffee and sit nearby without demanding interaction. Let her lead conversation. Quiet music may help." }
+    ],
+    diet: [
+      { meal: "Breakfast", text: "Cold coffee (half cocoa, half milk) — she is very specific about this. Muffin or cinnamon swirl.", restrictions: [] },
+      { meal: "Snacks", text: "Sweet snacks preferred throughout the day.", restrictions: [] }
+    ],
+    emergency: [
+      { name: "Agency On-Call", role: "Call first — including for any behavioral escalation", phone: "555-000-0002", primary: true },
+      { name: "Dr. Lee (Psychiatrist)", role: "Psychiatric care team", phone: "555-000-0004", primary: false },
+      { name: "Family Contact", role: "Next of kin", phone: "555-000-0005", primary: false }
+    ]
+  },
+  {
+    id: "justice",
+    name: "Justice",
+    room: "Room 3",
+    tags: [{ label: "Many Meds", type: "blue" }, { label: "Controlled Rx", type: "red" }, { label: "Fibromyalgia", type: "amber" }],
+    morningRoutine: [
+      { task: "Wake up & check comfort level", note: "Fibromyalgia — ask about pain on a scale of 1–10" },
+      { task: "Assist with hygiene if needed", note: "Pain may limit mobility some mornings" },
+      { task: "Prepare breakfast", note: "Cereal with milk" },
+      { task: "Administer morning medications", note: "Large med list — see Meds tab. Give with food." },
+      { task: "Buprenorphine — separately", note: "Must be given separately per protocol. See Meds tab." },
+      { task: "Encourage movement", note: "Gentle stretch or short walk if energy allows" },
+      { task: "Document morning notes", note: "Pain level, mobility, mood, appetite" }
+    ],
+    eveningRoutine: [
+      { task: "Check pain and fatigue levels", note: "Fibromyalgia symptoms may worsen by evening" },
+      { task: "Prepare dinner", note: "Check preference — comfortable meal" },
+      { task: "Administer evening meds", note: "See Meds tab (to be added)" },
+      { task: "Assist with hygiene", note: "May need more assistance in the evening" },
+      { task: "Settle comfortably for night", note: "Positioning may help with pain — ask preference" },
+      { task: "Document end-of-shift", note: "Pain levels throughout day, activity, mood" }
+    ],
+    meds: {
+      morning: [
+        { name: "Amphetamine/Dextroamphetamine", detail: "Controlled — follow storage and documentation rules exactly" },
+        { name: "Senna", detail: "Laxative supplement" },
+        { name: "Savella (Milnacipran)", detail: "Fibromyalgia — give with food" },
+        { name: "Lisinopril", detail: "Blood pressure — watch for dizziness" },
+        { name: "Aspirin", detail: "Note any bleeding-related instructions" },
+        { name: "Vitamin D3 (1000 IU)", detail: "Supplement — with food" },
+        { name: "Hydroxyzine Pamoate", detail: "Can cause sedation — monitor" },
+        { name: "Topiramate", detail: "Follow the plan" },
+        { name: "Methocarbamol", detail: "Muscle relaxant — may cause drowsiness" },
+        { name: "Vitamin", detail: "Supplement — with breakfast" }
+      ],
+      evening: [],
+      prn: [],
+      separate: [
+        { name: "Buprenorphine", detail: "Controlled medication — strict handling rules. Follow official instructions exactly. Given separately from other morning meds." }
+      ]
+    },
+    behavior: [
+      { type: "general", label: "Personality", text: "Generally positive but pain can affect mood. Validate her experience — fibromyalgia pain is real and variable day to day." },
+      { type: "trigger", label: "Pain Trigger", text: "Pushing her to do more than she feels able to is a common source of frustration. Always ask before assisting physically." },
+      { type: "calming", label: "Support Strategy", text: "Acknowledge pain without minimizing it. Offer gentle options: 'Would you like to try a short walk, or would you rather rest today?'" }
+    ],
+    diet: [
+      { meal: "Breakfast", text: "Cereal with milk.", restrictions: [] },
+      { meal: "General", text: "Ensure adequate hydration throughout the day — important with her medication list.", restrictions: [] }
+    ],
+    emergency: [
+      { name: "Agency On-Call", role: "Call first with any medication concerns", phone: "555-000-0002", primary: true },
+      { name: "Dr. Clark (Primary Care)", role: "Primary physician", phone: "555-000-0006", primary: false },
+      { name: "Family Contact", role: "Next of kin", phone: "555-000-0007", primary: false }
+    ]
+  },
+  {
+    id: "michael",
+    name: "Michael",
+    room: "Room 4",
+    tags: [{ label: "Smoking Cessation", type: "green" }, { label: "Mental Health", type: "amber" }],
+    morningRoutine: [
+      { task: "Morning greeting", note: "Check in on how he slept and current mood" },
+      { task: "Assist with hygiene", note: "Brushing teeth, wash face, deodorant" },
+      { task: "Help with breakfast", note: "Preference not fully established yet — ask him" },
+      { task: "Administer morning medications", note: "See Meds tab — give with food" },
+      { task: "Monitor for sedation", note: "Olanzapine can cause drowsiness — don't rush morning" },
+      { task: "Encourage light activity", note: "Sitting outside, TV, casual conversation" },
+      { task: "Document morning notes", note: "Mood, sleep quality, appetite, any side effects reported" }
+    ],
+    eveningRoutine: [
+      { task: "Dinner prep", note: "Ask preference — still learning his likes" },
+      { task: "Administer evening meds", note: "See Meds tab (to be added)" },
+      { task: "Wind-down support", note: "Olanzapine timing may make him drowsy in the evening" },
+      { task: "Bedtime hygiene", note: "Teeth, wash up" },
+      { task: "Document end-of-shift", note: "Mood, cravings mentioned (smoking cessation), sleep" }
+    ],
+    meds: {
+      morning: [
+        { name: "Bupropion", detail: "Antidepressant / smoking cessation — take with food" },
+        { name: "Hydroxyzine", detail: "Anxiety — can cause sedation" },
+        { name: "Varenicline", detail: "Smoking cessation — take with full glass of water and food" },
+        { name: "Olanzapine", detail: "Can cause significant sedation and drowsiness — monitor" }
+      ],
+      evening: [],
+      prn: [],
+      separate: []
+    },
+    behavior: [
+      { type: "general", label: "Personality", text: "Still getting settled. Be patient and welcoming — building trust is the priority right now." },
+      { type: "trigger", label: "Smoking Cravings", text: "He is on smoking cessation medications. Cravings may cause irritability or restlessness. Acknowledge without judgment." },
+      { type: "calming", label: "Support Strategy", text: "Distraction and light conversation help with cravings. Outdoor time, a walk, or a drink of water can redirect effectively." },
+      { type: "general", label: "Medication Note", text: "Olanzapine may cause him to sleep later in the morning. Do not rush wake-up — allow natural timing within the care schedule." }
+    ],
+    diet: [
+      { meal: "General", text: "Food preferences not fully established yet. Ask Michael what he'd like when possible.", restrictions: [] },
+      { meal: "Medication note", text: "Varenicline and bupropion must be taken with food — ensure a meal or snack is ready before morning meds.", restrictions: [] }
+    ],
+    emergency: [
+      { name: "Agency On-Call", role: "Call first with any concerns", phone: "555-000-0002", primary: true },
+      { name: "Dr. Nguyen (Primary Care)", role: "Primary physician", phone: "555-000-0008", primary: false },
+      { name: "Family Contact", role: "Next of kin", phone: "555-000-0009", primary: false }
+    ]
+  }
+];
+
+// =============================================
+// STATE
+// =============================================
+let activeClient = null;
+const checkState = {}; // { clientId_slot_index: bool }
+
+function getKey(clientId, slot, index) {
+  return `${clientId}_${slot}_${index}`;
+}
+
+// =============================================
+// INIT
+// =============================================
+function init() {
+  // Date chip
+  const now = new Date();
+  const opts = { weekday: 'short', month: 'short', day: 'numeric' };
+  document.getElementById('datechip').textContent = now.toLocaleDateString('en-US', opts);
+
+  // Update hero greeting
+  const h = now.getHours();
+  const hero = document.querySelector('.home-hero h1');
+  if (hero) {
+    if (h < 12) hero.innerHTML = 'Good morning,<br><em>let\'s check in.</em>';
+    else if (h < 17) hero.innerHTML = 'Good afternoon,<br><em>let\'s check in.</em>';
+    else hero.innerHTML = 'Good evening,<br><em>let\'s check in.</em>';
+  }
+
+  renderClientGrid();
+}
+
+// =============================================
+// HOME
+// =============================================
+function renderClientGrid() {
+  const grid = document.getElementById('clientGrid');
+  grid.innerHTML = '';
+  CLIENTS.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'client-card';
+    div.onclick = () => openClient(c.id);
+
+    const initials = c.name.split(' ').map(w => w[0]).join('').slice(0, 2);
+    const tagsHtml = c.tags.map(t =>
+      `<span class="tag tag-${t.type}">${t.label}</span>`
+    ).join('');
+
+    div.innerHTML = `
+      <div class="initials">${initials}</div>
+      <h2>${c.name}</h2>
+      <div class="room">${c.room}</div>
+      <div class="tags">${tagsHtml}</div>
+      <div class="card-arrow">→</div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// =============================================
+// CLIENT VIEW
+// =============================================
+function openClient(id) {
+  activeClient = CLIENTS.find(c => c.id === id);
+  if (!activeClient) return;
+
+  document.getElementById('homeView').classList.add('hidden');
+  document.getElementById('clientView').classList.remove('hidden');
+  document.getElementById('backBtn').style.display = 'flex';
+  document.getElementById('clientSubtitle').textContent = '— ' + activeClient.name;
+
+  renderClientHeader();
+  renderMorningTab();
+  renderMedsTab();
+  renderBehaviorTab();
+  renderEveningTab();
+  renderDietTab();
+  renderEmergencyTab();
+  switchTab('morning');
+  window.scrollTo(0, 0);
+}
+
+function goHome() {
+  activeClient = null;
+  document.getElementById('homeView').classList.remove('hidden');
+  document.getElementById('clientView').classList.add('hidden');
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('clientSubtitle').textContent = '';
+}
+
+function renderClientHeader() {
+  const c = activeClient;
+  const initials = c.name.split(' ').map(w => w[0]).join('').slice(0, 2);
+  const tagsHtml = c.tags.map(t =>
+    `<span class="tag tag-${t.type}">${t.label}</span>`
+  ).join('');
+  document.getElementById('cvHeader').innerHTML = `
+    <div class="cv-avatar">${initials}</div>
+    <div>
+      <div class="cv-name">${c.name}</div>
+      <div class="cv-meta">${c.room} · Personal shift reference</div>
+      <div class="cv-tags">${tagsHtml}</div>
+    </div>
+  `;
+}
+
+// =============================================
+// CHECKLIST
+// =============================================
+function renderChecklist(containerId, items, slot, countId, pctId, barId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  if (!items || !items.length) {
+    container.innerHTML = '<div class="notice notice-amber">No tasks added yet.</div>';
+    return;
+  }
+
+  items.forEach((item, i) => {
+    const key = getKey(activeClient.id, slot, i);
+    const done = !!checkState[key];
+    const div = document.createElement('div');
+    div.className = 'check-item' + (done ? ' done' : '');
+    div.onclick = () => toggleCheck(key, div, containerId, slot, countId, pctId, barId);
+    div.innerHTML = `
+      <div class="check-box">
+        <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+          <path d="M1 5l3.5 3.5L11 1" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="check-label">
+        <strong>${item.task}</strong>
+        ${item.note ? `<div class="check-note">${item.note}</div>` : ''}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  updateProgress(slot, items.length, countId, pctId, barId);
+}
+
+function toggleCheck(key, el, containerId, slot, countId, pctId, barId) {
+  checkState[key] = !checkState[key];
+  el.classList.toggle('done', checkState[key]);
+  const items = slot === 'morning' ? activeClient.morningRoutine : activeClient.eveningRoutine;
+  updateProgress(slot, items.length, countId, pctId, barId);
+  updateShiftBanner();
+}
+
+function updateProgress(slot, total, countId, pctId, barId) {
+  if (!activeClient) return;
+  const items = slot === 'morning' ? activeClient.morningRoutine : activeClient.eveningRoutine;
+  const done = items.filter((_, i) => !!checkState[getKey(activeClient.id, slot, i)]).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  if (countId) document.getElementById(countId).textContent = `${done} of ${total} completed`;
+  if (pctId) document.getElementById(pctId).textContent = pct + '%';
+  if (barId) document.getElementById(barId).style.width = pct + '%';
+}
+
+function updateShiftBanner() {
+  if (!activeClient) return;
+  const total = activeClient.morningRoutine.length;
+  const done = activeClient.morningRoutine.filter((_, i) =>
+    !!checkState[getKey(activeClient.id, 'morning', i)]
+  ).length;
+  const p = document.getElementById('shiftProgress');
+  if (done === total) {
+    p.textContent = `All ${total} morning tasks complete ✓`;
+  } else {
+    p.textContent = `${done} of ${total} morning tasks complete`;
+  }
+}
+
+// =============================================
+// TABS
+// =============================================
+function renderMorningTab() {
+  renderChecklist('morningChecklist', activeClient.morningRoutine, 'morning', 'morningCount', 'morningPct', 'morningBar');
+  updateShiftBanner();
+}
+
+function renderEveningTab() {
+  renderChecklist('eveningChecklist', activeClient.eveningRoutine, 'evening', 'eveningCount', 'eveningPct', 'eveningBar');
+}
+
+function renderMedsTab() {
+  renderMedList('morningMeds', activeClient.meds.morning, 'morning');
+  renderMedList('eveningMeds', activeClient.meds.evening, 'evening');
+  renderMedList('prnMeds', activeClient.meds.prn, 'prn');
+  renderMedList('sepMeds', activeClient.meds.separate, 'sep');
+  document.getElementById('prnSection').style.display = activeClient.meds.prn.length ? 'block' : 'none';
+  document.getElementById('sepSection').style.display = activeClient.meds.separate.length ? 'block' : 'none';
+}
+
+function renderMedList(containerId, list, slot) {
+  const el = document.getElementById(containerId);
+  if (!list || !list.length) {
+    el.innerHTML = '<div class="notice notice-amber">None listed for this time.</div>';
+    return;
+  }
+  el.innerHTML = '';
+  list.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'med-card';
+    const badgeMap = { prn: 'prn', sep: 'sep', morning: '', evening: '' };
+    const badgeTxt = { prn: 'PRN', sep: 'Separate', morning: 'Morning', evening: 'Evening' };
+    div.innerHTML = `
+      <div class="med-dot"></div>
+      <div>
+        <div class="med-name">${m.name}</div>
+        <div class="med-detail">${m.detail}</div>
+      </div>
+      <div class="med-badge ${badgeMap[slot]}">${badgeTxt[slot]}</div>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function renderBehaviorTab() {
+  const el = document.getElementById('behaviorSection');
+  el.innerHTML = `
+    <div class="section-header">
+      <div class="section-icon icon-amber">🧠</div>
+      <div class="section-title">Behavior & Communication</div>
+    </div>
+  `;
+  if (!activeClient.behavior.length) {
+    el.innerHTML += '<div class="notice notice-amber">No behavior notes added yet.</div>';
+    return;
+  }
+  const list = document.createElement('div');
+  list.className = 'behavior-list';
+  activeClient.behavior.forEach(b => {
+    const div = document.createElement('div');
+    div.className = `behavior-card ${b.type}`;
+    div.innerHTML = `
+      <div class="behavior-label">${b.label}</div>
+      <div class="behavior-text">${b.text}</div>
+    `;
+    list.appendChild(div);
+  });
+  el.appendChild(list);
+}
+
+function renderDietTab() {
+  const el = document.getElementById('dietSection');
+  el.innerHTML = `
+    <div class="section-header">
+      <div class="section-icon icon-green">🍽</div>
+      <div class="section-title">Dietary Needs & Meals</div>
+    </div>
+  `;
+  if (!activeClient.diet.length) {
+    el.innerHTML += '<div class="notice notice-amber">No dietary info added yet.</div>';
+    return;
+  }
+  activeClient.diet.forEach(d => {
+    const div = document.createElement('div');
+    div.className = 'diet-card';
+    const restrictions = (d.restrictions || []).map(r => `<span class="diet-restriction">⚠ ${r}</span>`).join('');
+    div.innerHTML = `
+      <div class="diet-meal">${d.meal}</div>
+      <div class="diet-text">${d.text}</div>
+      ${restrictions}
+    `;
+    el.appendChild(div);
+  });
+}
+
+function renderEmergencyTab() {
+  const el = document.getElementById('emergencySection');
+  el.innerHTML = `
+    <div class="section-header">
+      <div class="section-icon icon-red">🚨</div>
+      <div class="section-title">Emergency Contacts</div>
+    </div>
+    <div class="notice notice-red" style="margin-bottom:12px;">
+      If there is immediate danger or a medical emergency — call 911 first.
+    </div>
+  `;
+  const list = document.createElement('div');
+  list.className = 'emerg-list';
+  activeClient.emergency.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'emerg-card' + (e.primary ? ' primary' : '');
+    div.innerHTML = `
+      <div class="emerg-icon">${e.primary ? '⭐' : '👤'}</div>
+      <div>
+        <div class="emerg-name">${e.name}</div>
+        <div class="emerg-role">${e.role}</div>
+      </div>
+      <a href="tel:${e.phone}" class="emerg-phone">${e.phone}</a>
+    `;
+    list.appendChild(div);
+  });
+  el.appendChild(list);
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+
+init();
+</script>
+</body>
+</html>
