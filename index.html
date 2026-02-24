@@ -1,0 +1,1658 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CareGuide</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #f8f7f4;
+  --surface: #ffffff;
+  --surface2: #f3f2ef;
+  --surface3: #eceae5;
+  --border: #e4e2dd;
+  --border2: #d4d1ca;
+  --ink: #1a1916;
+  --ink2: #2e2c28;
+  --muted: #7a7670;
+  --muted2: #a8a49e;
+  --accent: #1e6b4a;
+  --accent2: #2a8f62;
+  --accent-light: #e8f5ef;
+  --accent-border: #b8deca;
+  --red: #c0392b;
+  --red-light: #fdf2f1;
+  --red-border: #f0c4bf;
+  --amber: #b7651a;
+  --amber-light: #fdf6ed;
+  --amber-border: #f0d9b8;
+  --blue: #1a4e8a;
+  --blue-light: #edf3fc;
+  --blue-border: #b8cef0;
+  --purple: #6d3fa0;
+  --purple-light: #f3edfb;
+  --purple-border: #d4b8f0;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 4px rgba(26,25,22,.06), 0 4px 16px rgba(26,25,22,.06);
+  --shadow-lg: 0 8px 40px rgba(26,25,22,.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+.mono { font-family: 'Geist Mono', monospace; }
+.serif { font-family: 'Instrument Serif', serif; }
+.hidden { display: none !important; }
+
+/* ── LOGIN ── */
+#loginView {
+  min-height: 100vh;
+  display: flex;
+  background: var(--ink);
+  position: relative;
+  overflow: hidden;
+}
+.login-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, #1e3a2a 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, #0f2a1e 0%, transparent 50%),
+              var(--ink);
+}
+.login-bg-grid {
+  position: absolute; inset: 0; opacity: .04;
+  background-image: linear-gradient(var(--accent) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--accent) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.login-left {
+  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  padding: 60px; position: relative; z-index: 2;
+}
+.login-brand {
+  font-family: 'Instrument Serif', serif;
+  font-size: 48px; color: #ffffff; line-height: 1.1;
+  margin-bottom: 16px;
+}
+.login-brand span { color: var(--accent2); font-style: italic; }
+.login-tagline { color: #8a9e94; font-size: 16px; line-height: 1.6; max-width: 380px; }
+.login-features { margin-top: 48px; display: flex; flex-direction: column; gap: 16px; }
+.login-feature { display: flex; align-items: center; gap: 12px; color: #8a9e94; font-size: 14px; }
+.login-feature-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; }
+.login-right {
+  width: 460px; display: flex; align-items: center; justify-content: center;
+  padding: 40px; position: relative; z-index: 2;
+  background: rgba(255,255,255,.03); border-left: 1px solid rgba(255,255,255,.06);
+  backdrop-filter: blur(20px);
+}
+.login-card {
+  width: 100%; background: var(--surface);
+  border-radius: 20px; padding: 40px;
+  box-shadow: var(--shadow-lg);
+}
+.login-card-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.login-card-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.form-input {
+  width: 100%; padding: 11px 14px;
+  background: var(--surface2); border: 1.5px solid var(--border2);
+  border-radius: var(--radius-sm); font-family: 'Geist', sans-serif;
+  font-size: 14px; color: var(--ink); transition: border-color .15s, box-shadow .15s;
+}
+.form-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(30,107,74,.1); }
+.form-textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+.form-select { appearance: none; cursor: pointer; }
+.form-hint { font-size: 12px; color: var(--muted2); margin-top: 4px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid transparent; transition: all .15s;
+  white-space: nowrap; text-decoration: none;
+}
+.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn-full { width: 100%; }
+.btn-ghost { background: transparent; color: var(--muted); border-color: var(--border2); }
+.btn-ghost:hover { background: var(--surface2); color: var(--ink); }
+.btn-danger { background: transparent; color: var(--red); border-color: var(--red-border); }
+.btn-danger:hover { background: var(--red-light); }
+.btn-sm { padding: 7px 12px; font-size: 12px; }
+.btn-icon { padding: 7px; border-radius: var(--radius-sm); background: var(--surface2); border: 1.5px solid var(--border); color: var(--muted); cursor: pointer; font-size: 13px; transition: all .15s; }
+.btn-icon:hover { background: var(--surface3); color: var(--ink); }
+.login-err { background: var(--red-light); border: 1.5px solid var(--red-border); border-radius: var(--radius-sm); padding: 10px 13px; font-size: 13px; color: var(--red); margin-bottom: 16px; display: none; }
+.login-err.show { display: block; }
+
+/* ── APP SHELL ── */
+#appView { display: none; min-height: 100vh; }
+.shell { display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 230px; min-height: 100vh; background: var(--ink);
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 50;
+}
+.sidebar-brand {
+  padding: 20px; border-bottom: 1px solid rgba(255,255,255,.07);
+  font-family: 'Instrument Serif', serif; font-size: 22px; color: white;
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-brand em { color: var(--accent2); font-style: italic; }
+.sidebar-user {
+  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.07);
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--accent); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.sidebar-user-info { flex: 1; min-width: 0; }
+.sidebar-user-name { font-size: 13px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user-role { font-size: 11px; color: #6a7a6f; text-transform: uppercase; letter-spacing: .5px; }
+.sidebar-nav { padding: 10px 10px; flex: 1; }
+.sidebar-section { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #4a5a50; padding: 10px 8px 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 10px; border-radius: 8px; margin-bottom: 1px;
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  color: #8a9e94; border: none; background: none;
+  width: 100%; text-align: left; transition: all .15s;
+  position: relative;
+}
+.nav-item:hover { background: rgba(255,255,255,.05); color: white; }
+.nav-item.active { background: rgba(30,107,74,.3); color: #6dd8a0; }
+.nav-item .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+.nav-badge {
+  margin-left: auto; background: var(--red); color: white;
+  font-size: 10px; font-weight: 700; padding: 2px 6px;
+  border-radius: 99px; font-family: 'Geist Mono', monospace;
+}
+.sidebar-footer {
+  padding: 14px 16px; border-top: 1px solid rgba(255,255,255,.07);
+}
+.sidebar-footer button {
+  width: 100%; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 8px; padding: 9px; color: #8a9e94; font-family: 'Geist', sans-serif;
+  font-size: 13px; cursor: pointer; transition: all .15s;
+}
+.sidebar-footer button:hover { background: rgba(255,255,255,.1); color: white; }
+
+/* ── MAIN ── */
+.main { margin-left: 230px; flex: 1; display: flex; flex-direction: column; }
+.topbar {
+  background: var(--surface); border-bottom: 1.5px solid var(--border);
+  padding: 0 28px; height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 40;
+}
+.topbar-title { font-size: 15px; font-weight: 700; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.content { padding: 28px; flex: 1; }
+.page { animation: fadeUp .3s ease both; }
+
+/* ── ANNOUNCEMENT BANNER ── */
+.announcement-banner {
+  background: linear-gradient(135deg, var(--accent) 0%, #155234 100%);
+  color: white; border-radius: var(--radius);
+  padding: 18px 22px; margin-bottom: 22px;
+  display: flex; align-items: flex-start; gap: 16px;
+  cursor: pointer; transition: opacity .15s;
+}
+.announcement-banner:hover { opacity: .95; }
+.ann-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+.ann-content { flex: 1; }
+.ann-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.ann-items { font-size: 13px; opacity: .85; line-height: 1.6; }
+.ann-dismiss { flex-shrink: 0; background: rgba(255,255,255,.15); border: none; color: white; border-radius: 8px; padding: 6px 12px; font-family: 'Geist', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
+.ann-dismiss:hover { background: rgba(255,255,255,.25); }
+
+/* ── CARDS ── */
+.card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.card-header { padding: 16px 20px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 14px; font-weight: 700; }
+.card-body { padding: 20px; }
+
+/* ── STATS ── */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 20px; position: relative; overflow: hidden; }
+.stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-card.green::after { background: var(--accent); }
+.stat-card.amber::after { background: var(--amber); }
+.stat-card.blue::after { background: var(--blue); }
+.stat-card.red::after { background: var(--red); }
+.stat-num { font-family: 'Geist Mono', monospace; font-size: 36px; font-weight: 500; line-height: 1; }
+.stat-card.green .stat-num { color: var(--accent); }
+.stat-card.amber .stat-num { color: var(--amber); }
+.stat-card.blue .stat-num { color: var(--blue); }
+.stat-card.red .stat-num { color: var(--red); }
+.stat-label { font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted2); border-bottom: 1.5px solid var(--border); white-space: nowrap; }
+td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.td-actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+/* ── BADGES ── */
+.badge { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: .3px; border: 1.5px solid; }
+.badge-green { background: var(--accent-light); color: var(--accent); border-color: var(--accent-border); }
+.badge-red { background: var(--red-light); color: var(--red); border-color: var(--red-border); }
+.badge-amber { background: var(--amber-light); color: var(--amber); border-color: var(--amber-border); }
+.badge-blue { background: var(--blue-light); color: var(--blue); border-color: var(--blue-border); }
+.badge-purple { background: var(--purple-light); color: var(--purple); border-color: var(--purple-border); }
+.badge-gray { background: var(--surface2); color: var(--muted); border-color: var(--border2); }
+
+/* ── MODAL ── */
+.modal-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(26,25,22,.5); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp .22s ease both; }
+.modal-header { padding: 20px 24px 16px; border-bottom: 1.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--surface); z-index: 5; }
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1.5px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; position: sticky; bottom: 0; background: var(--surface); }
+.close-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+.close-btn:hover { background: var(--surface2); color: var(--ink); }
+
+/* ── FORM ── */
+.form-grid { display: grid; gap: 14px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* ── CHECKLIST ── */
+.checklist { display: flex; flex-direction: column; gap: 8px; }
+.check-item { background: var(--surface); border: 1.5px solid var(--border); border-radius: 11px; padding: 13px 15px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: all .15s; user-select: none; }
+.check-item:hover { border-color: var(--border2); background: var(--surface2); }
+.check-item.done { background: var(--accent-light); border-color: var(--accent-border); }
+.check-box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border2); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.check-item.done .check-box { background: var(--accent); border-color: var(--accent); }
+.checkmark { display: none; color: white; font-size: 11px; font-weight: 700; }
+.check-item.done .checkmark { display: block; }
+.check-label strong { font-size: 14px; font-weight: 600; display: block; }
+.check-label .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.check-item.done .check-label strong { text-decoration: line-through; opacity: .5; }
+
+/* ── PROGRESS ── */
+.progress-wrap { margin-top: 14px; }
+.progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.progress-bar { height: 6px; background: var(--surface3); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
+
+/* ── CAREGIVER CARDS ── */
+.cg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.cg-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 18px; }
+.cg-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.cg-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+.cg-name { font-weight: 700; font-size: 15px; }
+.cg-role { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.cg-progress-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.cg-pct { font-family: 'Geist Mono', monospace; font-weight: 700; color: var(--accent); }
+
+/* ── TABS ── */
+.tab-bar { display: flex; gap: 4px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 4px; width: fit-content; margin-bottom: 20px; }
+.tab { padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; border: none; background: none; font-family: 'Geist', sans-serif; transition: all .15s; }
+.tab:hover { color: var(--ink); background: var(--surface3); }
+.tab.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+/* ── BREADCRUMB ── */
+.breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; color: var(--muted); }
+.breadcrumb a { color: var(--accent); cursor: pointer; }
+.breadcrumb a:hover { text-decoration: underline; }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty-icon { font-size: 32px; margin-bottom: 10px; }
+.empty-title { font-size: 15px; font-weight: 600; color: var(--ink2); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; }
+
+/* ── NOTICE ── */
+.notice { border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; line-height: 1.5; display: flex; gap: 10px; margin-bottom: 16px; }
+.notice-green { background: var(--accent-light); border: 1.5px solid var(--accent-border); color: var(--accent); }
+.notice-amber { background: var(--amber-light); border: 1.5px solid var(--amber-border); color: var(--amber); }
+.notice-red { background: var(--red-light); border: 1.5px solid var(--red-border); color: var(--red); font-weight: 600; }
+.notice-blue { background: var(--blue-light); border: 1.5px solid var(--blue-border); color: var(--blue); }
+
+/* ── LIST ITEMS ── */
+.list-item { display: flex; align-items: flex-start; gap: 10px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; }
+.list-item + .list-item { margin-top: 6px; }
+.list-item-body { flex: 1; min-width: 0; }
+.list-item-title { font-size: 13px; font-weight: 600; }
+.list-item-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.list-del { background: none; border: none; color: var(--muted2); cursor: pointer; font-size: 15px; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.list-del:hover { color: var(--red); background: var(--red-light); }
+
+/* ── SECTION HEADERS ── */
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-title { font-size: 13px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+
+/* ── BEHAVIOR CARDS ── */
+.behavior-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 13px 15px; border-left: 4px solid var(--border2); margin-bottom: 8px; }
+.behavior-card.trigger { border-left-color: var(--red); }
+.behavior-card.calming { border-left-color: var(--accent); }
+.behavior-card.general { border-left-color: var(--blue); }
+.behavior-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 4px; }
+.behavior-text { font-size: 13px; line-height: 1.55; }
+
+/* ── MED ITEM ── */
+.med-item { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 13px 15px; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.med-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 5px; }
+.med-name { font-size: 13px; font-weight: 700; }
+.med-detail { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.med-warn { font-size: 12px; color: var(--red); margin-top: 2px; }
+
+/* ── EMERG ── */
+.emerg-item { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 13px 15px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.emerg-item.primary { border-color: var(--red-border); background: var(--red-light); }
+.emerg-name { font-size: 13px; font-weight: 700; }
+.emerg-role { font-size: 12px; color: var(--muted); }
+.emerg-phone { margin-left: auto; font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 600; color: var(--blue); text-decoration: none; }
+.emerg-phone:hover { text-decoration: underline; }
+
+/* ── LOADING ── */
+.spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+.loading-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: var(--bg); }
+.loading-screen .logo-text { font-family: 'Instrument Serif', serif; font-size: 28px; color: var(--accent); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .login-left { display: none; }
+  .login-right { width: 100%; border-left: none; }
+  .sidebar { width: 200px; }
+  .main { margin-left: 200px; }
+  .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loadingScreen" class="loading-screen">
+  <div class="logo-text">CareGuide</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginView" class="hidden">
+  <div class="login-bg"></div>
+  <div class="login-bg-grid"></div>
+  <div class="login-left">
+    <div class="login-brand">Care<span>Guide</span></div>
+    <div class="login-tagline">The complete shift management platform for home care agencies. Built for every role.</div>
+    <div class="login-features">
+      <div class="login-feature"><div class="login-feature-dot"></div>Role-based access — admin, supervisor, caregiver</div>
+      <div class="login-feature"><div class="login-feature-dot"></div>Live task tracking with shift completion reports</div>
+      <div class="login-feature"><div class="login-feature-dot"></div>Instant announcements when care plans change</div>
+      <div class="login-feature"><div class="login-feature-dot"></div>Medication schedules, behavior notes, emergency contacts</div>
+    </div>
+  </div>
+  <div class="login-right">
+    <div class="login-card">
+      <div class="login-card-title">Sign in to CareGuide</div>
+      <div class="login-card-sub">Enter your credentials to access your dashboard.</div>
+      <div class="login-err" id="loginErr"></div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="signIn()" id="loginBtn" style="margin-top:8px;">
+        Sign In
+      </button>
+      <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted2);">
+        Need access? Contact your administrator.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNUP (hidden by default) -->
+<div id="signupView" class="hidden" style="position:fixed;inset:0;background:rgba(26,25,22,.6);backdrop-filter:blur(6px);z-index:300;display:none;align-items:center;justify-content:center;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Request Access</div>
+      <button class="close-btn" onclick="hideSignup()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="notice notice-blue" style="margin-bottom:16px;">ℹ️ After signing up, an admin must assign you to a house before you can access client data.</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-input" id="su-name" placeholder="Your full name"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="su-email" placeholder="you@example.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" id="su-pass" placeholder="Min 6 characters"/>
+        </div>
+      </div>
+      <div class="login-err" id="signupErr" style="margin-top:12px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="hideSignup()">Cancel</button>
+      <button class="btn btn-primary" onclick="signUp()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appView" class="hidden">
+  <div class="shell">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-brand">Care<em>Guide</em></div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarName">Loading…</div>
+          <div class="sidebar-user-role" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <div class="sidebar-nav" id="sidebarNav"></div>
+      <div class="sidebar-footer">
+        <button onclick="signOut()">← Sign Out</button>
+      </div>
+    </nav>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div class="topbar-actions" id="topbarActions"></div>
+      </div>
+      <div class="content" id="mainContent">
+        <div class="empty"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- House Modal -->
+<div class="modal-overlay" id="houseModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="houseMT">Add House</div><button class="close-btn" onclick="closeModal('houseModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">House Name *</label><input class="form-input" id="hf-name" placeholder="e.g. Maple Street House"/></div>
+        <div class="form-group"><label class="form-label">Address</label><input class="form-input" id="hf-address" placeholder="123 Maple St, City, State"/></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Manager Name</label><input class="form-input" id="hf-manager" placeholder="Full name"/></div>
+          <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="hf-phone" placeholder="555-000-0000"/></div>
+        </div>
+        <div class="form-group"><label class="form-label">Notes for Caregivers</label><textarea class="form-input form-textarea" id="hf-notes" placeholder="Any house-level notes…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('houseModal')">Cancel</button><button class="btn btn-primary" onclick="saveHouse()">Save House</button></div>
+  </div>
+</div>
+
+<!-- Client Modal -->
+<div class="modal-overlay" id="clientModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="clientMT">Add Client</div><button class="close-btn" onclick="closeModal('clientModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="cf-first" placeholder="First"/></div>
+          <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="cf-last" placeholder="Last"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Room / Unit</label><input class="form-input" id="cf-room" placeholder="Room 1"/></div>
+          <div class="form-group"><label class="form-label">House *</label><select class="form-input form-select" id="cf-house"></select></div>
+        </div>
+        <div class="form-group"><label class="form-label">Tags <span style="color:var(--muted2);font-weight:400;">(comma separated)</span></label><input class="form-input" id="cf-tags" placeholder="e.g. Cardiac, Morning Meds"/></div>
+        <div class="form-group"><label class="form-label">General Notes</label><textarea class="form-input form-textarea" id="cf-notes" placeholder="General caregiver notes…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('clientModal')">Cancel</button><button class="btn btn-primary" onclick="saveClient()">Save Client</button></div>
+  </div>
+</div>
+
+<!-- Medication Modal -->
+<div class="modal-overlay" id="medModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="medMT">Add Medication</div><button class="close-btn" onclick="closeModal('medModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Medication Name *</label><input class="form-input" id="mf-name" placeholder="e.g. Lisinopril"/></div>
+          <div class="form-group"><label class="form-label">Dose</label><input class="form-input" id="mf-dose" placeholder="e.g. 10mg"/></div>
+        </div>
+        <div class="form-group"><label class="form-label">Schedule</label>
+          <select class="form-input form-select" id="mf-schedule">
+            <option value="morning">Morning</option>
+            <option value="evening">Evening</option>
+            <option value="prn">PRN / As-Needed</option>
+            <option value="separate">Taken Separately</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Instructions for Caregiver</label><textarea class="form-input form-textarea" id="mf-instructions" placeholder="e.g. Give with food. Watch for dizziness."></textarea></div>
+        <div class="form-group"><label class="form-label">⚠ Warnings / Alerts</label><textarea class="form-input form-textarea" id="mf-warnings" placeholder="e.g. Controlled substance — log in med book."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('medModal')">Cancel</button><button class="btn btn-primary" onclick="saveMed()">Save Medication</button></div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="taskMT">Add Task</div><button class="close-btn" onclick="closeModal('taskModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Task *</label><input class="form-input" id="tf-task" placeholder="e.g. Assist with hygiene"/></div>
+        <div class="form-group"><label class="form-label">Note / Detail</label><textarea class="form-input form-textarea" id="tf-note" placeholder="e.g. Brushing teeth, face wash, deodorant"></textarea></div>
+        <div class="form-group"><label class="form-label">Shift</label>
+          <select class="form-input form-select" id="tf-shift">
+            <option value="morning">Morning</option>
+            <option value="evening">Evening / Bedtime</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('taskModal')">Cancel</button><button class="btn btn-primary" onclick="saveTask()">Save Task</button></div>
+  </div>
+</div>
+
+<!-- Behavior Modal -->
+<div class="modal-overlay" id="behaviorModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="behaviorMT">Add Behavior Note</div><button class="close-btn" onclick="closeModal('behaviorModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Type</label>
+          <select class="form-input form-select" id="bf-type">
+            <option value="general">General / Personality</option>
+            <option value="trigger">Trigger / Warning</option>
+            <option value="calming">Calming Strategy</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Label</label><input class="form-input" id="bf-label" placeholder="e.g. Morning Triggers"/></div>
+        <div class="form-group"><label class="form-label">Description *</label><textarea class="form-input form-textarea" id="bf-text" placeholder="Plain language description for a new caregiver…" style="min-height:100px;"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('behaviorModal')">Cancel</button><button class="btn btn-primary" onclick="saveBehavior()">Save Note</button></div>
+  </div>
+</div>
+
+<!-- Emergency Modal -->
+<div class="modal-overlay" id="emergModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="emergMT">Add Emergency Contact</div><button class="close-btn" onclick="closeModal('emergModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="ef-name" placeholder="e.g. Dr. Smith"/></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Role</label><input class="form-input" id="ef-role" placeholder="e.g. Primary Physician"/></div>
+          <div class="form-group"><label class="form-label">Phone *</label><input class="form-input" id="ef-phone" placeholder="555-000-0000"/></div>
+        </div>
+        <div class="form-group"><label class="form-label">Priority</label>
+          <select class="form-input form-select" id="ef-primary">
+            <option value="false">Standard contact</option>
+            <option value="true">⭐ Primary — call first</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('emergModal')">Cancel</button><button class="btn btn-primary" onclick="saveEmerg()">Save Contact</button></div>
+  </div>
+</div>
+
+<!-- User Modal (admin: create/edit caregiver accounts) -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="userMT">Add Team Member</div><button class="close-btn" onclick="closeModal('userModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="notice notice-blue">ℹ️ The new team member will receive a link to set their password after you create their account.</div>
+      <div class="form-grid" style="margin-top:4px;">
+        <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="uf-name" placeholder="Full name"/></div>
+        <div class="form-group"><label class="form-label">Email *</label><input class="form-input" type="email" id="uf-email" placeholder="their@email.com"/></div>
+        <div class="form-group"><label class="form-label">Temporary Password *</label><input class="form-input" type="password" id="uf-pass" placeholder="They can change this after logging in"/></div>
+        <div class="form-group"><label class="form-label">Role</label>
+          <select class="form-input form-select" id="uf-role">
+            <option value="caregiver">Caregiver</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Assigned Houses <span style="color:var(--muted2);font-weight:400;">(hold Ctrl/Cmd to select multiple)</span></label>
+          <select class="form-input form-select" id="uf-houses" multiple style="min-height:100px;"></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('userModal')">Cancel</button><button class="btn btn-primary" onclick="saveUser()">Create Account</button></div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header"><div class="modal-title">Confirm Delete</div><button class="close-btn" onclick="closeModal('confirmModal')">✕</button></div>
+    <div class="modal-body"><div id="confirmText" style="font-size:14px;line-height:1.6;color:var(--muted);"></div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('confirmModal')">Cancel</button><button class="btn btn-danger" id="confirmOk">Delete</button></div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// SUPABASE
+// =============================================
+const SUPABASE_URL = 'https://ghbswzehmkjzaftywpah.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoYnN3emVobWtqemFmdHl3cGFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4OTYxMzIsImV4cCI6MjA4NzQ3MjEzMn0.XmBf2_5_dAqT5DTECBeJHKtH8eL3LXOzU55YZqzXCDo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =============================================
+// STATE
+// =============================================
+let currentUser = null;
+let currentProfile = null;
+let currentPage = null;
+let _editId = null;
+let _ctx = {}; // contextual ids for modals
+let unreadAnnouncements = [];
+let taskCompletions = {}; // taskId -> bool for today
+
+// =============================================
+// BOOT
+// =============================================
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await loadProfile();
+    showApp();
+  } else {
+    showLogin();
+  }
+}
+
+async function loadProfile() {
+  const { data } = await sb.from('user_profiles').select('*').eq('id', currentUser.id).single();
+  currentProfile = data;
+}
+
+function showLogin() {
+  document.getElementById('loadingScreen').classList.add('hidden');
+  document.getElementById('loginView').classList.remove('hidden');
+}
+
+async function showApp() {
+  document.getElementById('loadingScreen').classList.add('hidden');
+  document.getElementById('appView').classList.remove('hidden');
+  document.getElementById('appView').style.display = 'block';
+
+  // Sidebar user info
+  const name = currentProfile?.full_name || currentUser.email;
+  const role = currentProfile?.role || 'caregiver';
+  const initials = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('sidebarAvatar').textContent = initials;
+  document.getElementById('sidebarName').textContent = name;
+  document.getElementById('sidebarRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+
+  buildSidebar(role);
+  await loadUnread();
+
+  // Route to default page
+  if (role === 'admin' || role === 'supervisor') navigate('dashboard');
+  else navigate('myShift');
+}
+
+function buildSidebar(role) {
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = '';
+
+  if (role === 'admin' || role === 'supervisor') {
+    nav.innerHTML += sidebarSection('Overview');
+    nav.innerHTML += navItem('dashboard', '📊', 'Dashboard');
+    nav.innerHTML += navItem('checkins', '✅', 'Today\'s Check-ins');
+    nav.innerHTML += sidebarSection('Management');
+    nav.innerHTML += navItem('houses', '🏠', 'Houses');
+    nav.innerHTML += navItem('clients', '👤', 'Clients');
+    nav.innerHTML += navItem('team', '👥', 'Team');
+    nav.innerHTML += sidebarSection('Care Data');
+    nav.innerHTML += navItem('allMeds', '💊', 'Medications');
+    nav.innerHTML += navItem('allTasks', '📋', 'Routine Tasks');
+  }
+
+  if (role === 'caregiver') {
+    nav.innerHTML += sidebarSection('My Shift');
+    nav.innerHTML += navItem('myShift', '☀️', 'Today\'s Tasks', 'myShiftBadge');
+    nav.innerHTML += navItem('myClients', '👤', 'My Clients');
+    nav.innerHTML += navItem('myAnnouncements', '📢', 'Announcements', 'annBadge');
+  }
+
+  if (role === 'admin') {
+    nav.innerHTML += sidebarSection('Admin');
+    nav.innerHTML += navItem('team', '👥', 'Team');
+  }
+
+  // Activate click handlers
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', () => navigate(el.dataset.page));
+  });
+}
+
+function sidebarSection(label) {
+  return `<div class="sidebar-section">${label}</div>`;
+}
+function navItem(page, icon, label, badgeId = '') {
+  return `<button class="nav-item" data-page="${page}">
+    <span class="nav-icon">${icon}</span> ${label}
+    ${badgeId ? `<span class="nav-badge hidden" id="${badgeId}">0</span>` : ''}
+  </button>`;
+}
+
+// =============================================
+// AUTH
+// =============================================
+async function signIn() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+  showErr('loginErr', '');
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { showErr('loginErr', error.message); btn.textContent = 'Sign In'; btn.disabled = false; return; }
+  currentUser = data.user;
+  await loadProfile();
+  document.getElementById('loginView').classList.add('hidden');
+  showApp();
+}
+
+async function signOut() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg; el.classList.toggle('show', !!msg);
+}
+
+// =============================================
+// ANNOUNCEMENTS
+// =============================================
+async function loadUnread() {
+  if (!currentProfile || currentProfile.role !== 'caregiver') return;
+  // Get houses this caregiver is assigned to
+  const { data: assignments } = await sb.from('caregiver_houses').select('house_id').eq('user_id', currentUser.id);
+  if (!assignments?.length) return;
+  const houseIds = assignments.map(a => a.house_id);
+
+  // Get announcements for those houses
+  const { data: anns } = await sb.from('announcements').select('*').in('house_id', houseIds).order('created_at', { ascending: false });
+  if (!anns?.length) return;
+
+  // Get which ones this user has read
+  const { data: reads } = await sb.from('announcement_reads').select('announcement_id').eq('user_id', currentUser.id);
+  const readIds = new Set((reads || []).map(r => r.announcement_id));
+  unreadAnnouncements = anns.filter(a => !readIds.has(a.id));
+
+  // Update badge
+  if (unreadAnnouncements.length) {
+    const badge = document.getElementById('annBadge');
+    if (badge) { badge.textContent = unreadAnnouncements.length; badge.classList.remove('hidden'); }
+  }
+}
+
+async function markAllRead() {
+  if (!unreadAnnouncements.length) return;
+  const rows = unreadAnnouncements.map(a => ({ announcement_id: a.id, user_id: currentUser.id }));
+  await sb.from('announcement_reads').upsert(rows, { onConflict: 'announcement_id,user_id' });
+  unreadAnnouncements = [];
+  const badge = document.getElementById('annBadge');
+  if (badge) badge.classList.add('hidden');
+}
+
+async function createAnnouncement(houseId, clientId, type, title, body) {
+  await sb.from('announcements').insert({ house_id: houseId, client_id: clientId, type, title, body, created_by: currentUser.id });
+}
+
+// =============================================
+// NAVIGATE
+// =============================================
+function navigate(page, ctx = {}) {
+  currentPage = page;
+  Object.assign(_ctx, ctx);
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.page === page));
+  const titles = { dashboard: 'Dashboard', houses: 'Houses', clients: 'All Clients', team: 'Team', allMeds: 'All Medications', allTasks: 'All Routine Tasks', checkins: "Today's Check-ins", myShift: 'My Shift', myClients: 'My Clients', myAnnouncements: 'Announcements', clientDetail: 'Client', houseDetail: 'House' };
+  document.getElementById('topbarTitle').textContent = titles[page] || page;
+  document.getElementById('topbarActions').innerHTML = '';
+  renderPage(page);
+}
+
+async function renderPage(page) {
+  const el = document.getElementById('mainContent');
+  el.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+  const map = { dashboard, houses, houseDetail, clients, clientDetail, team, allMeds, allTasks, checkins, myShift, myClients, myAnnouncements };
+  if (map[page]) await map[page](el);
+}
+
+// =============================================
+// ADMIN/SUPERVISOR: DASHBOARD
+// =============================================
+async function dashboard(el) {
+  const [{ data: houseData }, { data: clientData }, { data: userData }, { data: taskData }] = await Promise.all([
+    sb.from('houses').select('*'),
+    sb.from('clients').select('*'),
+    sb.from('user_profiles').select('*'),
+    sb.from('routine_tasks').select('*')
+  ]);
+
+  // Today's completions
+  const today = new Date().toISOString().slice(0,10);
+  const { data: completions } = await sb.from('task_completions').select('*').eq('shift_date', today);
+  const { data: checkins } = await sb.from('shift_checkins').select('*, user_profiles(full_name)').eq('shift_date', today);
+
+  const caregivers = (userData || []).filter(u => u.role === 'caregiver');
+  const checkedIn = new Set((checkins || []).map(c => c.user_id));
+  const totalTasks = (taskData || []).length;
+  const doneTasks = new Set((completions || []).map(c => c.task_id)).size;
+  const pct = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
+  el.innerHTML = `
+    <div class="page">
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-num">${(houseData||[]).length}</div><div class="stat-label">Houses</div></div>
+        <div class="stat-card blue"><div class="stat-num">${(clientData||[]).length}</div><div class="stat-label">Clients</div></div>
+        <div class="stat-card amber"><div class="stat-num">${checkedIn.size} / ${caregivers.length}</div><div class="stat-label">Caregivers Checked In</div></div>
+        <div class="stat-card green"><div class="stat-num">${pct}%</div><div class="stat-label">Tasks Complete Today</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Today's Shift Progress</div><button class="btn btn-ghost btn-sm" onclick="navigate('checkins')">View All</button></div>
+          <div style="padding:8px 0;" id="dash-checkins"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Houses</div><button class="btn btn-primary btn-sm" onclick="openHouseModal()">+ Add</button></div>
+          <div style="padding:8px 0;" id="dash-houses"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Checkins list
+  const chkEl = document.getElementById('dash-checkins');
+  if (!caregivers.length) { chkEl.innerHTML = `<div class="empty"><div class="empty-sub">No caregivers yet.</div></div>`; }
+  else {
+    caregivers.forEach(cg => {
+      const checkedInAt = (checkins||[]).find(c => c.user_id === cg.id);
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);';
+      div.innerHTML = `
+        <div style="width:8px;height:8px;border-radius:50%;background:${checkedInAt ? 'var(--accent)' : 'var(--border2)'};flex-shrink:0;"></div>
+        <div style="flex:1;font-size:13px;font-weight:600;">${cg.full_name || 'Unknown'}</div>
+        <div style="font-size:12px;color:var(--muted);">${checkedInAt ? '✓ Checked in' : 'Not started'}</div>
+      `;
+      chkEl.appendChild(div);
+    });
+  }
+
+  // Houses list
+  const hEl = document.getElementById('dash-houses');
+  if (!(houseData||[]).length) { hEl.innerHTML = `<div class="empty"><div class="empty-sub">No houses yet.</div></div>`; }
+  else {
+    (houseData||[]).forEach(h => {
+      const count = (clientData||[]).filter(c => c.house_id === h.id).length;
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;';
+      div.onclick = () => navigate('houseDetail', { houseId: h.id });
+      div.innerHTML = `<div style="flex:1;font-size:13px;font-weight:600;">${h.name}</div><span class="badge badge-green">${count} client${count !== 1 ? 's' : ''}</span><span style="color:var(--muted);font-size:13px;">→</span>`;
+      hEl.appendChild(div);
+    });
+  }
+}
+
+// =============================================
+// HOUSES
+// =============================================
+async function houses(el) {
+  const { data } = await sb.from('houses').select('*, clients(id)').order('name');
+  document.getElementById('topbarActions').innerHTML = `<button class="btn btn-primary btn-sm" onclick="openHouseModal()">+ Add House</button>`;
+  el.innerHTML = `
+    <div class="page">
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>House</th><th>Address</th><th>Manager</th><th>Clients</th><th></th></tr></thead>
+            <tbody id="houses-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+  const tbody = document.getElementById('houses-tbody');
+  if (!(data||[]).length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-icon">🏠</div><div class="empty-title">No houses yet</div><div class="empty-sub">Add your first house to get started.</div></div></td></tr>`; return; }
+  data.forEach(h => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><strong>${h.name}</strong></td><td style="color:var(--muted);font-size:13px;">${h.address||'—'}</td><td style="color:var(--muted);font-size:13px;">${h.manager||'—'}</td><td><span class="badge badge-green">${(h.clients||[]).length}</span></td><td><div class="td-actions"><button class="btn btn-ghost btn-sm" onclick="navigate('houseDetail',{houseId:'${h.id}'})">View →</button><button class="btn-icon" onclick="openHouseModal('${h.id}')">✏</button><button class="btn-icon" onclick="confirmDel('house','${h.id}','${h.name}')">🗑</button></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// =============================================
+// HOUSE DETAIL
+// =============================================
+async function houseDetail(el) {
+  const hid = _ctx.houseId;
+  const [{ data: h }, { data: clientData }] = await Promise.all([
+    sb.from('houses').select('*').eq('id', hid).single(),
+    sb.from('clients').select('*').eq('house_id', hid).order('first_name')
+  ]);
+  if (!h) { el.innerHTML = '<div class="empty">House not found.</div>'; return; }
+  document.getElementById('topbarActions').innerHTML = `<button class="btn btn-primary btn-sm" onclick="openClientModal('',{houseId:'${hid}'})">+ Add Client</button>`;
+  el.innerHTML = `
+    <div class="page">
+      <div class="breadcrumb"><a onclick="navigate('houses')">Houses</a><span>›</span><span>${h.name}</span></div>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header">
+          <div><div class="card-title">${h.name}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${h.address||'No address'} · ${h.manager||'No manager'} · ${h.phone||''}</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="openHouseModal('${h.id}')">✏ Edit</button>
+        </div>
+        ${h.notes ? `<div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.6;">${h.notes}</div>` : ''}
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Clients <span class="badge badge-gray" style="margin-left:6px;">${(clientData||[]).length}</span></div>
+      <div id="house-client-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;"></div>
+    </div>
+  `;
+  const grid = document.getElementById('house-client-grid');
+  if (!(clientData||[]).length) { grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">👤</div><div class="empty-title">No clients yet</div><div class="empty-sub">Add your first client to this house.</div></div>`; return; }
+  clientData.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'card'; div.style.padding = '18px'; div.style.cursor = 'pointer';
+    div.onclick = () => navigate('clientDetail', { clientId: c.id, houseId: hid });
+    div.innerHTML = `<div style="font-weight:700;font-size:15px;">${c.first_name} ${c.last_name||''}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${c.room||'No room'}</div><div style="margin-top:12px;"><button class="btn btn-primary btn-sm" style="width:100%;" onclick="event.stopPropagation();navigate('clientDetail',{clientId:'${c.id}',houseId:'${hid}'})">Manage →</button></div>`;
+    grid.appendChild(div);
+  });
+}
+
+// =============================================
+// CLIENTS
+// =============================================
+async function clients(el) {
+  const { data } = await sb.from('clients').select('*, houses(name)').order('first_name');
+  document.getElementById('topbarActions').innerHTML = `<button class="btn btn-primary btn-sm" onclick="openClientModal()">+ Add Client</button>`;
+  el.innerHTML = `<div class="page"><div class="card"><div class="table-wrap"><table><thead><tr><th>Client</th><th>House</th><th>Room</th><th>Tags</th><th></th></tr></thead><tbody id="clients-tbody"></tbody></table></div></div></div>`;
+  const tbody = document.getElementById('clients-tbody');
+  if (!(data||[]).length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-title">No clients yet</div></div></td></tr>`; return; }
+  data.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><strong>${c.first_name} ${c.last_name||''}</strong></td><td style="font-size:13px;color:var(--muted);">${c.houses?.name||'—'}</td><td style="font-size:13px;color:var(--muted);">${c.room||'—'}</td><td style="font-size:12px;color:var(--muted);">${c.tags||'—'}</td><td><div class="td-actions"><button class="btn btn-ghost btn-sm" onclick="navigate('clientDetail',{clientId:'${c.id}',houseId:'${c.house_id}'})">Manage →</button><button class="btn-icon" onclick="confirmDel('client','${c.id}','${c.first_name}')">🗑</button></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// =============================================
+// CLIENT DETAIL
+// =============================================
+async function clientDetail(el) {
+  const cid = _ctx.clientId;
+  const hid = _ctx.houseId;
+  const [{ data: c }, { data: meds }, { data: tasks }, { data: behaviors }, { data: contacts }, { data: house }] = await Promise.all([
+    sb.from('clients').select('*').eq('id', cid).single(),
+    sb.from('medications').select('*').eq('client_id', cid).order('schedule'),
+    sb.from('routine_tasks').select('*').eq('client_id', cid).order('shift'),
+    sb.from('behavior_notes').select('*').eq('client_id', cid),
+    sb.from('emergency_contacts').select('*').eq('client_id', cid),
+    sb.from('houses').select('name').eq('id', hid).single()
+  ]);
+  if (!c) { el.innerHTML = '<div class="empty">Client not found.</div>'; return; }
+
+  document.getElementById('topbarActions').innerHTML = `<button class="btn btn-ghost btn-sm" onclick="navigate('houseDetail',{houseId:'${hid}'})">← Back to House</button>`;
+
+  el.innerHTML = `
+    <div class="page">
+      <div class="breadcrumb"><a onclick="navigate('houses')">Houses</a><span>›</span><a onclick="navigate('houseDetail',{houseId:'${hid}'})">${house?.name||'House'}</a><span>›</span><span>${c.first_name} ${c.last_name||''}</span></div>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header">
+          <div><div class="card-title">${c.first_name} ${c.last_name||''}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${c.room||'No room'} · ${house?.name||''}</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="openClientModal('${c.id}')">✏ Edit</button>
+        </div>
+        ${c.notes ? `<div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.6;">${c.notes}</div>` : ''}
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <!-- MEDS -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">💊 Medications</div><button class="btn btn-primary btn-sm" onclick="openMedModal('','${cid}','${hid}')">+ Add</button></div>
+          <div style="padding:12px;" id="med-list"></div>
+        </div>
+        <!-- TASKS -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">📋 Routine Tasks</div><button class="btn btn-primary btn-sm" onclick="openTaskModal('','${cid}','${hid}')">+ Add</button></div>
+          <div style="padding:12px;" id="task-list"></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <!-- BEHAVIOR -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">🧠 Behavior Notes</div><button class="btn btn-primary btn-sm" onclick="openBehaviorModal('','${cid}')">+ Add</button></div>
+          <div style="padding:12px;" id="behavior-list"></div>
+        </div>
+        <!-- EMERGENCY -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">🚨 Emergency Contacts</div><button class="btn btn-primary btn-sm" onclick="openEmergModal('','${cid}')">+ Add</button></div>
+          <div style="padding:12px;" id="emerg-list"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  renderMedList(meds||[]);
+  renderTaskListAdmin(tasks||[]);
+  renderBehaviorList(behaviors||[]);
+  renderEmergList(contacts||[]);
+}
+
+function renderMedList(meds) {
+  const el = document.getElementById('med-list');
+  if (!el) return;
+  if (!meds.length) { el.innerHTML = `<div class="empty" style="padding:20px;"><div class="empty-sub">No medications yet.</div></div>`; return; }
+  const schedBadge = { morning: 'badge-blue', evening: 'badge-purple', prn: 'badge-amber', separate: 'badge-green' };
+  const schedLabel = { morning: 'Morning', evening: 'Evening', prn: 'PRN', separate: 'Separate' };
+  el.innerHTML = meds.map(m => `
+    <div class="med-item">
+      <div class="med-dot"></div>
+      <div style="flex:1;">
+        <div class="med-name">${m.name} ${m.dose ? `<span style="font-weight:400;color:var(--muted);">${m.dose}</span>` : ''} <span class="badge ${schedBadge[m.schedule]||'badge-gray'}" style="margin-left:4px;">${schedLabel[m.schedule]||m.schedule}</span></div>
+        ${m.instructions ? `<div class="med-detail">${m.instructions}</div>` : ''}
+        ${m.warnings ? `<div class="med-warn">⚠ ${m.warnings}</div>` : ''}
+      </div>
+      <button class="list-del" onclick="delRecord('medications','${m.id}','${m.name}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function renderTaskListAdmin(tasks) {
+  const el = document.getElementById('task-list');
+  if (!el) return;
+  if (!tasks.length) { el.innerHTML = `<div class="empty" style="padding:20px;"><div class="empty-sub">No tasks yet.</div></div>`; return; }
+  const morning = tasks.filter(t => t.shift === 'morning');
+  const evening = tasks.filter(t => t.shift === 'evening');
+  el.innerHTML = '';
+  if (morning.length) {
+    el.innerHTML += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);margin-bottom:6px;">☀️ Morning</div>`;
+    el.innerHTML += morning.map(t => `<div class="list-item" style="margin-bottom:6px;"><div class="list-item-body"><div class="list-item-title">${t.task}</div>${t.note ? `<div class="list-item-sub">${t.note}</div>` : ''}</div><button class="list-del" onclick="delRecord('routine_tasks','${t.id}','${t.task}')">✕</button></div>`).join('');
+  }
+  if (evening.length) {
+    el.innerHTML += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);margin:10px 0 6px;">🌙 Evening</div>`;
+    el.innerHTML += evening.map(t => `<div class="list-item" style="margin-bottom:6px;"><div class="list-item-body"><div class="list-item-title">${t.task}</div>${t.note ? `<div class="list-item-sub">${t.note}</div>` : ''}</div><button class="list-del" onclick="delRecord('routine_tasks','${t.id}','${t.task}')">✕</button></div>`).join('');
+  }
+}
+
+function renderBehaviorList(behaviors) {
+  const el = document.getElementById('behavior-list');
+  if (!el) return;
+  if (!behaviors.length) { el.innerHTML = `<div class="empty" style="padding:20px;"><div class="empty-sub">No behavior notes yet.</div></div>`; return; }
+  el.innerHTML = behaviors.map(b => `
+    <div class="behavior-card ${b.type}">
+      <div class="behavior-type">${b.label || b.type}</div>
+      <div class="behavior-text">${b.text}</div>
+    </div>
+  `).join('');
+}
+
+function renderEmergList(contacts) {
+  const el = document.getElementById('emerg-list');
+  if (!el) return;
+  if (!contacts.length) { el.innerHTML = `<div class="empty" style="padding:20px;"><div class="empty-sub">No emergency contacts yet.</div></div>`; return; }
+  el.innerHTML = contacts.map(e => `
+    <div class="emerg-item ${e.is_primary ? 'primary' : ''}">
+      <div style="font-size:20px;">${e.is_primary ? '⭐' : '👤'}</div>
+      <div><div class="emerg-name">${e.name}</div><div class="emerg-role">${e.role||''}</div></div>
+      <a href="tel:${e.phone}" class="emerg-phone">${e.phone}</a>
+    </div>
+  `).join('');
+}
+
+// =============================================
+// TEAM
+// =============================================
+async function team(el) {
+  const { data } = await sb.from('user_profiles').select('*').order('full_name');
+  document.getElementById('topbarActions').innerHTML = `<button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add Member</button>`;
+  el.innerHTML = `<div class="page"><div class="card"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Houses</th><th></th></tr></thead><tbody id="team-tbody"></tbody></table></div></div></div>`;
+  const tbody = document.getElementById('team-tbody');
+  if (!(data||[]).length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-title">No team members yet</div></div></td></tr>`; return; }
+
+  // Get house assignments for all
+  const { data: assignments } = await sb.from('caregiver_houses').select('user_id, houses(name)');
+  const roleColors = { admin: 'badge-red', supervisor: 'badge-amber', caregiver: 'badge-green' };
+
+  data.forEach(u => {
+    const userHouses = (assignments||[]).filter(a => a.user_id === u.id).map(a => a.houses?.name).filter(Boolean);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${u.full_name||'—'}</strong></td>
+      <td style="font-size:13px;color:var(--muted);">${u.email||'—'}</td>
+      <td><span class="badge ${roleColors[u.role]||'badge-gray'}">${u.role||'caregiver'}</span></td>
+      <td style="font-size:13px;color:var(--muted);">${userHouses.join(', ')||'Not assigned'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openAssignModal('${u.id}','${u.full_name||''}')">Assign Houses</button>
+        <button class="btn btn-ghost btn-sm" onclick="promoteRole('${u.id}','${u.role||'caregiver'}')">Change Role</button>
+      </div></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function promoteRole(userId, currentRole) {
+  const roles = ['caregiver', 'supervisor', 'admin'];
+  const next = roles[(roles.indexOf(currentRole) + 1) % roles.length];
+  if (!confirm(`Change role to "${next}"?`)) return;
+  await sb.from('user_profiles').update({ role: next }).eq('id', userId);
+  navigate('team');
+}
+
+async function openAssignModal(userId, name) {
+  const { data: allHouses } = await sb.from('houses').select('*').order('name');
+  const { data: current } = await sb.from('caregiver_houses').select('house_id').eq('user_id', userId);
+  const currentIds = new Set((current||[]).map(a => a.house_id));
+
+  const choices = (allHouses||[]).map(h => `
+    <label style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+      <input type="checkbox" value="${h.id}" ${currentIds.has(h.id) ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--accent);">
+      <span style="font-size:14px;">${h.name}</span>
+    </label>
+  `).join('');
+
+  // Reuse confirm modal as assign modal
+  document.getElementById('confirmText').innerHTML = `
+    <div style="font-weight:700;margin-bottom:12px;">Assign houses to ${name}</div>
+    <div id="house-checkboxes">${choices || '<div class="empty-sub">No houses yet.</div>'}</div>
+  `;
+  document.getElementById('confirmOk').textContent = 'Save Assignments';
+  document.getElementById('confirmOk').className = 'btn btn-primary';
+  document.getElementById('confirmOk').onclick = async () => {
+    const checked = Array.from(document.querySelectorAll('#house-checkboxes input:checked')).map(el => el.value);
+    // Remove all then re-add
+    await sb.from('caregiver_houses').delete().eq('user_id', userId);
+    if (checked.length) {
+      await sb.from('caregiver_houses').insert(checked.map(hid => ({ user_id: userId, house_id: hid })));
+    }
+    closeModal('confirmModal');
+    navigate('team');
+  };
+  openModal('confirmModal');
+}
+
+// =============================================
+// ALL MEDS / ALL TASKS (global views)
+// =============================================
+async function allMeds(el) {
+  const { data } = await sb.from('medications').select('*, clients(first_name, last_name, houses(name))').order('name');
+  const schedBadge = { morning: 'badge-blue', evening: 'badge-purple', prn: 'badge-amber', separate: 'badge-green' };
+  const schedLabel = { morning: 'Morning', evening: 'Evening', prn: 'PRN', separate: 'Separate' };
+  el.innerHTML = `<div class="page"><div class="notice notice-blue">ℹ️ Add medications from the client detail page. This is a global read-only view.</div><div class="card"><div class="table-wrap"><table><thead><tr><th>Medication</th><th>Dose</th><th>Schedule</th><th>Client</th><th>House</th><th>Instructions</th></tr></thead><tbody id="allm-tbody"></tbody></table></div></div></div>`;
+  const tbody = document.getElementById('allm-tbody');
+  if (!(data||[]).length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-title">No medications yet</div></div></td></tr>`; return; }
+  data.forEach(m => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><strong>${m.name}</strong>${m.warnings ? `<div style="font-size:11px;color:var(--red);">⚠ ${m.warnings}</div>` : ''}</td><td class="mono" style="font-size:12px;">${m.dose||'—'}</td><td><span class="badge ${schedBadge[m.schedule]||'badge-gray'}">${schedLabel[m.schedule]||m.schedule}</span></td><td style="font-size:13px;">${m.clients ? `${m.clients.first_name} ${m.clients.last_name||''}` : '—'}</td><td style="font-size:13px;color:var(--muted);">${m.clients?.houses?.name||'—'}</td><td style="font-size:12px;color:var(--muted);max-width:200px;">${m.instructions||'—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function allTasks(el) {
+  const { data } = await sb.from('routine_tasks').select('*, clients(first_name, last_name, houses(name))').order('shift');
+  el.innerHTML = `<div class="page"><div class="notice notice-blue">ℹ️ Add tasks from the client detail page. This is a global view.</div><div class="card"><div class="table-wrap"><table><thead><tr><th>Task</th><th>Shift</th><th>Client</th><th>House</th><th>Note</th></tr></thead><tbody id="allt-tbody"></tbody></table></div></div></div>`;
+  const tbody = document.getElementById('allt-tbody');
+  if (!(data||[]).length) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="empty-title">No tasks yet</div></div></td></tr>`; return; }
+  data.forEach(t => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><strong>${t.task}</strong></td><td><span class="badge ${t.shift==='morning'?'badge-amber':'badge-purple'}">${t.shift==='morning'?'☀️ Morning':'🌙 Evening'}</span></td><td style="font-size:13px;">${t.clients ? `${t.clients.first_name} ${t.clients.last_name||''}` : '—'}</td><td style="font-size:13px;color:var(--muted);">${t.clients?.houses?.name||'—'}</td><td style="font-size:12px;color:var(--muted);">${t.note||'—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// =============================================
+// SUPERVISOR: CHECK-INS
+// =============================================
+async function checkins(el) {
+  const today = new Date().toISOString().slice(0,10);
+  const { data: checkinData } = await sb.from('shift_checkins').select('*, user_profiles(full_name, role)').eq('shift_date', today);
+  const { data: completions } = await sb.from('task_completions').select('*, user_profiles(full_name), routine_tasks(task, shift)').eq('shift_date', today);
+  const { data: caregivers } = await sb.from('user_profiles').select('*').eq('role', 'caregiver');
+
+  el.innerHTML = `
+    <div class="page">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px;">Shift date: <strong style="color:var(--ink);">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</strong></div>
+      <div class="cg-grid" id="cg-grid"></div>
+    </div>
+  `;
+  const grid = document.getElementById('cg-grid');
+  if (!(caregivers||[]).length) { grid.innerHTML = `<div class="empty"><div class="empty-title">No caregivers yet</div></div>`; return; }
+
+  const { data: allTasks } = await sb.from('routine_tasks').select('id');
+  const totalTasks = (allTasks||[]).length;
+
+  caregivers.forEach(cg => {
+    const checkedIn = (checkinData||[]).find(c => c.user_id === cg.id);
+    const cgCompletions = (completions||[]).filter(c => c.user_id === cg.id);
+    const pct = totalTasks ? Math.round((cgCompletions.length / totalTasks) * 100) : 0;
+    const initials = (cg.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+    const div = document.createElement('div');
+    div.className = 'cg-card';
+    div.innerHTML = `
+      <div class="cg-card-top">
+        <div class="cg-avatar">${initials}</div>
+        <div>
+          <div class="cg-name">${cg.full_name||'Unknown'}</div>
+          <div class="cg-role">${checkedIn ? `✓ Checked in at ${new Date(checkedIn.checked_in_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}` : '⏳ Not started'}</div>
+        </div>
+      </div>
+      <div class="cg-progress-row"><span>${cgCompletions.length} of ${totalTasks} tasks done</span><span class="cg-pct">${pct}%</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;"></div></div>
+      ${cgCompletions.length ? `<div style="margin-top:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);margin-bottom:6px;">Completed tasks</div>${cgCompletions.slice(0,4).map(c=>`<div style="font-size:12px;color:var(--muted);padding:3px 0;">✓ ${c.routine_tasks?.task||'—'}</div>`).join('')}${cgCompletions.length>4?`<div style="font-size:12px;color:var(--muted);">+${cgCompletions.length-4} more</div>`:''}` : ''}
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// =============================================
+// CAREGIVER: MY SHIFT
+// =============================================
+async function myShift(el) {
+  // Record check-in
+  const today = new Date().toISOString().slice(0,10);
+  const { data: assignments } = await sb.from('caregiver_houses').select('house_id').eq('user_id', currentUser.id);
+  const houseIds = (assignments||[]).map(a => a.house_id);
+
+  if (houseIds.length) {
+    // Check in for each house
+    for (const hid of houseIds) {
+      await sb.from('shift_checkins').upsert({ user_id: currentUser.id, house_id: hid, shift_date: today }, { onConflict: 'user_id,house_id,shift_date' }).select();
+    }
+  }
+
+  // Load tasks for their clients
+  const { data: clients } = await sb.from('clients').select('*').in('house_id', houseIds.length ? houseIds : ['none']);
+  const clientIds = (clients||[]).map(c => c.id);
+  const { data: tasks } = await sb.from('routine_tasks').select('*, clients(first_name, last_name)').in('client_id', clientIds.length ? clientIds : ['none']).order('shift');
+  const { data: completions } = await sb.from('task_completions').select('task_id').eq('user_id', currentUser.id).eq('shift_date', today);
+
+  const doneSet = new Set((completions||[]).map(c => c.task_id));
+  const allTasks = tasks || [];
+  const total = allTasks.length;
+  const done = allTasks.filter(t => doneSet.has(t.id)).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+
+  el.innerHTML = `
+    <div class="page">
+      ${unreadAnnouncements.length ? `
+        <div class="announcement-banner" onclick="navigate('myAnnouncements')">
+          <div class="ann-icon">📢</div>
+          <div class="ann-content">
+            <div class="ann-title">${unreadAnnouncements.length} new update${unreadAnnouncements.length > 1 ? 's' : ''} since your last shift</div>
+            <div class="ann-items">${unreadAnnouncements.slice(0,3).map(a => `• ${a.title}`).join('<br>')}</div>
+          </div>
+          <button class="ann-dismiss" onclick="event.stopPropagation();markAllRead();this.closest('.announcement-banner').remove();">Got it</button>
+        </div>
+      ` : ''}
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div>
+          <div style="font-family:'Instrument Serif',serif;font-size:24px;">${greeting()}</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Geist Mono',monospace;font-size:28px;font-weight:500;color:var(--accent);">${pct}%</div>
+          <div style="font-size:12px;color:var(--muted);">${done} of ${total} tasks</div>
+        </div>
+      </div>
+
+      <div class="progress-bar" style="height:8px;margin-bottom:24px;"><div class="progress-fill" id="shiftBar" style="width:${pct}%;"></div></div>
+
+      ${!houseIds.length ? `<div class="notice notice-amber">⚠️ You haven't been assigned to a house yet. Contact your supervisor.</div>` : ''}
+
+      <div id="shift-morning" class="section" style="margin-bottom:24px;"></div>
+      <div id="shift-evening" class="section"></div>
+    </div>
+  `;
+
+  const morning = allTasks.filter(t => t.shift === 'morning');
+  const evening = allTasks.filter(t => t.shift === 'evening');
+  renderShiftSection('shift-morning', '☀️ Morning Tasks', morning, doneSet, allTasks, done);
+  renderShiftSection('shift-evening', '🌙 Evening Tasks', evening, doneSet, allTasks, done);
+}
+
+function greeting() {
+  const h = new Date().getHours();
+  const name = currentProfile?.full_name?.split(' ')[0] || 'there';
+  if (h < 12) return `Good morning, ${name}`;
+  if (h < 17) return `Good afternoon, ${name}`;
+  return `Good evening, ${name}`;
+}
+
+function renderShiftSection(containerId, title, tasks, doneSet, allTasks, doneCount) {
+  const el = document.getElementById(containerId);
+  if (!el || !tasks.length) return;
+  el.innerHTML = `
+    <div class="section-head" style="margin-bottom:12px;">
+      <div class="section-title">${title}</div>
+      <div style="font-size:12px;color:var(--muted);">${tasks.filter(t=>doneSet.has(t.id)).length} / ${tasks.length}</div>
+    </div>
+    <div class="checklist" id="${containerId}-list"></div>
+  `;
+  const list = document.getElementById(`${containerId}-list`);
+  tasks.forEach(t => {
+    const isDone = doneSet.has(t.id);
+    const item = document.createElement('div');
+    item.className = 'check-item' + (isDone ? ' done' : '');
+    item.dataset.taskId = t.id;
+    item.innerHTML = `
+      <div class="check-box"><span class="checkmark">✓</span></div>
+      <div class="check-label">
+        <strong>${t.task}</strong>
+        ${t.note ? `<div class="sub">${t.note}</div>` : ''}
+        ${t.clients ? `<div class="sub" style="color:var(--muted2);">${t.clients.first_name} ${t.clients.last_name||''}</div>` : ''}
+      </div>
+    `;
+    item.onclick = () => toggleTask(t.id, item, allTasks.length);
+    list.appendChild(item);
+  });
+}
+
+async function toggleTask(taskId, el, total) {
+  const today = new Date().toISOString().slice(0,10);
+  const isDone = el.classList.contains('done');
+  if (isDone) {
+    await sb.from('task_completions').delete().eq('task_id', taskId).eq('user_id', currentUser.id).eq('shift_date', today);
+    el.classList.remove('done');
+    taskCompletions[taskId] = false;
+  } else {
+    await sb.from('task_completions').upsert({ task_id: taskId, user_id: currentUser.id, shift_date: today }, { onConflict: 'task_id,user_id,shift_date' });
+    el.classList.add('done');
+    taskCompletions[taskId] = true;
+  }
+  // Update progress bar
+  const done = Object.values(taskCompletions).filter(Boolean).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const bar = document.getElementById('shiftBar');
+  if (bar) bar.style.width = pct + '%';
+}
+
+// =============================================
+// CAREGIVER: MY CLIENTS
+// =============================================
+async function myClients(el) {
+  const { data: assignments } = await sb.from('caregiver_houses').select('house_id').eq('user_id', currentUser.id);
+  const houseIds = (assignments||[]).map(a => a.house_id);
+  if (!houseIds.length) { el.innerHTML = `<div class="page"><div class="notice notice-amber">⚠️ You haven't been assigned to a house yet. Contact your supervisor.</div></div>`; return; }
+
+  const { data: clients } = await sb.from('clients').select('*, houses(name)').in('house_id', houseIds).order('first_name');
+  el.innerHTML = `<div class="page"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;" id="my-clients-grid"></div></div>`;
+  const grid = document.getElementById('my-clients-grid');
+  if (!(clients||[]).length) { grid.innerHTML = `<div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No clients in your house yet</div></div>`; return; }
+  clients.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'card'; div.style.cursor = 'pointer';
+    div.onclick = () => navigate('cgClientDetail', { clientId: c.id });
+    div.innerHTML = `
+      <div class="card-header">
+        <div><div class="card-title">${c.first_name} ${c.last_name||''}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${c.room||'No room'} · ${c.houses?.name||''}</div></div>
+        <span style="font-size:20px;">→</span>
+      </div>
+      ${c.notes ? `<div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.5;">${c.notes}</div>` : ''}
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// =============================================
+// CAREGIVER: ANNOUNCEMENTS
+// =============================================
+async function myAnnouncements(el) {
+  const { data: assignments } = await sb.from('caregiver_houses').select('house_id').eq('user_id', currentUser.id);
+  const houseIds = (assignments||[]).map(a => a.house_id);
+  const { data: anns } = await sb.from('announcements').select('*, clients(first_name,last_name)').in('house_id', houseIds.length ? houseIds : ['none']).order('created_at', { ascending: false });
+  const { data: reads } = await sb.from('announcement_reads').select('announcement_id').eq('user_id', currentUser.id);
+  const readIds = new Set((reads||[]).map(r => r.announcement_id));
+
+  el.innerHTML = `<div class="page" id="ann-list"></div>`;
+  const list = document.getElementById('ann-list');
+  if (!(anns||[]).length) { list.innerHTML = `<div class="empty"><div class="empty-icon">📢</div><div class="empty-title">No announcements yet</div><div class="empty-sub">You'll be notified here when care plans change.</div></div>`; return; }
+
+  const typeIcon = { med_added: '💊', med_changed: '🔄', task_added: '📋', behavior_updated: '🧠' };
+  anns.forEach(a => {
+    const isNew = !readIds.has(a.id);
+    const div = document.createElement('div');
+    div.className = 'card'; div.style.marginBottom = '12px';
+    div.innerHTML = `
+      <div class="card-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">${typeIcon[a.type]||'📢'}</span>
+          <div>
+            <div class="card-title">${a.title} ${isNew ? `<span class="badge badge-green" style="margin-left:6px;">New</span>` : ''}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;">${a.clients ? `${a.clients.first_name} ${a.clients.last_name||''}` : ''} · ${new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>
+          </div>
+        </div>
+      </div>
+      ${a.body ? `<div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.6;">${a.body}</div>` : ''}
+    `;
+    list.appendChild(div);
+  });
+
+  // Mark all as read
+  await markAllRead();
+}
+
+// =============================================
+// SAVE HANDLERS
+// =============================================
+async function saveHouse() {
+  const name = fv('hf-name'); if (!name) { alert('Name required.'); return; }
+  const data = { name, address: fv('hf-address'), manager: fv('hf-manager'), phone: fv('hf-phone'), notes: fv('hf-notes') };
+  if (_editId) await sb.from('houses').update(data).eq('id', _editId);
+  else await sb.from('houses').insert(data);
+  closeModal('houseModal'); navigate(currentPage);
+}
+
+async function saveClient() {
+  const first = fv('cf-first'); const houseId = fv('cf-house');
+  if (!first || !houseId) { alert('Name and house required.'); return; }
+  const data = { first_name: first, last_name: fv('cf-last'), room: fv('cf-room'), house_id: houseId, tags: fv('cf-tags'), notes: fv('cf-notes') };
+  if (_editId) await sb.from('clients').update(data).eq('id', _editId);
+  else await sb.from('clients').insert(data);
+  closeModal('clientModal'); navigate(currentPage);
+}
+
+async function saveMed() {
+  const name = fv('mf-name'); if (!name) { alert('Name required.'); return; }
+  const clientId = _ctx.clientId;
+  const houseId = _ctx.houseId;
+  const data = { name, dose: fv('mf-dose'), schedule: document.getElementById('mf-schedule').value, instructions: fv('mf-instructions'), warnings: fv('mf-warnings'), client_id: clientId };
+  if (_editId) await sb.from('medications').update(data).eq('id', _editId);
+  else {
+    await sb.from('medications').insert(data);
+    // Get client info for announcement
+    const { data: c } = await sb.from('clients').select('first_name, last_name').eq('id', clientId).single();
+    await createAnnouncement(houseId, clientId, 'med_added', `New medication added for ${c?.first_name||'client'}`, `${name}${data.dose ? ' '+data.dose : ''} — ${data.schedule} schedule${data.instructions ? '. '+data.instructions : ''}`);
+  }
+  closeModal('medModal'); navigate(currentPage);
+}
+
+async function saveTask() {
+  const task = fv('tf-task'); if (!task) { alert('Task required.'); return; }
+  const clientId = _ctx.clientId;
+  const houseId = _ctx.houseId;
+  const data = { task, note: fv('tf-note'), shift: document.getElementById('tf-shift').value, client_id: clientId };
+  if (_editId) await sb.from('routine_tasks').update(data).eq('id', _editId);
+  else {
+    await sb.from('routine_tasks').insert(data);
+    const { data: c } = await sb.from('clients').select('first_name').eq('id', clientId).single();
+    await createAnnouncement(houseId, clientId, 'task_added', `New task added for ${c?.first_name||'client'}`, task + (data.note ? ' — ' + data.note : ''));
+  }
+  closeModal('taskModal'); navigate(currentPage);
+}
+
+async function saveBehavior() {
+  const text = fv('bf-text'); if (!text) { alert('Description required.'); return; }
+  const clientId = _ctx.clientId;
+  const houseId = _ctx.houseId;
+  const data = { type: document.getElementById('bf-type').value, label: fv('bf-label'), text, client_id: clientId };
+  if (_editId) await sb.from('behavior_notes').update(data).eq('id', _editId);
+  else {
+    await sb.from('behavior_notes').insert(data);
+    const { data: c } = await sb.from('clients').select('first_name').eq('id', clientId).single();
+    await createAnnouncement(houseId, clientId, 'behavior_updated', `Behavior note updated for ${c?.first_name||'client'}`, text.slice(0,120));
+  }
+  closeModal('behaviorModal'); navigate(currentPage);
+}
+
+async function saveEmerg() {
+  const name = fv('ef-name'); const phone = fv('ef-phone');
+  if (!name || !phone) { alert('Name and phone required.'); return; }
+  const data = { name, role: fv('ef-role'), phone, is_primary: document.getElementById('ef-primary').value === 'true', client_id: _ctx.clientId };
+  if (_editId) await sb.from('emergency_contacts').update(data).eq('id', _editId);
+  else await sb.from('emergency_contacts').insert(data);
+  closeModal('emergModal'); navigate(currentPage);
+}
+
+async function saveUser() {
+  const name = fv('uf-name'); const email = fv('uf-email'); const pass = fv('uf-pass');
+  const role = document.getElementById('uf-role').value;
+  const selectedHouses = Array.from(document.getElementById('uf-houses').selectedOptions).map(o => o.value);
+  if (!name || !email || !pass) { alert('Name, email, and password required.'); return; }
+
+  // Create auth user via admin (requires service role — for now we do regular signup)
+  const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
+  if (error) { alert('Error: ' + error.message); return; }
+
+  const uid = data.user?.id;
+  if (uid) {
+    await sb.from('user_profiles').upsert({ id: uid, full_name: name, role, email });
+    if (selectedHouses.length) {
+      await sb.from('caregiver_houses').insert(selectedHouses.map(hid => ({ user_id: uid, house_id: hid })));
+    }
+  }
+  closeModal('userModal'); navigate('team');
+}
+
+// =============================================
+// MODAL OPENERS
+// =============================================
+async function openHouseModal(id = '') {
+  _editId = id || null;
+  const h = id ? (await sb.from('houses').select('*').eq('id', id).single()).data : null;
+  document.getElementById('houseMT').textContent = h ? 'Edit House' : 'Add House';
+  sf('hf-name', h?.name); sf('hf-address', h?.address); sf('hf-manager', h?.manager); sf('hf-phone', h?.phone); sf('hf-notes', h?.notes);
+  openModal('houseModal');
+}
+
+async function openClientModal(id = '', defaults = {}) {
+  _editId = id || null;
+  const c = id ? (await sb.from('clients').select('*').eq('id', id).single()).data : null;
+  document.getElementById('clientMT').textContent = c ? 'Edit Client' : 'Add Client';
+  sf('cf-first', c?.first_name); sf('cf-last', c?.last_name); sf('cf-room', c?.room); sf('cf-tags', c?.tags); sf('cf-notes', c?.notes);
+  const { data: allHouses } = await sb.from('houses').select('*').order('name');
+  const sel = document.getElementById('cf-house');
+  sel.innerHTML = '<option value="">— Select House —</option>';
+  (allHouses||[]).forEach(h => { const o = document.createElement('option'); o.value = h.id; o.textContent = h.name; if ((c?.house_id === h.id) || defaults.houseId === h.id) o.selected = true; sel.appendChild(o); });
+  openModal('clientModal');
+}
+
+function openMedModal(id = '', clientId = '', houseId = '') {
+  _editId = id || null; _ctx.clientId = clientId; _ctx.houseId = houseId;
+  document.getElementById('medMT').textContent = id ? 'Edit Medication' : 'Add Medication';
+  sf('mf-name',''); sf('mf-dose',''); sf('mf-instructions',''); sf('mf-warnings','');
+  document.getElementById('mf-schedule').value = 'morning';
+  openModal('medModal');
+}
+
+function openTaskModal(id = '', clientId = '', houseId = '') {
+  _editId = id || null; _ctx.clientId = clientId; _ctx.houseId = houseId;
+  document.getElementById('taskMT').textContent = id ? 'Edit Task' : 'Add Task';
+  sf('tf-task',''); sf('tf-note','');
+  document.getElementById('tf-shift').value = 'morning';
+  openModal('taskModal');
+}
+
+function openBehaviorModal(id = '', clientId = '') {
+  _editId = id || null; _ctx.clientId = clientId;
+  document.getElementById('behaviorMT').textContent = id ? 'Edit Note' : 'Add Behavior Note';
+  sf('bf-label',''); sf('bf-text','');
+  document.getElementById('bf-type').value = 'general';
+  openModal('behaviorModal');
+}
+
+function openEmergModal(id = '', clientId = '') {
+  _editId = id || null; _ctx.clientId = clientId;
+  document.getElementById('emergMT').textContent = id ? 'Edit Contact' : 'Add Emergency Contact';
+  sf('ef-name',''); sf('ef-role',''); sf('ef-phone','');
+  document.getElementById('ef-primary').value = 'false';
+  openModal('emergModal');
+}
+
+async function openUserModal() {
+  document.getElementById('userMT').textContent = 'Add Team Member';
+  sf('uf-name',''); sf('uf-email',''); sf('uf-pass','');
+  document.getElementById('uf-role').value = 'caregiver';
+  const { data: allHouses } = await sb.from('houses').select('*').order('name');
+  const sel = document.getElementById('uf-houses');
+  sel.innerHTML = '';
+  (allHouses||[]).forEach(h => { const o = document.createElement('option'); o.value = h.id; o.textContent = h.name; sel.appendChild(o); });
+  openModal('userModal');
+}
+
+// =============================================
+// DELETE
+// =============================================
+function confirmDel(table, id, label) {
+  document.getElementById('confirmText').innerHTML = `Delete <strong>${label}</strong>? This cannot be undone.`;
+  document.getElementById('confirmOk').textContent = 'Delete';
+  document.getElementById('confirmOk').className = 'btn btn-danger';
+  document.getElementById('confirmOk').onclick = () => { delRecord(table, id, label); closeModal('confirmModal'); };
+  openModal('confirmModal');
+}
+
+async function delRecord(table, id, label) {
+  await sb.from(table).delete().eq('id', id);
+  navigate(currentPage);
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function fv(id) { return (document.getElementById(id)?.value || '').trim(); }
+function sf(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginView') && !document.getElementById('loginView').classList.contains('hidden')) signIn();
+});
+
+// =============================================
+// BOOT
+// =============================================
+boot();
+</script>
+</body>
+</html>
