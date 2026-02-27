@@ -1,0 +1,2065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CareGuide</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #f8f7f4;
+  --surface: #ffffff;
+  --surface2: #f3f2ef;
+  --surface3: #eceae5;
+  --border: #e4e2dd;
+  --border2: #d4d1ca;
+  --ink: #1a1916;
+  --ink2: #2e2c28;
+  --muted: #7a7670;
+  --muted2: #a8a49e;
+  --accent: #1e6b4a;
+  --accent2: #2a8f62;
+  --accent-light: #e8f5ef;
+  --accent-border: #b8deca;
+  --red: #c0392b;
+  --red-light: #fdf2f1;
+  --red-border: #f0c4bf;
+  --amber: #b7651a;
+  --amber-light: #fdf6ed;
+  --amber-border: #f0d9b8;
+  --blue: #1a4e8a;
+  --blue-light: #edf3fc;
+  --blue-border: #b8cef0;
+  --purple: #6d3fa0;
+  --purple-light: #f3edfb;
+  --purple-border: #d4b8f0;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 4px rgba(26,25,22,.06), 0 4px 16px rgba(26,25,22,.06);
+  --shadow-lg: 0 8px 40px rgba(26,25,22,.12);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+.mono { font-family: 'Geist Mono', monospace; }
+.hidden { display: none !important; }
+
+/* ── LOGIN ── */
+#loginView { min-height:100vh; display:flex; background:var(--ink); position:relative; overflow:hidden; }
+.login-bg { position:absolute;inset:0; background:radial-gradient(ellipse at 20% 50%,#1e3a2a 0%,transparent 60%), radial-gradient(ellipse at 80% 20%,#0f2a1e 0%,transparent 50%),var(--ink); }
+.login-bg-grid { position:absolute;inset:0;opacity:.04; background-image:linear-gradient(var(--accent) 1px,transparent 1px),linear-gradient(90deg,var(--accent) 1px,transparent 1px); background-size:40px 40px; }
+.login-left { flex:1;display:flex;flex-direction:column;justify-content:center;padding:60px;position:relative;z-index:2; }
+.login-brand { font-family:'Instrument Serif',serif;font-size:48px;color:#fff;line-height:1.1;margin-bottom:16px; }
+.login-brand span { color:var(--accent2);font-style:italic; }
+.login-tagline { color:#8a9e94;font-size:16px;line-height:1.6;max-width:380px; }
+.login-features { margin-top:48px;display:flex;flex-direction:column;gap:16px; }
+.login-feature { display:flex;align-items:center;gap:12px;color:#8a9e94;font-size:14px; }
+.login-feature-dot { width:6px;height:6px;border-radius:50%;background:var(--accent2);flex-shrink:0; }
+.login-right { width:460px;display:flex;align-items:center;justify-content:center;padding:40px;position:relative;z-index:2;background:rgba(255,255,255,.03);border-left:1px solid rgba(255,255,255,.06);backdrop-filter:blur(20px); }
+.login-card { width:100%;background:var(--surface);border-radius:20px;padding:40px;box-shadow:var(--shadow-lg); }
+.login-card-title { font-size:22px;font-weight:700;margin-bottom:6px; }
+.login-card-sub { font-size:14px;color:var(--muted);margin-bottom:28px; }
+.form-group { margin-bottom:16px; }
+.form-label { display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px; }
+.form-input { width:100%;padding:11px 14px;background:var(--surface2);border:1.5px solid var(--border2);border-radius:var(--radius-sm);font-family:'Geist',sans-serif;font-size:14px;color:var(--ink);transition:border-color .15s,box-shadow .15s; }
+.form-input:focus { outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(30,107,74,.1); }
+.form-textarea { resize:vertical;min-height:80px;line-height:1.5; }
+.form-select { appearance:none;cursor:pointer; }
+.form-hint { font-size:12px;color:var(--muted2);margin-top:4px; }
+.btn { display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:var(--radius-sm);font-family:'Geist',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;text-decoration:none; }
+.btn-primary { background:var(--accent);color:white;border-color:var(--accent); }
+.btn-primary:hover { background:var(--accent2);border-color:var(--accent2); }
+.btn-full { width:100%; }
+.btn-ghost { background:transparent;color:var(--muted);border-color:var(--border2); }
+.btn-ghost:hover { background:var(--surface2);color:var(--ink); }
+.btn-danger { background:transparent;color:var(--red);border-color:var(--red-border); }
+.btn-danger:hover { background:var(--red-light); }
+.btn-sm { padding:7px 12px;font-size:12px; }
+.btn-lg { padding:14px 22px;font-size:15px;border-radius:10px; }
+.btn-icon { padding:7px;border-radius:var(--radius-sm);background:var(--surface2);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;font-size:13px;transition:all .15s; }
+.btn-icon:hover { background:var(--surface3);color:var(--ink); }
+.login-err { background:var(--red-light);border:1.5px solid var(--red-border);border-radius:var(--radius-sm);padding:10px 13px;font-size:13px;color:var(--red);margin-bottom:16px;display:none; }
+.login-err.show { display:block; }
+.login-success { background:var(--accent-light);border:1.5px solid var(--accent-border);border-radius:var(--radius-sm);padding:10px 13px;font-size:13px;color:var(--accent);margin-bottom:16px;display:none; }
+.login-success.show { display:block; }
+.auth-switch { text-align:center;margin-top:18px;font-size:13px;color:var(--muted2); }
+.auth-switch a { color:var(--accent);font-weight:600;cursor:pointer; }
+.role-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px; }
+.role-option { border:2px solid var(--border2);border-radius:10px;padding:14px 12px;cursor:pointer;transition:all .15s;background:var(--surface2);text-align:center;position:relative; }
+.role-option:hover { border-color:var(--accent);background:var(--accent-light); }
+.role-option.selected { border-color:var(--accent);background:var(--accent-light); }
+.role-option.selected::after { content:'✓';position:absolute;top:8px;right:10px;font-size:12px;font-weight:700;color:var(--accent); }
+.role-option-icon { font-size:24px;margin-bottom:6px; }
+.role-option-label { font-size:13px;font-weight:700;color:var(--ink); }
+.role-option-desc { font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4; }
+.role-option-admin { grid-column:1/-1; }
+
+/* ── APP SHELL ── */
+#appView { display:none;min-height:100vh; }
+.shell { display:flex;min-height:100vh; }
+.sidebar { width:230px;min-height:100vh;background:var(--ink);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50; }
+.sidebar-brand { padding:20px;border-bottom:1px solid rgba(255,255,255,.07);font-family:'Instrument Serif',serif;font-size:22px;color:white;display:flex;align-items:center;gap:10px; }
+.sidebar-brand em { color:var(--accent2);font-style:italic; }
+.sidebar-user { padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px; }
+.sidebar-avatar { width:34px;height:34px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0; }
+.sidebar-user-info { flex:1;min-width:0; }
+.sidebar-user-name { font-size:13px;font-weight:600;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.sidebar-user-role { font-size:11px;color:#6a7a6f;text-transform:uppercase;letter-spacing:.5px; }
+.sidebar-nav { padding:10px;flex:1; }
+.sidebar-section { font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#4a5a50;padding:10px 8px 4px; }
+.nav-item { display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;margin-bottom:1px;cursor:pointer;font-size:13px;font-weight:500;color:#8a9e94;border:none;background:none;width:100%;text-align:left;transition:all .15s; }
+.nav-item:hover { background:rgba(255,255,255,.05);color:white; }
+.nav-item.active { background:rgba(30,107,74,.3);color:#6dd8a0; }
+.nav-item .nav-icon { font-size:15px;width:20px;text-align:center; }
+.nav-badge { margin-left:auto;background:var(--red);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:99px;font-family:'Geist Mono',monospace; }
+.sidebar-footer { padding:14px 16px;border-top:1px solid rgba(255,255,255,.07); }
+.sidebar-footer button { width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:9px;color:#8a9e94;font-family:'Geist',sans-serif;font-size:13px;cursor:pointer;transition:all .15s; }
+.sidebar-footer button:hover { background:rgba(255,255,255,.1);color:white; }
+.main { margin-left:230px;flex:1;display:flex;flex-direction:column; }
+.topbar { background:var(--surface);border-bottom:1.5px solid var(--border);padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40; }
+.topbar-title { font-size:15px;font-weight:700; }
+.topbar-actions { display:flex;gap:8px;align-items:center; }
+.content { padding:28px;flex:1; }
+.page { animation:fadeUp .3s ease both; }
+
+/* ── CARDS ── */
+.card { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden; }
+.card-header { padding:16px 20px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between; }
+.card-title { font-size:14px;font-weight:700; }
+.card-body { padding:20px; }
+
+/* ── STATS ── */
+.stats-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:24px; }
+.stat-card { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden; }
+.stat-card::after { content:'';position:absolute;top:0;left:0;right:0;height:3px; }
+.stat-card.green::after { background:var(--accent); }
+.stat-card.amber::after { background:var(--amber); }
+.stat-card.blue::after { background:var(--blue); }
+.stat-card.red::after { background:var(--red); }
+.stat-num { font-family:'Geist Mono',monospace;font-size:36px;font-weight:500;line-height:1; }
+.stat-card.green .stat-num { color:var(--accent); }
+.stat-card.amber .stat-num { color:var(--amber); }
+.stat-card.blue .stat-num { color:var(--blue); }
+.stat-card.red .stat-num { color:var(--red); }
+.stat-label { font-size:12px;color:var(--muted);margin-top:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x:auto; }
+table { width:100%;border-collapse:collapse;font-size:14px; }
+th { padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);border-bottom:1.5px solid var(--border);white-space:nowrap; }
+td { padding:13px 16px;border-bottom:1px solid var(--border);vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--surface2); }
+.td-actions { display:flex;gap:6px;justify-content:flex-end; }
+
+/* ── BADGES ── */
+.badge { display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.3px;border:1.5px solid; }
+.badge-green { background:var(--accent-light);color:var(--accent);border-color:var(--accent-border); }
+.badge-red { background:var(--red-light);color:var(--red);border-color:var(--red-border); }
+.badge-amber { background:var(--amber-light);color:var(--amber);border-color:var(--amber-border); }
+.badge-blue { background:var(--blue-light);color:var(--blue);border-color:var(--blue-border); }
+.badge-purple { background:var(--purple-light);color:var(--purple);border-color:var(--purple-border); }
+.badge-gray { background:var(--surface2);color:var(--muted);border-color:var(--border2); }
+
+/* ── MODAL ── */
+.modal-overlay { display:none;position:fixed;inset:0;z-index:200;background:rgba(26,25,22,.5);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px; }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--surface);border:1.5px solid var(--border);border-radius:18px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:slideUp .22s ease both; }
+.modal-wide { max-width:700px; }
+.modal-header { padding:20px 24px 16px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:5; }
+.modal-title { font-size:16px;font-weight:700; }
+.modal-body { padding:24px; }
+.modal-footer { padding:16px 24px;border-top:1.5px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface); }
+.close-btn { background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px;border-radius:6px; }
+.close-btn:hover { background:var(--surface2);color:var(--ink); }
+.form-grid { display:grid;gap:14px; }
+.form-row { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+
+/* ── CHECKLIST ── */
+.checklist { display:flex;flex-direction:column;gap:8px; }
+.check-item { background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:13px 15px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;transition:all .15s;user-select:none; }
+.check-item:hover { border-color:var(--border2);background:var(--surface2); }
+.check-item.done { background:var(--accent-light);border-color:var(--accent-border); }
+.check-box { width:20px;height:20px;border-radius:6px;border:2px solid var(--border2);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s; }
+.check-item.done .check-box { background:var(--accent);border-color:var(--accent); }
+.checkmark { display:none;color:white;font-size:11px;font-weight:700; }
+.check-item.done .checkmark { display:block; }
+.check-label strong { font-size:14px;font-weight:600;display:block; }
+.check-label .sub { font-size:12px;color:var(--muted);margin-top:2px; }
+.check-item.done .check-label strong { text-decoration:line-through;opacity:.5; }
+
+/* ── PROGRESS ── */
+.progress-bar { height:6px;background:var(--surface3);border-radius:99px;overflow:hidden; }
+.progress-fill { height:100%;background:var(--accent);border-radius:99px;transition:width .4s ease; }
+
+/* ── CAREGIVER CARDS ── */
+.cg-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px; }
+.cg-card { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px; }
+.cg-card-top { display:flex;align-items:center;gap:12px;margin-bottom:14px; }
+.cg-avatar { width:42px;height:42px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0; }
+.cg-name { font-weight:700;font-size:15px; }
+.cg-role { font-size:12px;color:var(--muted);margin-top:1px; }
+.cg-progress-row { display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px; }
+.cg-pct { font-family:'Geist Mono',monospace;font-weight:700;color:var(--accent); }
+
+/* ── NOTICE ── */
+.notice { border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;line-height:1.5;display:flex;gap:10px;margin-bottom:16px; }
+.notice-green { background:var(--accent-light);border:1.5px solid var(--accent-border);color:var(--accent); }
+.notice-amber { background:var(--amber-light);border:1.5px solid var(--amber-border);color:var(--amber); }
+.notice-red { background:var(--red-light);border:1.5px solid var(--red-border);color:var(--red);font-weight:600; }
+.notice-blue { background:var(--blue-light);border:1.5px solid var(--blue-border);color:var(--blue); }
+
+/* ── LIST ITEMS ── */
+.list-item { display:flex;align-items:flex-start;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px; }
+.list-item+.list-item { margin-top:6px; }
+.list-item-body { flex:1;min-width:0; }
+.list-item-title { font-size:13px;font-weight:600; }
+.list-item-sub { font-size:12px;color:var(--muted);margin-top:2px; }
+.list-del { background:none;border:none;color:var(--muted2);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:4px;flex-shrink:0; }
+.list-del:hover { color:var(--red);background:var(--red-light); }
+
+/* ── SECTION HEADERS ── */
+.section-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:12px; }
+.section-title { font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px; }
+
+/* ── BEHAVIOR / MED ── */
+.behavior-card { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;border-left:4px solid var(--border2);margin-bottom:8px; }
+.behavior-card.trigger { border-left-color:var(--red); }
+.behavior-card.calming { border-left-color:var(--accent); }
+.behavior-card.general { border-left-color:var(--blue); }
+.behavior-type { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px; }
+.behavior-text { font-size:13px;line-height:1.55; }
+.med-item { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;display:flex;align-items:flex-start;gap:10px;margin-bottom:8px; }
+.med-dot { width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px; }
+.med-name { font-size:13px;font-weight:700; }
+.med-detail { font-size:12px;color:var(--muted);margin-top:2px; }
+.med-warn { font-size:12px;color:var(--red);margin-top:2px; }
+.emerg-item { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:13px 15px;display:flex;align-items:center;gap:12px;margin-bottom:8px; }
+.emerg-item.primary { border-color:var(--red-border);background:var(--red-light); }
+.emerg-name { font-size:13px;font-weight:700; }
+.emerg-role { font-size:12px;color:var(--muted); }
+.emerg-phone { margin-left:auto;font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;color:var(--blue);text-decoration:none; }
+
+/* ── ANNOUNCEMENT ── */
+.announcement-banner { background:linear-gradient(135deg,var(--accent) 0%,#155234 100%);color:white;border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;display:flex;align-items:flex-start;gap:16px;cursor:pointer;transition:opacity .15s; }
+.announcement-banner:hover { opacity:.95; }
+.ann-icon { font-size:24px;flex-shrink:0;margin-top:2px; }
+.ann-content { flex:1; }
+.ann-title { font-size:15px;font-weight:700;margin-bottom:4px; }
+.ann-items { font-size:13px;opacity:.85;line-height:1.6; }
+.ann-dismiss { flex-shrink:0;background:rgba(255,255,255,.15);border:none;color:white;border-radius:8px;padding:6px 12px;font-family:'Geist',sans-serif;font-size:12px;font-weight:600;cursor:pointer; }
+
+/* ── LOADING ── */
+.spinner { display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite; }
+.loading-screen { min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg); }
+.loading-screen .logo-text { font-family:'Instrument Serif',serif;font-size:28px;color:var(--accent); }
+
+/* ═══════════════════════════════════════════
+   WIZARD STYLES
+═══════════════════════════════════════════ */
+.wizard-overlay { display:none;position:fixed;inset:0;z-index:300;background:rgba(26,25,22,.6);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px; }
+.wizard-overlay.open { display:flex; }
+.wizard { background:var(--surface);border-radius:24px;width:100%;max-width:640px;max-height:92vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.2);display:flex;flex-direction:column;animation:slideUp .25s ease both; }
+.wizard-header { padding:24px 28px 0; }
+.wizard-title { font-family:'Instrument Serif',serif;font-size:26px;margin-bottom:4px; }
+.wizard-sub { font-size:14px;color:var(--muted); }
+.wizard-steps { display:flex;gap:0;padding:20px 28px 0; }
+.wizard-step-dot { flex:1;display:flex;flex-direction:column;align-items:center;position:relative; }
+.wizard-step-dot:not(:last-child)::after { content:'';position:absolute;top:14px;left:50%;width:100%;height:2px;background:var(--border2); }
+.wizard-step-dot.done:not(:last-child)::after { background:var(--accent); }
+.wsd-circle { width:28px;height:28px;border-radius:50%;border:2px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted2);position:relative;z-index:1;transition:all .2s; }
+.wizard-step-dot.active .wsd-circle { border-color:var(--accent);background:var(--accent);color:white; }
+.wizard-step-dot.done .wsd-circle { border-color:var(--accent);background:var(--accent-light);color:var(--accent); }
+.wsd-label { font-size:11px;color:var(--muted);margin-top:5px;text-align:center;font-weight:600; }
+.wizard-step-dot.active .wsd-label { color:var(--accent); }
+.wizard-body { padding:24px 28px;flex:1;overflow-y:auto; }
+.wizard-footer { padding:16px 28px 24px;display:flex;justify-content:space-between;align-items:center;border-top:1.5px solid var(--border); }
+.wizard-progress-text { font-size:12px;color:var(--muted2); }
+
+/* Wizard quick-task chips */
+.quick-task-grid { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px; }
+.quick-chip { padding:8px 14px;border-radius:99px;border:1.5px solid var(--border2);background:var(--surface2);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px; }
+.quick-chip:hover { border-color:var(--accent);background:var(--accent-light);color:var(--accent); }
+.quick-chip.selected { border-color:var(--accent);background:var(--accent-light);color:var(--accent); }
+.quick-chip-icon { font-size:15px; }
+
+/* Wizard shift toggle */
+.shift-toggle { display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:12px; }
+.shift-toggle-btn { padding:10px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--surface2);color:var(--muted);transition:all .15s; }
+.shift-toggle-btn.active { background:var(--accent);color:white; }
+
+/* Task builder rows */
+.task-row { display:flex;align-items:center;gap:8px;margin-bottom:8px; }
+.task-row input { flex:1; }
+.task-remove { background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:4px; }
+.task-remove:hover { color:var(--red);background:var(--red-light); }
+.add-task-row-btn { display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;padding:8px 0;background:none;border:none;font-family:'Geist',sans-serif; }
+.add-task-row-btn:hover { opacity:.75; }
+
+/* ═══════════════════════════════════════════
+   TEMPLATES PAGE
+═══════════════════════════════════════════ */
+.template-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px; }
+.template-card { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:box-shadow .15s; }
+.template-card:hover { box-shadow:var(--shadow); }
+.template-card-head { padding:16px 18px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between; }
+.template-card-name { font-weight:700;font-size:15px; }
+.template-card-meta { font-size:12px;color:var(--muted);margin-top:2px; }
+.template-card-body { padding:14px 18px; }
+.template-task-pill { display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:3px 10px;font-size:12px;margin:2px; }
+.template-card-foot { padding:12px 18px;border-top:1.5px solid var(--border);display:flex;gap:8px; }
+
+/* Apply template modal */
+.client-check-list { display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto; }
+.client-check-row { display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s; }
+.client-check-row:hover { border-color:var(--accent-border);background:var(--accent-light); }
+.client-check-row.selected { border-color:var(--accent);background:var(--accent-light); }
+.client-check-row input[type=checkbox] { width:18px;height:18px;accent-color:var(--accent);flex-shrink:0; }
+.client-check-info { flex:1; }
+.client-check-name { font-size:14px;font-weight:600; }
+.client-check-house { font-size:12px;color:var(--muted); }
+
+/* breadcrumb */
+.breadcrumb { display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:13px;color:var(--muted); }
+.breadcrumb a { color:var(--accent);cursor:pointer; }
+
+/* tab bar */
+.tab-bar { display:flex;gap:4px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:4px;width:fit-content;margin-bottom:20px; }
+.tab { padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border:none;background:none;font-family:'Geist',sans-serif;transition:all .15s; }
+.tab:hover { color:var(--ink);background:var(--surface3); }
+.tab.active { background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08); }
+
+/* ── BLOG EDITOR ── */
+.blog-editor-wrap { display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start; }
+.blog-toolbar { display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:var(--surface2);border:1.5px solid var(--border);border-bottom:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
+.toolbar-btn { background:none;border:1.5px solid transparent;border-radius:6px;padding:5px 10px;font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s; }
+.toolbar-btn:hover { background:var(--surface3);color:var(--ink);border-color:var(--border2); }
+.toolbar-sep { width:1px;background:var(--border2);margin:4px 2px; }
+.blog-content-area { border-radius:0 0 var(--radius-sm) var(--radius-sm) !important;border-top-color:var(--border) !important;min-height:360px;font-family:'Geist',sans-serif;font-size:14px;line-height:1.7;resize:vertical; }
+.blog-preview-pane { background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:20px;position:sticky;top:20px; }
+.blog-preview-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted2);margin-bottom:12px; }
+.blog-preview-body { font-size:13px;line-height:1.7;color:var(--ink3); }
+.blog-preview-body h2 { font-size:17px;font-weight:700;margin:14px 0 6px;color:var(--ink); }
+.blog-preview-body h3 { font-size:14px;font-weight:700;margin:10px 0 4px; }
+.blog-preview-body blockquote { border-left:3px solid var(--accent);padding:8px 12px;background:var(--accent-light);border-radius:0 6px 6px 0;margin:8px 0;font-style:italic;color:var(--accent);font-size:13px; }
+.blog-preview-body ul { padding-left:18px;margin:6px 0; }
+.blog-preview-body li { margin-bottom:4px; }
+.post-row { display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:1.5px solid var(--border);transition:background .12s; }
+.post-row:hover { background:var(--surface2); }
+.post-row:last-child { border-bottom:none; }
+.post-row-cover { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0; }
+.post-row-body { flex:1;min-width:0; }
+.post-row-title { font-size:14px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.post-row-meta { font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px; }
+.post-row-actions { display:flex;gap:6px;flex-shrink:0;align-items:center; }
+
+.empty { text-align:center;padding:48px 20px;color:var(--muted); }
+.empty-icon { font-size:32px;margin-bottom:10px; }
+.empty-title { font-size:15px;font-weight:600;color:var(--ink2);margin-bottom:6px; }
+.empty-sub { font-size:13px; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+@media(max-width:768px){
+  .login-left { display:none; }
+  .login-right { width:100%;border-left:none; }
+  .sidebar { width:200px; }
+  .main { margin-left:200px; }
+  .form-row { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="loadingScreen" class="loading-screen">
+  <div class="logo-text">CareGuide</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- LOGIN / SIGNUP -->
+<div id="loginView" class="hidden">
+  <div class="login-bg"></div><div class="login-bg-grid"></div>
+  <div class="login-left">
+    <div class="login-brand">Care<span>Guide</span></div>
+    <div class="login-tagline">The complete shift management platform for home care agencies.</div>
+    <div class="login-features">
+      <div class="login-feature"><div class="login-feature-dot"></div>Role-based access — admin, supervisor, caregiver</div>
+      <div class="login-feature"><div class="login-feature-dot"></div>New client wizard — set up a client in minutes</div>
+      <div class="login-feature"><div class="login-feature-dot"></div>Routine templates — build once, apply to anyone</div>
+      <div class="login-feature"><div class="login-feature-dot"></div>Medication schedules, behavior notes, emergency contacts</div>
+    </div>
+  </div>
+  <div class="login-right">
+    <div class="login-card" id="signInCard">
+      <div class="login-card-title">Sign in to CareGuide</div>
+      <div class="login-card-sub">Enter your credentials to continue.</div>
+      <div class="login-err" id="loginErr"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="loginEmail" placeholder="you@example.com"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="loginPassword" placeholder="••••••••"/></div>
+      <button class="btn btn-primary btn-full" onclick="signIn()" id="loginBtn" style="margin-top:8px;">Sign In</button>
+      <div class="auth-switch">No account? <a onclick="showSignUp()">Create one</a></div>
+    </div>
+    <div class="login-card hidden" id="signUpCard">
+      <div class="login-card-title">Create your account</div>
+      <div class="login-card-sub">Choose your role to get started.</div>
+      <div class="login-err" id="signupErr"></div>
+      <div class="login-success" id="signupSuccess"></div>
+      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="su-name" placeholder="Your full name"/></div>
+      <div class="form-group"><label class="form-label">Email *</label><input class="form-input" type="email" id="su-email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label class="form-label">Password *</label><input class="form-input" type="password" id="su-pass" placeholder="Minimum 6 characters"/></div>
+      <div class="form-group">
+        <label class="form-label">I am joining as *</label>
+        <div class="role-grid" id="roleGrid">
+          <div class="role-option selected" data-role="caregiver" onclick="selectRole('caregiver')"><div class="role-option-icon">🧑‍⚕️</div><div class="role-option-label">Caregiver</div><div class="role-option-desc">Daily tasks & client care</div></div>
+          <div class="role-option" data-role="supervisor" onclick="selectRole('supervisor')"><div class="role-option-icon">📋</div><div class="role-option-label">Supervisor</div><div class="role-option-desc">Oversee staff & shifts</div></div>
+          <div class="role-option role-option-admin" data-role="admin" onclick="selectRole('admin')"><div class="role-option-icon">⚙️</div><div class="role-option-label">Administrator</div><div class="role-option-desc">Full access — manage everything</div></div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="signUp()" id="signupBtn">Create Account</button>
+      <div class="auth-switch">Have an account? <a onclick="showSignIn()">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appView" class="hidden">
+  <div class="shell">
+    <nav class="sidebar">
+      <div class="sidebar-brand">Care<em>Guide</em></div>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarName">Loading…</div>
+          <div class="sidebar-user-role" id="sidebarRole">—</div>
+        </div>
+      </div>
+      <div class="sidebar-nav" id="sidebarNav"></div>
+      <div class="sidebar-footer"><button onclick="signOut()">← Sign Out</button></div>
+    </nav>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div class="topbar-actions" id="topbarActions"></div>
+      </div>
+      <div class="content" id="mainContent"><div class="empty"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     NEW CLIENT WIZARD
+══════════════════════════════════════════ -->
+<div class="wizard-overlay" id="wizardOverlay">
+  <div class="wizard">
+    <div class="wizard-header">
+      <div class="wizard-title">✨ Add New Client</div>
+      <div class="wizard-sub" id="wizardSub">Let's get them set up in a few easy steps</div>
+    </div>
+    <div class="wizard-steps" id="wizardStepDots"></div>
+    <div class="wizard-body" id="wizardBody"></div>
+    <div class="wizard-footer">
+      <button class="btn btn-ghost" id="wizardBackBtn" onclick="wizardBack()">← Back</button>
+      <div class="wizard-progress-text" id="wizardProgressText"></div>
+      <button class="btn btn-primary" id="wizardNextBtn" onclick="wizardNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     STANDARD MODALS
+══════════════════════════════════════════ -->
+
+<!-- House Modal -->
+<div class="modal-overlay" id="houseModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="houseMT">Add House</div><button class="close-btn" onclick="closeModal('houseModal')">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="form-group"><label class="form-label">House Name *</label><input class="form-input" id="hf-name" placeholder="e.g. Maple Street House"/></div>
+      <div class="form-group"><label class="form-label">Address</label><input class="form-input" id="hf-address"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Manager</label><input class="form-input" id="hf-manager"/></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="hf-phone"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input form-textarea" id="hf-notes"></textarea></div>
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('houseModal')">Cancel</button><button class="btn btn-primary" onclick="saveHouse()">Save House</button></div>
+  </div>
+</div>
+
+<!-- Medication Modal -->
+<div class="modal-overlay" id="medModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="medMT">Add Medication</div><button class="close-btn" onclick="closeModal('medModal')">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Medication Name *</label><input class="form-input" id="mf-name"/></div>
+        <div class="form-group"><label class="form-label">Dose</label><input class="form-input" id="mf-dose" placeholder="e.g. 10mg"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Schedule</label>
+        <select class="form-input form-select" id="mf-schedule">
+          <option value="morning">Morning</option><option value="evening">Evening</option><option value="prn">PRN / As-Needed</option><option value="separate">Taken Separately</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Instructions</label><textarea class="form-input form-textarea" id="mf-instructions"></textarea></div>
+      <div class="form-group"><label class="form-label">⚠ Warnings</label><textarea class="form-input form-textarea" id="mf-warnings"></textarea></div>
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('medModal')">Cancel</button><button class="btn btn-primary" onclick="saveMed()">Save Medication</button></div>
+  </div>
+</div>
+
+<!-- Task Modal (single) -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="taskMT">Add Task</div><button class="close-btn" onclick="closeModal('taskModal')">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="form-group"><label class="form-label">Task *</label><input class="form-input" id="tf-task"/></div>
+      <div class="form-group"><label class="form-label">Note</label><textarea class="form-input form-textarea" id="tf-note"></textarea></div>
+      <div class="form-group"><label class="form-label">Shift</label>
+        <select class="form-input form-select" id="tf-shift"><option value="morning">Morning</option><option value="evening">Evening</option></select>
+      </div>
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('taskModal')">Cancel</button><button class="btn btn-primary" onclick="saveTask()">Save Task</button></div>
+  </div>
+</div>
+
+<!-- Behavior Modal -->
+<div class="modal-overlay" id="behaviorModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="behaviorMT">Add Behavior Note</div><button class="close-btn" onclick="closeModal('behaviorModal')">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="form-group"><label class="form-label">Type</label>
+        <select class="form-input form-select" id="bf-type"><option value="general">General</option><option value="trigger">Trigger / Warning</option><option value="calming">Calming Strategy</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Label</label><input class="form-input" id="bf-label"/></div>
+      <div class="form-group"><label class="form-label">Description *</label><textarea class="form-input form-textarea" id="bf-text" style="min-height:100px;"></textarea></div>
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('behaviorModal')">Cancel</button><button class="btn btn-primary" onclick="saveBehavior()">Save Note</button></div>
+  </div>
+</div>
+
+<!-- Emergency Modal -->
+<div class="modal-overlay" id="emergModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="emergMT">Add Emergency Contact</div><button class="close-btn" onclick="closeModal('emergModal')">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="ef-name"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Role</label><input class="form-input" id="ef-role"/></div>
+        <div class="form-group"><label class="form-label">Phone *</label><input class="form-input" id="ef-phone"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Priority</label>
+        <select class="form-input form-select" id="ef-primary"><option value="false">Standard</option><option value="true">⭐ Primary — call first</option></select>
+      </div>
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('emergModal')">Cancel</button><button class="btn btn-primary" onclick="saveEmerg()">Save Contact</button></div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="userMT">Add Team Member</div><button class="close-btn" onclick="closeModal('userModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="notice notice-blue">ℹ️ A password reset email will be sent to the new member.</div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="uf-name"/></div>
+        <div class="form-group"><label class="form-label">Email *</label><input class="form-input" type="email" id="uf-email"/></div>
+        <div class="form-group"><label class="form-label">Temporary Password *</label><input class="form-input" type="password" id="uf-pass"/></div>
+        <div class="form-group"><label class="form-label">Role</label>
+          <select class="form-input form-select" id="uf-role"><option value="caregiver">Caregiver</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Houses (Ctrl+click multi)</label><select class="form-input form-select" id="uf-houses" multiple style="min-height:100px;"></select></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('userModal')">Cancel</button><button class="btn btn-primary" onclick="saveUser()">Create Account</button></div>
+  </div>
+</div>
+
+<!-- Template Modal (create/edit) -->
+<div class="modal-overlay" id="templateModal">
+  <div class="modal modal-wide">
+    <div class="modal-header"><div class="modal-title" id="templateMT">Create Routine Template</div><button class="close-btn" onclick="closeModal('templateModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:20px;">
+        <label class="form-label">Template Name *</label>
+        <input class="form-input" id="tpl-name" placeholder="e.g. Standard Morning Routine"/>
+        <div class="form-hint">Give it a name your team will recognise</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <!-- Morning tasks -->
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;">☀️ Morning Tasks</div>
+          <div class="quick-task-grid" id="tpl-morning-chips"></div>
+          <div id="tpl-morning-rows"></div>
+          <button class="add-task-row-btn" onclick="addTemplateRow('morning')">+ Add morning task</button>
+        </div>
+        <!-- Evening tasks -->
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px;">🌙 Evening Tasks</div>
+          <div class="quick-task-grid" id="tpl-evening-chips"></div>
+          <div id="tpl-evening-rows"></div>
+          <button class="add-task-row-btn" onclick="addTemplateRow('evening')">+ Add evening task</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('templateModal')">Cancel</button><button class="btn btn-primary" onclick="saveTemplate()">Save Template</button></div>
+  </div>
+</div>
+
+<!-- Apply Template Modal -->
+<div class="modal-overlay" id="applyTemplateModal">
+  <div class="modal modal-wide">
+    <div class="modal-header"><div class="modal-title" id="applyTplMT">Apply Template to Clients</div><button class="close-btn" onclick="closeModal('applyTemplateModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="notice notice-green">✅ Pick which clients should get this routine. Existing tasks will be kept — new ones will be added.</div>
+      <div class="client-check-list" id="applyClientList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('applyTemplateModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="applyTemplateToClients()">Apply to Selected Clients</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header"><div class="modal-title">Confirm</div><button class="close-btn" onclick="closeModal('confirmModal')">✕</button></div>
+    <div class="modal-body"><div id="confirmText" style="font-size:14px;line-height:1.6;color:var(--muted);"></div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('confirmModal')">Cancel</button><button class="btn btn-danger" id="confirmOk">Delete</button></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SUPABASE
+// ============================================================
+const SUPABASE_URL = 'https://ghbswzehmkjzaftywpah.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoYnN3emVobWtqemFmdHl3cGFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4OTYxMzIsImV4cCI6MjA4NzQ3MjEzMn0.XmBf2_5_dAqT5DTECBeJHKtH8eL3LXOzU55YZqzXCDo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============================================================
+// STATE
+// ============================================================
+let currentUser = null, currentProfile = null, currentPage = null;
+let _editId = null, _ctx = {};
+let unreadAnnouncements = [], taskCompletions = {};
+let selectedSignUpRole = 'caregiver';
+
+// Wizard state
+let wizardStep = 0;
+let wizardData = {};
+const WIZARD_STEPS = ['Client Info','Routine','Medications','Contacts'];
+
+// Template state
+let _applyTemplateId = null;
+let _templateMorningTasks = [], _templateEveningTasks = [];
+
+// Common tasks library
+const COMMON_TASKS = {
+  morning: [
+    {icon:'🚿', label:'Shower / Bath'},
+    {icon:'👕', label:'Get Dressed'},
+    {icon:'🦷', label:'Brush Teeth'},
+    {icon:'💊', label:'Morning Meds'},
+    {icon:'🍳', label:'Prepare Breakfast'},
+    {icon:'🛏', label:'Make Bed'},
+    {icon:'🧴', label:'Apply Lotion'},
+    {icon:'💈', label:'Hair / Grooming'},
+  ],
+  evening: [
+    {icon:'🍽', label:'Prepare Dinner'},
+    {icon:'💊', label:'Evening Meds'},
+    {icon:'🦷', label:'Brush Teeth'},
+    {icon:'🛁', label:'Evening Bath / Wash'},
+    {icon:'👘', label:'Change to Pajamas'},
+    {icon:'📝', label:'Shift Notes'},
+    {icon:'🔒', label:'Lock Doors'},
+    {icon:'💡', label:'Lights Off Check'},
+  ]
+};
+
+// ============================================================
+// AUTH UI
+// ============================================================
+function showSignUp(){ document.getElementById('signInCard').classList.add('hidden'); document.getElementById('signUpCard').classList.remove('hidden'); }
+function showSignIn(){ document.getElementById('signUpCard').classList.add('hidden'); document.getElementById('signInCard').classList.remove('hidden'); }
+function selectRole(r){ selectedSignUpRole=r; document.querySelectorAll('.role-option').forEach(el=>el.classList.toggle('selected',el.dataset.role===r)); }
+
+// ============================================================
+// BOOT
+// ============================================================
+async function boot(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(session){ currentUser=session.user; await loadProfile(); showApp(); }
+  else showLogin();
+}
+async function loadProfile(){
+  for(let i=0;i<3;i++){
+    const {data} = await sb.from('user_profiles').select('*').eq('id',currentUser.id).single();
+    if(data){ currentProfile=data; return; }
+    if(i<2) await new Promise(r=>setTimeout(r,500));
+  }
+  const {data:ins} = await sb.from('user_profiles').upsert({id:currentUser.id,email:currentUser.email,full_name:currentUser.user_metadata?.full_name||currentUser.email,role:currentUser.user_metadata?.requested_role||'caregiver'},{onConflict:'id'}).select().single();
+  currentProfile=ins;
+}
+function showLogin(){ document.getElementById('loadingScreen').classList.add('hidden'); document.getElementById('loginView').classList.remove('hidden'); }
+async function showApp(){
+  document.getElementById('loadingScreen').classList.add('hidden');
+  document.getElementById('appView').classList.remove('hidden');
+  document.getElementById('appView').style.display='block';
+  const name=currentProfile?.full_name||currentUser.email;
+  const role=currentProfile?.role||'caregiver';
+  const initials=name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('sidebarAvatar').textContent=initials;
+  document.getElementById('sidebarName').textContent=name;
+  document.getElementById('sidebarRole').textContent=role.charAt(0).toUpperCase()+role.slice(1);
+  buildSidebar(role); await loadUnread();
+  if(role==='admin'||role==='supervisor') navigate('dashboard');
+  else navigate('myShift');
+}
+function buildSidebar(role){
+  const nav=document.getElementById('sidebarNav'); nav.innerHTML='';
+  if(role==='admin'||role==='supervisor'){
+    nav.innerHTML+=ss('Overview')+ni('dashboard','📊','Dashboard')+ni('checkins','✅',"Today's Check-ins");
+    nav.innerHTML+=ss('Management')+ni('houses','🏠','Houses')+ni('clients','👤','Clients')+ni('team','👥','Team');
+    nav.innerHTML+=ss('Care Tools')+ni('templates','📋','Routine Templates')+ni('allMeds','💊','Medications')+ni('allTasks','📝','All Tasks');
+  if(role==='admin'){
+    nav.innerHTML+=ss('Website')+ni('blogAdmin','✍️','Blog Posts');
+  }
+  }
+  if(role==='caregiver'){
+    nav.innerHTML+=ss('My Shift')+ni('myShift','☀️',"Today's Tasks",'myShiftBadge')+ni('myClients','👤','My Clients')+ni('myAnnouncements','📢','Announcements','annBadge');
+  }
+  document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>navigate(el.dataset.page)));
+}
+function ss(l){ return `<div class="sidebar-section">${l}</div>`; }
+function ni(page,icon,label,badgeId=''){
+  return `<button class="nav-item" data-page="${page}"><span class="nav-icon">${icon}</span>${label}${badgeId?`<span class="nav-badge hidden" id="${badgeId}">0</span>`:''}</button>`;
+}
+
+// ============================================================
+// AUTH ACTIONS
+// ============================================================
+async function signIn(){
+  const email=document.getElementById('loginEmail').value.trim(), pass=document.getElementById('loginPassword').value;
+  const btn=document.getElementById('loginBtn'); btn.textContent='Signing in…'; btn.disabled=true; showErr('loginErr','');
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){showErr('loginErr',error.message);btn.textContent='Sign In';btn.disabled=false;return;}
+  currentUser=data.user; await loadProfile(); document.getElementById('loginView').classList.add('hidden'); showApp();
+}
+async function signUp(){
+  const name=document.getElementById('su-name').value.trim(), email=document.getElementById('su-email').value.trim(), pass=document.getElementById('su-pass').value, role=selectedSignUpRole;
+  showErr('signupErr',''); showSuccessMsg('signupSuccess','');
+  if(!name){showErr('signupErr','Please enter your full name.');return;}
+  if(!email){showErr('signupErr','Please enter your email.');return;}
+  if(!pass||pass.length<6){showErr('signupErr','Password must be at least 6 characters.');return;}
+  const btn=document.getElementById('signupBtn'); btn.textContent='Creating…'; btn.disabled=true;
+  const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name,requested_role:role}}});
+  if(error){showErr('signupErr',error.message);btn.textContent='Create Account';btn.disabled=false;return;}
+  if(data.user&&data.session){
+    currentUser=data.user;
+    await sb.from('user_profiles').upsert({id:data.user.id,email,full_name:name,role},{onConflict:'id'});
+    await loadProfile(); document.getElementById('loginView').classList.add('hidden'); showApp(); return;
+  }
+  showSuccessMsg('signupSuccess',`✓ Account created! Check ${email} to confirm, then sign in.`);
+  btn.textContent='Create Account'; btn.disabled=false;
+  setTimeout(()=>{document.getElementById('loginEmail').value=email;showSignIn();},3000);
+}
+async function signOut(){ await sb.auth.signOut(); location.reload(); }
+function showErr(id,msg){ const el=document.getElementById(id); if(el){el.textContent=msg;el.classList.toggle('show',!!msg);} }
+function showSuccessMsg(id,msg){ const el=document.getElementById(id); if(el){el.textContent=msg;el.classList.toggle('show',!!msg);} }
+
+// ============================================================
+// ANNOUNCEMENTS
+// ============================================================
+async function loadUnread(){
+  if(!currentProfile||currentProfile.role!=='caregiver') return;
+  const {data:assignments}=await sb.from('caregiver_houses').select('house_id').eq('user_id',currentUser.id);
+  if(!assignments?.length) return;
+  const houseIds=assignments.map(a=>a.house_id);
+  const {data:anns}=await sb.from('announcements').select('*').in('house_id',houseIds).order('created_at',{ascending:false});
+  if(!anns?.length) return;
+  const {data:reads}=await sb.from('announcement_reads').select('announcement_id').eq('user_id',currentUser.id);
+  const readIds=new Set((reads||[]).map(r=>r.announcement_id));
+  unreadAnnouncements=anns.filter(a=>!readIds.has(a.id));
+  if(unreadAnnouncements.length){ const b=document.getElementById('annBadge'); if(b){b.textContent=unreadAnnouncements.length;b.classList.remove('hidden');} }
+}
+async function markAllRead(){
+  if(!unreadAnnouncements.length) return;
+  await sb.from('announcement_reads').upsert(unreadAnnouncements.map(a=>({announcement_id:a.id,user_id:currentUser.id})),{onConflict:'announcement_id,user_id'});
+  unreadAnnouncements=[]; const b=document.getElementById('annBadge'); if(b) b.classList.add('hidden');
+}
+async function createAnnouncement(houseId,clientId,type,title,body){
+  await sb.from('announcements').insert({house_id:houseId,client_id:clientId,type,title,body,created_by:currentUser.id});
+}
+
+// ============================================================
+// NAVIGATE
+// ============================================================
+function navigate(page,ctx={}){
+  currentPage=page; Object.assign(_ctx,ctx);
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
+  const titles={dashboard:'Dashboard',houses:'Houses',clients:'All Clients',team:'Team',allMeds:'All Medications',allTasks:'All Tasks',checkins:"Today's Check-ins",myShift:'My Shift',myClients:'My Clients',myAnnouncements:'Announcements',clientDetail:'Client',houseDetail:'House',templates:'Routine Templates',blogAdmin:'Blog Posts',blogEditor:'Blog Editor'};
+  document.getElementById('topbarTitle').textContent=titles[page]||page;
+  document.getElementById('topbarActions').innerHTML='';
+  renderPage(page);
+}
+async function renderPage(page){
+  const el=document.getElementById('mainContent');
+  el.innerHTML='<div class="empty"><div class="spinner"></div></div>';
+  const map={dashboard,houses,houseDetail,clients,clientDetail,team,allMeds,allTasks,checkins,myShift,myClients,myAnnouncements,templates,blogAdmin,blogEditor};
+  if(map[page]) await map[page](el);
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function dashboard(el){
+  const [{data:houseData},{data:clientData},{data:userData},{data:taskData}]=await Promise.all([
+    sb.from('houses').select('*'),sb.from('clients').select('*'),sb.from('user_profiles').select('*'),sb.from('routine_tasks').select('*')
+  ]);
+  const today=new Date().toISOString().slice(0,10);
+  const {data:completions}=await sb.from('task_completions').select('*').eq('shift_date',today);
+  const {data:checkinData}=await sb.from('shift_checkins').select('*, user_profiles(full_name)').eq('shift_date',today);
+  const caregivers=(userData||[]).filter(u=>u.role==='caregiver');
+  const checkedIn=new Set((checkinData||[]).map(c=>c.user_id));
+  const total=(taskData||[]).length, done=new Set((completions||[]).map(c=>c.task_id)).size;
+  const pct=total?Math.round((done/total)*100):0;
+
+  // Incomplete setup warnings
+  const {data:tplData}=await sb.from('routine_templates').select('id').limit(1);
+  const hasTemplates=(tplData||[]).length>0;
+  const clientsNoTasks=(clientData||[]).filter(c=>!(taskData||[]).find(t=>t.client_id===c.id));
+
+  el.innerHTML=`<div class="page">
+    ${!hasTemplates?`<div class="notice notice-amber" style="cursor:pointer;" onclick="navigate('templates')">💡 <strong>Tip:</strong> You haven't created any Routine Templates yet. Build one and apply it to all your clients at once → <strong>Go to Templates</strong></div>`:''}
+    ${clientsNoTasks.length?`<div class="notice notice-blue">📋 <strong>${clientsNoTasks.length} client${clientsNoTasks.length>1?'s have':'has'} no tasks assigned yet.</strong> Use a template or add tasks from their profile.</div>`:''}
+    <div class="stats-grid">
+      <div class="stat-card green"><div class="stat-num">${(houseData||[]).length}</div><div class="stat-label">Houses</div></div>
+      <div class="stat-card blue"><div class="stat-num">${(clientData||[]).length}</div><div class="stat-label">Clients</div></div>
+      <div class="stat-card amber"><div class="stat-num">${checkedIn.size} / ${caregivers.length}</div><div class="stat-label">Caregivers In</div></div>
+      <div class="stat-card green"><div class="stat-num">${pct}%</div><div class="stat-label">Tasks Complete</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="card"><div class="card-header"><div class="card-title">Today's Shift</div><button class="btn btn-ghost btn-sm" onclick="navigate('checkins')">View All</button></div><div id="dash-checkins"></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">Houses</div><button class="btn btn-primary btn-sm" onclick="openHouseModal()">+ Add</button></div><div id="dash-houses"></div></div>
+    </div>
+  </div>`;
+
+  const chkEl=document.getElementById('dash-checkins');
+  caregivers.forEach(cg=>{
+    const ci=(checkinData||[]).find(c=>c.user_id===cg.id);
+    const d=document.createElement('div'); d.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);';
+    d.innerHTML=`<div style="width:8px;height:8px;border-radius:50%;background:${ci?'var(--accent)':'var(--border2)'};flex-shrink:0;"></div><div style="flex:1;font-size:13px;font-weight:600;">${cg.full_name||'?'}</div><div style="font-size:12px;color:var(--muted);">${ci?'✓ In':'Not started'}</div>`;
+    chkEl.appendChild(d);
+  });
+  if(!caregivers.length) chkEl.innerHTML='<div class="empty"><div class="empty-sub">No caregivers yet.</div></div>';
+
+  const hEl=document.getElementById('dash-houses');
+  (houseData||[]).forEach(h=>{
+    const cnt=(clientData||[]).filter(c=>c.house_id===h.id).length;
+    const d=document.createElement('div'); d.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;';
+    d.onclick=()=>navigate('houseDetail',{houseId:h.id});
+    d.innerHTML=`<div style="flex:1;font-size:13px;font-weight:600;">${h.name}</div><span class="badge badge-green">${cnt} client${cnt!==1?'s':''}</span><span style="color:var(--muted);">→</span>`;
+    hEl.appendChild(d);
+  });
+  if(!(houseData||[]).length) hEl.innerHTML='<div class="empty"><div class="empty-sub">No houses yet.</div></div>';
+}
+
+// ============================================================
+// ROUTINE TEMPLATES PAGE
+// ============================================================
+async function templates(el){
+  const {data:tpls}=await sb.from('routine_templates').select('*').order('name');
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="openTemplateModal()">+ New Template</button>`;
+  el.innerHTML=`<div class="page">
+    <div class="notice notice-blue" style="margin-bottom:20px;">📋 Build a routine once, then apply it to any client instantly. Great for clients with similar care needs.</div>
+    <div class="template-grid" id="tpl-grid"></div>
+  </div>`;
+  const grid=document.getElementById('tpl-grid');
+  if(!(tpls||[]).length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1;">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">No templates yet</div>
+      <div class="empty-sub">Create your first routine template and apply it to clients with one click.</div>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="openTemplateModal()">+ Create First Template</button>
+    </div>`;
+    return;
+  }
+  tpls.forEach(t=>{
+    const tasks=t.tasks||[];
+    const morning=tasks.filter(x=>x.shift==='morning'), evening=tasks.filter(x=>x.shift==='evening');
+    const div=document.createElement('div'); div.className='template-card';
+    div.innerHTML=`
+      <div class="template-card-head">
+        <div>
+          <div class="template-card-name">📋 ${t.name}</div>
+          <div class="template-card-meta">${morning.length} morning · ${evening.length} evening task${(morning.length+evening.length)!==1?'s':''}</div>
+        </div>
+      </div>
+      <div class="template-card-body">
+        ${morning.length?`<div style="font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">☀️ Morning</div><div style="margin-bottom:10px;">${morning.map(x=>`<span class="template-task-pill">${x.task}</span>`).join('')}</div>`:''}
+        ${evening.length?`<div style="font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">🌙 Evening</div><div>${evening.map(x=>`<span class="template-task-pill">${x.task}</span>`).join('')}</div>`:''}
+      </div>
+      <div class="template-card-foot">
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="openApplyTemplate('${t.id}','${t.name.replace(/'/g,"\\'")}')">▶ Apply to Clients</button>
+        <button class="btn-icon" onclick="openTemplateModal('${t.id}')">✏</button>
+        <button class="btn-icon" onclick="confirmDel('routine_templates','${t.id}','${t.name.replace(/'/g,"\\'")}')">🗑</button>
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// ── Template modal open ──
+async function openTemplateModal(id=''){
+  _editId=id||null; _templateMorningTasks=[]; _templateEveningTasks=[];
+  document.getElementById('templateMT').textContent=id?'Edit Template':'Create Routine Template';
+  document.getElementById('tpl-name').value='';
+  document.getElementById('tpl-morning-rows').innerHTML='';
+  document.getElementById('tpl-evening-rows').innerHTML='';
+
+  // If editing, load existing tasks
+  if(id){
+    const {data:t}=await sb.from('routine_templates').select('*').eq('id',id).single();
+    if(t){
+      document.getElementById('tpl-name').value=t.name||'';
+      (t.tasks||[]).forEach(task=>{
+        if(task.shift==='morning'){_templateMorningTasks.push(task.task);addTemplateRow('morning',task.task);}
+        else{_templateEveningTasks.push(task.task);addTemplateRow('evening',task.task);}
+      });
+    }
+  }
+
+  // Render quick chips
+  renderTemplateChips('morning');
+  renderTemplateChips('evening');
+  openModal('templateModal');
+}
+
+function renderTemplateChips(shift){
+  const el=document.getElementById(`tpl-${shift}-chips`);
+  el.innerHTML=COMMON_TASKS[shift].map(t=>`
+    <div class="quick-chip" onclick="addChipToTemplate('${shift}','${t.label.replace(/'/g,"\\'")}',this)">
+      <span class="quick-chip-icon">${t.icon}</span>${t.label}
+    </div>
+  `).join('');
+}
+
+function addChipToTemplate(shift,label,chipEl){
+  chipEl.classList.toggle('selected');
+  if(chipEl.classList.contains('selected')) addTemplateRow(shift,label);
+  else removeTemplateRow(shift,label);
+}
+
+function addTemplateRow(shift,value=''){
+  const container=document.getElementById(`tpl-${shift}-rows`);
+  const id=`trow-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const div=document.createElement('div'); div.className='task-row'; div.id=id;
+  div.innerHTML=`<input class="form-input" placeholder="Task description…" value="${value.replace(/"/g,'&quot;')}"/><button class="task-remove" onclick="document.getElementById('${id}').remove()">✕</button>`;
+  container.appendChild(div);
+}
+
+function removeTemplateRow(shift,label){
+  const container=document.getElementById(`tpl-${shift}-rows`);
+  const rows=container.querySelectorAll('.task-row input');
+  for(const inp of rows){ if(inp.value===label){inp.closest('.task-row').remove();break;} }
+}
+
+async function saveTemplate(){
+  const name=document.getElementById('tpl-name').value.trim();
+  if(!name){alert('Template name required.');return;}
+
+  const morningInputs=document.querySelectorAll('#tpl-morning-rows .task-row input');
+  const eveningInputs=document.querySelectorAll('#tpl-evening-rows .task-row input');
+  const tasks=[
+    ...Array.from(morningInputs).map(i=>i.value.trim()).filter(Boolean).map(t=>({task:t,shift:'morning'})),
+    ...Array.from(eveningInputs).map(i=>i.value.trim()).filter(Boolean).map(t=>({task:t,shift:'evening'}))
+  ];
+  if(!tasks.length){alert('Add at least one task to the template.');return;}
+
+  if(_editId) await sb.from('routine_templates').update({name,tasks}).eq('id',_editId);
+  else await sb.from('routine_templates').insert({name,tasks,created_by:currentUser.id});
+  closeModal('templateModal'); navigate('templates');
+}
+
+// ── Apply template ──
+async function openApplyTemplate(templateId,templateName){
+  _applyTemplateId=templateId;
+  document.getElementById('applyTplMT').textContent=`Apply "${templateName}" to Clients`;
+  const {data:allClients}=await sb.from('clients').select('*, houses(name)').order('first_name');
+  const list=document.getElementById('applyClientList');
+  list.innerHTML='';
+  if(!(allClients||[]).length){list.innerHTML='<div class="empty-sub" style="padding:20px;">No clients yet.</div>';openModal('applyTemplateModal');return;}
+  (allClients||[]).forEach(c=>{
+    const row=document.createElement('div'); row.className='client-check-row'; row.dataset.clientId=c.id;
+    row.innerHTML=`<input type="checkbox" value="${c.id}"><div class="client-check-info"><div class="client-check-name">${c.first_name} ${c.last_name||''}</div><div class="client-check-house">🏠 ${c.houses?.name||'No house'}</div></div>`;
+    row.querySelector('input').addEventListener('change',()=>row.classList.toggle('selected',row.querySelector('input').checked));
+    row.addEventListener('click',e=>{ if(e.target.tagName!=='INPUT'){ const cb=row.querySelector('input'); cb.checked=!cb.checked; row.classList.toggle('selected',cb.checked); } });
+    list.appendChild(row);
+  });
+  openModal('applyTemplateModal');
+}
+
+async function applyTemplateToClients(){
+  const checked=Array.from(document.querySelectorAll('#applyClientList input:checked')).map(i=>i.value);
+  if(!checked.length){alert('Select at least one client.');return;}
+  const {data:tpl}=await sb.from('routine_templates').select('*').eq('id',_applyTemplateId).single();
+  if(!tpl){alert('Template not found.');return;}
+
+  const btn=document.querySelector('#applyTemplateModal .btn-primary'); btn.textContent='Applying…'; btn.disabled=true;
+  for(const clientId of checked){
+    const rows=(tpl.tasks||[]).map(t=>({task:t.task,shift:t.shift,client_id:clientId,note:''}));
+    if(rows.length) await sb.from('routine_tasks').insert(rows);
+  }
+  btn.textContent='Apply to Selected Clients'; btn.disabled=false;
+  closeModal('applyTemplateModal');
+  alert(`✅ Template applied to ${checked.length} client${checked.length>1?'s':''}!`);
+  navigate('clients');
+}
+
+// ============================================================
+// NEW CLIENT WIZARD
+// ============================================================
+function openWizard(defaults={}){
+  wizardStep=0;
+  wizardData={ houseId: defaults.houseId||'', firstName:'', lastName:'', room:'', notes:'', tasks:[], meds:[], contacts:[] };
+  document.getElementById('wizardOverlay').classList.add('open');
+  renderWizardStep();
+}
+
+function closeWizard(){
+  document.getElementById('wizardOverlay').classList.remove('open');
+}
+
+function renderWizardDots(){
+  const el=document.getElementById('wizardStepDots');
+  el.innerHTML=WIZARD_STEPS.map((s,i)=>`
+    <div class="wizard-step-dot ${i<wizardStep?'done':i===wizardStep?'active':''}">
+      <div class="wsd-circle">${i<wizardStep?'✓':(i+1)}</div>
+      <div class="wsd-label">${s}</div>
+    </div>
+  `).join('');
+}
+
+function renderWizardStep(){
+  renderWizardDots();
+  document.getElementById('wizardProgressText').textContent=`Step ${wizardStep+1} of ${WIZARD_STEPS.length}`;
+  document.getElementById('wizardBackBtn').style.visibility = wizardStep===0 ? 'hidden' : 'visible';
+  document.getElementById('wizardNextBtn').textContent = wizardStep===WIZARD_STEPS.length-1 ? '✅ Save Client' : 'Next →';
+
+  const body=document.getElementById('wizardBody');
+  if(wizardStep===0) renderWizardStep0(body);
+  else if(wizardStep===1) renderWizardStep1(body);
+  else if(wizardStep===2) renderWizardStep2(body);
+  else if(wizardStep===3) renderWizardStep3(body);
+}
+
+async function renderWizardStep0(body){
+  const {data:houses}=await sb.from('houses').select('*').order('name');
+  body.innerHTML=`
+    <div style="font-size:22px;font-weight:700;margin-bottom:4px;">👤 Who is the client?</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:20px;">Enter their basic information</div>
+    <div class="form-row" style="margin-bottom:14px;">
+      <div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="wz-first" value="${wizardData.firstName}" placeholder="First name"/></div>
+      <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="wz-last" value="${wizardData.lastName}" placeholder="Last name"/></div>
+    </div>
+    <div class="form-row" style="margin-bottom:14px;">
+      <div class="form-group"><label class="form-label">Room / Unit</label><input class="form-input" id="wz-room" value="${wizardData.room}" placeholder="e.g. Room 2"/></div>
+      <div class="form-group"><label class="form-label">House *</label>
+        <select class="form-input form-select" id="wz-house">
+          <option value="">— Select House —</option>
+          ${(houses||[]).map(h=>`<option value="${h.id}" ${wizardData.houseId===h.id?'selected':''}>${h.name}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">General Notes</label><textarea class="form-input form-textarea" id="wz-notes" placeholder="Any notes for caregivers…">${wizardData.notes}</textarea></div>
+  `;
+}
+
+function renderWizardStep1(body){
+  body.innerHTML=`
+    <div style="font-size:22px;font-weight:700;margin-bottom:4px;">📋 Set Up Their Routine</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:16px;">Tap a task to add it, or type your own below</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;">☀️ Morning</div>
+        <div class="quick-task-grid" id="wz-morning-chips"></div>
+        <div id="wz-morning-rows"></div>
+        <button class="add-task-row-btn" onclick="addWizardTaskRow('morning')">+ Add custom task</button>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;">🌙 Evening</div>
+        <div class="quick-task-grid" id="wz-evening-chips"></div>
+        <div id="wz-evening-rows"></div>
+        <button class="add-task-row-btn" onclick="addWizardTaskRow('evening')">+ Add custom task</button>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1.5px solid var(--border);">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;">📋 Or apply an existing template:</div>
+      <div id="wz-template-btns" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+  `;
+  // Render chips
+  ['morning','evening'].forEach(shift=>{
+    const el=document.getElementById(`wz-${shift}-chips`);
+    el.innerHTML=COMMON_TASKS[shift].map(t=>{
+      const alreadySelected=wizardData.tasks.some(x=>x.task===t.label&&x.shift===shift);
+      return `<div class="quick-chip ${alreadySelected?'selected':''}" onclick="toggleWizardChip('${shift}','${t.label.replace(/'/g,"\\'")}',this)"><span class="quick-chip-icon">${t.icon}</span>${t.label}</div>`;
+    }).join('');
+    // Re-add existing custom rows
+    wizardData.tasks.filter(x=>x.shift===shift&&!COMMON_TASKS[shift].find(c=>c.label===x.task)).forEach(x=>addWizardTaskRow(shift,x.task));
+  });
+
+  // Templates
+  sb.from('routine_templates').select('*').order('name').then(({data:tpls})=>{
+    const el=document.getElementById('wz-template-btns');
+    if(!(tpls||[]).length){el.innerHTML='<span style="font-size:13px;color:var(--muted2);">No templates yet — <a style="color:var(--accent);cursor:pointer;" onclick="closeWizard();navigate(\'templates\')">create one first</a></span>';return;}
+    tpls.forEach(t=>{
+      const btn=document.createElement('button'); btn.className='btn btn-ghost btn-sm';
+      btn.textContent='📋 '+t.name;
+      btn.onclick=()=>{
+        // Apply template tasks to wizard
+        (t.tasks||[]).forEach(task=>{
+          if(!wizardData.tasks.find(x=>x.task===task.task&&x.shift===task.shift)) wizardData.tasks.push({task:task.task,shift:task.shift});
+        });
+        renderWizardStep1(document.getElementById('wizardBody'));
+        setTimeout(()=>{btn.textContent='✓ Applied!';btn.className='btn btn-primary btn-sm';},0);
+      };
+      el.appendChild(btn);
+    });
+  });
+}
+
+function toggleWizardChip(shift,label,chipEl){
+  chipEl.classList.toggle('selected');
+  if(chipEl.classList.contains('selected')){
+    if(!wizardData.tasks.find(x=>x.task===label&&x.shift===shift)) wizardData.tasks.push({task:label,shift});
+  } else {
+    wizardData.tasks=wizardData.tasks.filter(x=>!(x.task===label&&x.shift===shift));
+  }
+}
+
+function addWizardTaskRow(shift,value=''){
+  const container=document.getElementById(`wz-${shift}-rows`);
+  const id=`wzrow-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const div=document.createElement('div'); div.className='task-row'; div.id=id;
+  div.innerHTML=`<input class="form-input" placeholder="Custom task…" value="${value.replace(/"/g,'&quot;')}"/><button class="task-remove" onclick="document.getElementById('${id}').remove()">✕</button>`;
+  container.appendChild(div);
+}
+
+function renderWizardStep2(body){
+  body.innerHTML=`
+    <div style="font-size:22px;font-weight:700;margin-bottom:4px;">💊 Medications</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:20px;">Add any medications this client takes — you can always add more later</div>
+    <div id="wz-med-list"></div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="addWizardMedRow()">+ Add Medication</button>
+    <div class="notice notice-amber" style="margin-top:16px;">You can skip this step and add medications later from the client's profile.</div>
+  `;
+  renderWizardMedList();
+}
+
+function renderWizardMedList(){
+  const el=document.getElementById('wz-med-list'); if(!el) return;
+  if(!wizardData.meds.length){ el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted2);font-size:13px;">No medications added yet</div>'; return; }
+  el.innerHTML=wizardData.meds.map((m,i)=>`
+    <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="flex:1;"><div style="font-weight:700;font-size:13px;">💊 ${m.name}${m.dose?' · '+m.dose:''}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${m.schedule}${m.instructions?' · '+m.instructions:''}</div></div>
+      <button class="list-del" onclick="wizardData.meds.splice(${i},1);renderWizardMedList()">✕</button>
+    </div>
+  `).join('');
+}
+
+function addWizardMedRow(){
+  const name=prompt('Medication name:'); if(!name||!name.trim()) return;
+  const dose=prompt('Dose (e.g. 10mg) — or leave blank:');
+  const sched=prompt('Schedule — type: morning, evening, or prn:') || 'morning';
+  const instructions=prompt('Any instructions? (leave blank if none):');
+  wizardData.meds.push({name:name.trim(),dose:dose?.trim()||'',schedule:sched.trim(),instructions:instructions?.trim()||''});
+  renderWizardMedList();
+}
+
+function renderWizardStep3(body){
+  body.innerHTML=`
+    <div style="font-size:22px;font-weight:700;margin-bottom:4px;">🚨 Emergency Contacts</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:20px;">Who should be called in an emergency?</div>
+    <div id="wz-contact-list"></div>
+    <button class="btn btn-ghost" style="width:100%;margin-top:8px;" onclick="addWizardContact()">+ Add Contact</button>
+    <div class="notice notice-blue" style="margin-top:16px;">You can skip this and add contacts later from the client's profile.</div>
+  `;
+  renderWizardContactList();
+}
+
+function renderWizardContactList(){
+  const el=document.getElementById('wz-contact-list'); if(!el) return;
+  if(!wizardData.contacts.length){ el.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted2);font-size:13px;">No contacts added yet</div>'; return; }
+  el.innerHTML=wizardData.contacts.map((c,i)=>`
+    <div style="background:${c.isPrimary?'var(--red-light)':'var(--surface2)'};border:1.5px solid ${c.isPrimary?'var(--red-border)':'var(--border)'};border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="font-size:20px;">${c.isPrimary?'⭐':'👤'}</div>
+      <div style="flex:1;"><div style="font-weight:700;font-size:13px;">${c.name}${c.role?' · '+c.role:''}</div><div style="font-size:13px;color:var(--blue);font-family:monospace;">${c.phone}</div></div>
+      <button class="list-del" onclick="wizardData.contacts.splice(${i},1);renderWizardContactList()">✕</button>
+    </div>
+  `).join('');
+}
+
+function addWizardContact(){
+  const name=prompt('Contact name:'); if(!name||!name.trim()) return;
+  const phone=prompt('Phone number:'); if(!phone||!phone.trim()) return;
+  const role=prompt('Role (e.g. Doctor, Family) — or blank:');
+  const isPrimary=wizardData.contacts.length===0; // First contact is primary by default
+  wizardData.contacts.push({name:name.trim(),phone:phone.trim(),role:role?.trim()||'',isPrimary});
+  renderWizardContactList();
+}
+
+async function wizardNext(){
+  // Collect current step data
+  if(wizardStep===0){
+    wizardData.firstName=(document.getElementById('wz-first')?.value||'').trim();
+    wizardData.lastName=(document.getElementById('wz-last')?.value||'').trim();
+    wizardData.room=(document.getElementById('wz-room')?.value||'').trim();
+    wizardData.houseId=document.getElementById('wz-house')?.value||'';
+    wizardData.notes=(document.getElementById('wz-notes')?.value||'').trim();
+    if(!wizardData.firstName){alert('First name is required.');return;}
+    if(!wizardData.houseId){alert('Please select a house.');return;}
+  }
+  if(wizardStep===1){
+    // Collect tasks: chips + custom rows
+    const tasks=[];
+    ['morning','evening'].forEach(shift=>{
+      // From chips
+      document.querySelectorAll(`#wz-${shift}-chips .quick-chip.selected`).forEach(chip=>{
+        const label=chip.textContent.trim().replace(/^[^\s]+\s/,''); // strip emoji
+        if(!tasks.find(t=>t.task===label&&t.shift===shift)) tasks.push({task:label,shift});
+      });
+      // From custom rows
+      document.querySelectorAll(`#wz-${shift}-rows .task-row input`).forEach(inp=>{
+        const val=inp.value.trim();
+        if(val&&!tasks.find(t=>t.task===val&&t.shift===shift)) tasks.push({task:val,shift});
+      });
+    });
+    // Merge with any template-applied tasks
+    wizardData.tasks.forEach(t=>{ if(!tasks.find(x=>x.task===t.task&&x.shift===t.shift)) tasks.push(t); });
+    wizardData.tasks=tasks;
+  }
+
+  if(wizardStep===WIZARD_STEPS.length-1){
+    await saveWizardClient(); return;
+  }
+  wizardStep++; renderWizardStep();
+}
+
+function wizardBack(){
+  if(wizardStep>0){ wizardStep--; renderWizardStep(); }
+}
+
+async function saveWizardClient(){
+  const btn=document.getElementById('wizardNextBtn'); btn.textContent='Saving…'; btn.disabled=true;
+  try{
+    // 1. Create client
+    const {data:client,error}=await sb.from('clients').insert({
+      first_name:wizardData.firstName, last_name:wizardData.lastName,
+      room:wizardData.room, house_id:wizardData.houseId, notes:wizardData.notes
+    }).select().single();
+    if(error) throw error;
+    const clientId=client.id;
+
+    // 2. Tasks
+    if(wizardData.tasks.length){
+      await sb.from('routine_tasks').insert(wizardData.tasks.map(t=>({task:t.task,shift:t.shift,client_id:clientId,note:''})));
+    }
+    // 3. Meds
+    if(wizardData.meds.length){
+      await sb.from('medications').insert(wizardData.meds.map(m=>({...m,client_id:clientId})));
+    }
+    // 4. Contacts
+    if(wizardData.contacts.length){
+      await sb.from('emergency_contacts').insert(wizardData.contacts.map(c=>({name:c.name,phone:c.phone,role:c.role,is_primary:c.isPrimary,client_id:clientId})));
+    }
+    closeWizard();
+    navigate('clientDetail',{clientId,houseId:wizardData.houseId});
+  } catch(e){
+    alert('Error saving client: '+e.message);
+    btn.textContent='✅ Save Client'; btn.disabled=false;
+  }
+}
+
+// ============================================================
+// HOUSES
+// ============================================================
+async function houses(el){
+  const {data}=await sb.from('houses').select('*, clients(id)').order('name');
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="openHouseModal()">+ Add House</button>`;
+  el.innerHTML=`<div class="page"><div class="card"><div class="table-wrap"><table><thead><tr><th>House</th><th>Address</th><th>Manager</th><th>Clients</th><th></th></tr></thead><tbody id="houses-tbody"></tbody></table></div></div></div>`;
+  const tbody=document.getElementById('houses-tbody');
+  if(!(data||[]).length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-icon">🏠</div><div class="empty-title">No houses yet</div></div></td></tr>`;return;}
+  data.forEach(h=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${h.name}</strong></td><td style="color:var(--muted);font-size:13px;">${h.address||'—'}</td><td style="color:var(--muted);font-size:13px;">${h.manager||'—'}</td><td><span class="badge badge-green">${(h.clients||[]).length}</span></td><td><div class="td-actions"><button class="btn btn-ghost btn-sm" onclick="navigate('houseDetail',{houseId:'${h.id}'})">View →</button><button class="btn-icon" onclick="openHouseModal('${h.id}')">✏</button><button class="btn-icon" onclick="confirmDel('houses','${h.id}','${h.name}')">🗑</button></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function houseDetail(el){
+  const hid=_ctx.houseId;
+  const [{data:h},{data:clientData}]=await Promise.all([
+    sb.from('houses').select('*').eq('id',hid).single(),
+    sb.from('clients').select('*').eq('house_id',hid).order('first_name')
+  ]);
+  if(!h){el.innerHTML='<div class="empty">House not found.</div>';return;}
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="openWizard({houseId:'${hid}'})">+ Add Client</button>`;
+  el.innerHTML=`<div class="page">
+    <div class="breadcrumb"><a onclick="navigate('houses')">Houses</a><span>›</span><span>${h.name}</span></div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-header">
+        <div><div class="card-title">${h.name}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${h.address||'No address'} · ${h.manager||'No manager'}</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="openHouseModal('${h.id}')">✏ Edit</button>
+      </div>
+      ${h.notes?`<div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.6;">${h.notes}</div>`:''}
+    </div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Clients <span class="badge badge-gray" style="margin-left:6px;">${(clientData||[]).length}</span></div>
+    <div id="house-client-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;"></div>
+  </div>`;
+  const grid=document.getElementById('house-client-grid');
+  if(!(clientData||[]).length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1;"><div class="empty-icon">👤</div><div class="empty-title">No clients yet</div><button class="btn btn-primary" style="margin-top:16px;" onclick="openWizard({houseId:'${hid}'})">✨ Add First Client</button></div>`;return;}
+  clientData.forEach(c=>{
+    const div=document.createElement('div'); div.className='card'; div.style.padding='18px'; div.style.cursor='pointer';
+    div.onclick=()=>navigate('clientDetail',{clientId:c.id,houseId:hid});
+    div.innerHTML=`<div style="font-weight:700;font-size:15px;">${c.first_name} ${c.last_name||''}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${c.room||'No room'}</div><div style="margin-top:12px;"><button class="btn btn-primary btn-sm" style="width:100%;" onclick="event.stopPropagation();navigate('clientDetail',{clientId:'${c.id}',houseId:'${hid}'})">Manage →</button></div>`;
+    grid.appendChild(div);
+  });
+}
+
+async function clients(el){
+  const {data}=await sb.from('clients').select('*, houses(name)').order('first_name');
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="openWizard()">✨ Add Client</button>`;
+  el.innerHTML=`<div class="page"><div class="card"><div class="table-wrap"><table><thead><tr><th>Client</th><th>House</th><th>Room</th><th></th></tr></thead><tbody id="clients-tbody"></tbody></table></div></div></div>`;
+  const tbody=document.getElementById('clients-tbody');
+  if(!(data||[]).length){tbody.innerHTML=`<tr><td colspan="4"><div class="empty"><div class="empty-title">No clients yet</div><button class="btn btn-primary" style="margin-top:12px;" onclick="openWizard()">✨ Add First Client</button></div></td></tr>`;return;}
+  data.forEach(c=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${c.first_name} ${c.last_name||''}</strong></td><td style="font-size:13px;color:var(--muted);">${c.houses?.name||'—'}</td><td style="font-size:13px;color:var(--muted);">${c.room||'—'}</td><td><div class="td-actions"><button class="btn btn-ghost btn-sm" onclick="navigate('clientDetail',{clientId:'${c.id}',houseId:'${c.house_id}'})">Manage →</button><button class="btn-icon" onclick="confirmDel('clients','${c.id}','${c.first_name}')">🗑</button></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function clientDetail(el){
+  const cid=_ctx.clientId, hid=_ctx.houseId;
+  const [{data:c},{data:meds},{data:tasks},{data:behaviors},{data:contacts},{data:house}]=await Promise.all([
+    sb.from('clients').select('*').eq('id',cid).single(),
+    sb.from('medications').select('*').eq('client_id',cid).order('schedule'),
+    sb.from('routine_tasks').select('*').eq('client_id',cid).order('shift'),
+    sb.from('behavior_notes').select('*').eq('client_id',cid),
+    sb.from('emergency_contacts').select('*').eq('client_id',cid),
+    sb.from('houses').select('name').eq('id',hid).single()
+  ]);
+  if(!c){el.innerHTML='<div class="empty">Client not found.</div>';return;}
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-ghost btn-sm" onclick="navigate('houseDetail',{houseId:'${hid}'})">← Back</button>`;
+  el.innerHTML=`<div class="page">
+    <div class="breadcrumb"><a onclick="navigate('houses')">Houses</a><span>›</span><a onclick="navigate('houseDetail',{houseId:'${hid}'})">${house?.name||'House'}</a><span>›</span><span>${c.first_name} ${c.last_name||''}</span></div>
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-header">
+        <div><div class="card-title">${c.first_name} ${c.last_name||''}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${c.room||'No room'} · ${house?.name||''}</div></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="openApplyTemplate('','')">Apply Template</button>
+        </div>
+      </div>
+      ${c.notes?`<div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.6;">${c.notes}</div>`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div class="card"><div class="card-header"><div class="card-title">💊 Medications</div><button class="btn btn-primary btn-sm" onclick="openMedModal('','${cid}','${hid}')">+ Add</button></div><div style="padding:12px;" id="med-list"></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">📋 Routine Tasks</div><button class="btn btn-primary btn-sm" onclick="openTaskModal('','${cid}','${hid}')">+ Add</button></div><div style="padding:12px;" id="task-list"></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="card"><div class="card-header"><div class="card-title">🧠 Behavior Notes</div><button class="btn btn-primary btn-sm" onclick="openBehaviorModal('','${cid}')">+ Add</button></div><div style="padding:12px;" id="behavior-list"></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">🚨 Emergency Contacts</div><button class="btn btn-primary btn-sm" onclick="openEmergModal('','${cid}')">+ Add</button></div><div style="padding:12px;" id="emerg-list"></div></div>
+    </div>
+  </div>`;
+
+  // Fix "Apply Template" button on client detail to work for this client specifically
+  document.querySelector('[onclick="openApplyTemplate(\'\',\'\')"]').onclick=()=>{
+    sb.from('routine_templates').select('*').order('name').then(({data:tpls})=>{
+      if(!(tpls||[]).length){alert('No templates yet. Go to Routine Templates to create one.');return;}
+      const names=tpls.map((t,i)=>`${i+1}. ${t.name}`).join('\n');
+      const pick=prompt(`Pick a template to apply:\n${names}\n\nEnter the number:`);
+      const idx=parseInt(pick)-1;
+      if(isNaN(idx)||!tpls[idx]){return;}
+      const tpl=tpls[idx];
+      const rows=(tpl.tasks||[]).map(t=>({task:t.task,shift:t.shift,client_id:cid,note:''}));
+      if(rows.length) sb.from('routine_tasks').insert(rows).then(()=>navigate('clientDetail',{clientId:cid,houseId:hid}));
+    });
+  };
+
+  renderMedList(meds||[]);
+  renderTaskListAdmin(tasks||[]);
+  renderBehaviorList(behaviors||[]);
+  renderEmergList(contacts||[]);
+}
+
+function renderMedList(meds){
+  const el=document.getElementById('med-list'); if(!el) return;
+  if(!meds.length){el.innerHTML=`<div class="empty" style="padding:20px;"><div class="empty-sub">No medications yet.</div></div>`;return;}
+  const sb2={morning:'badge-blue',evening:'badge-purple',prn:'badge-amber',separate:'badge-green'};
+  const sl={morning:'Morning',evening:'Evening',prn:'PRN',separate:'Separate'};
+  el.innerHTML=meds.map(m=>`<div class="med-item"><div class="med-dot"></div><div style="flex:1;"><div class="med-name">${m.name}${m.dose?` <span style="font-weight:400;color:var(--muted);">${m.dose}</span>`:''} <span class="badge ${sb2[m.schedule]||'badge-gray'}" style="margin-left:4px;">${sl[m.schedule]||m.schedule}</span></div>${m.instructions?`<div class="med-detail">${m.instructions}</div>`:''}${m.warnings?`<div class="med-warn">⚠ ${m.warnings}</div>`:''}</div><button class="list-del" onclick="delRecord('medications','${m.id}','${m.name}')">✕</button></div>`).join('');
+}
+
+function renderTaskListAdmin(tasks){
+  const el=document.getElementById('task-list'); if(!el) return;
+  if(!tasks.length){el.innerHTML=`<div class="empty" style="padding:20px;"><div class="empty-sub">No tasks yet.</div></div>`;return;}
+  const morning=tasks.filter(t=>t.shift==='morning'), evening=tasks.filter(t=>t.shift==='evening');
+  el.innerHTML='';
+  if(morning.length){
+    el.innerHTML+=`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);margin-bottom:6px;">☀️ Morning</div>`;
+    el.innerHTML+=morning.map(t=>`<div class="list-item" style="margin-bottom:6px;"><div class="list-item-body"><div class="list-item-title">${t.task}</div>${t.note?`<div class="list-item-sub">${t.note}</div>`:''}</div><button class="list-del" onclick="delRecord('routine_tasks','${t.id}','${t.task}')">✕</button></div>`).join('');
+  }
+  if(evening.length){
+    el.innerHTML+=`<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);margin:10px 0 6px;">🌙 Evening</div>`;
+    el.innerHTML+=evening.map(t=>`<div class="list-item" style="margin-bottom:6px;"><div class="list-item-body"><div class="list-item-title">${t.task}</div>${t.note?`<div class="list-item-sub">${t.note}</div>`:''}</div><button class="list-del" onclick="delRecord('routine_tasks','${t.id}','${t.task}')">✕</button></div>`).join('');
+  }
+}
+
+function renderBehaviorList(behaviors){
+  const el=document.getElementById('behavior-list'); if(!el) return;
+  if(!behaviors.length){el.innerHTML=`<div class="empty" style="padding:20px;"><div class="empty-sub">No behavior notes yet.</div></div>`;return;}
+  el.innerHTML=behaviors.map(b=>`<div class="behavior-card ${b.type}"><div class="behavior-type">${b.label||b.type}</div><div class="behavior-text">${b.text}</div></div>`).join('');
+}
+
+function renderEmergList(contacts){
+  const el=document.getElementById('emerg-list'); if(!el) return;
+  if(!contacts.length){el.innerHTML=`<div class="empty" style="padding:20px;"><div class="empty-sub">No emergency contacts yet.</div></div>`;return;}
+  el.innerHTML=contacts.map(e=>`<div class="emerg-item ${e.is_primary?'primary':''}"><div style="font-size:20px;">${e.is_primary?'⭐':'👤'}</div><div><div class="emerg-name">${e.name}</div><div class="emerg-role">${e.role||''}</div></div><a href="tel:${e.phone}" class="emerg-phone">${e.phone}</a></div>`).join('');
+}
+
+// ============================================================
+// TEAM
+// ============================================================
+async function team(el){
+  const {data}=await sb.from('user_profiles').select('*').order('full_name');
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add Member</button>`;
+  el.innerHTML=`<div class="page"><div class="card"><div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Houses</th><th></th></tr></thead><tbody id="team-tbody"></tbody></table></div></div></div>`;
+  const tbody=document.getElementById('team-tbody');
+  if(!(data||[]).length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-title">No team members yet</div></div></td></tr>`;return;}
+  const {data:assignments}=await sb.from('caregiver_houses').select('user_id, houses(name)');
+  const roleColors={admin:'badge-red',supervisor:'badge-amber',caregiver:'badge-green'};
+  data.forEach(u=>{
+    const userHouses=(assignments||[]).filter(a=>a.user_id===u.id).map(a=>a.houses?.name).filter(Boolean);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${u.full_name||'—'}</strong></td><td style="font-size:13px;color:var(--muted);">${u.email||'—'}</td><td><span class="badge ${roleColors[u.role]||'badge-gray'}">${u.role||'caregiver'}</span></td><td style="font-size:13px;color:var(--muted);">${userHouses.join(', ')||'Not assigned'}</td><td><div class="td-actions"><button class="btn btn-ghost btn-sm" onclick="openAssignModal('${u.id}','${(u.full_name||'').replace(/'/g,"\\'")}')">Assign Houses</button><button class="btn btn-ghost btn-sm" onclick="promoteRole('${u.id}','${u.role||'caregiver'}')">Change Role</button></div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function promoteRole(userId,currentRole){
+  const roles=['caregiver','supervisor','admin'];
+  const next=roles[(roles.indexOf(currentRole)+1)%roles.length];
+  if(!confirm(`Change role to "${next}"?`)) return;
+  await sb.from('user_profiles').update({role:next}).eq('id',userId);
+  navigate('team');
+}
+
+async function openAssignModal(userId,name){
+  const {data:allHouses}=await sb.from('houses').select('*').order('name');
+  const {data:current}=await sb.from('caregiver_houses').select('house_id').eq('user_id',userId);
+  const currentIds=new Set((current||[]).map(a=>a.house_id));
+  const choices=(allHouses||[]).map(h=>`<label style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;"><input type="checkbox" value="${h.id}" ${currentIds.has(h.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent);"><span style="font-size:14px;">${h.name}</span></label>`).join('');
+  document.getElementById('confirmText').innerHTML=`<div style="font-weight:700;margin-bottom:12px;">Assign houses to ${name}</div><div id="house-checkboxes">${choices||'<div style="color:var(--muted2);">No houses yet.</div>'}</div>`;
+  document.getElementById('confirmOk').textContent='Save'; document.getElementById('confirmOk').className='btn btn-primary';
+  document.getElementById('confirmOk').onclick=async()=>{
+    const checked=Array.from(document.querySelectorAll('#house-checkboxes input:checked')).map(e=>e.value);
+    await sb.from('caregiver_houses').delete().eq('user_id',userId);
+    if(checked.length) await sb.from('caregiver_houses').insert(checked.map(hid=>({user_id:userId,house_id:hid})));
+    closeModal('confirmModal'); navigate('team');
+  };
+  openModal('confirmModal');
+}
+
+// ============================================================
+// ALL MEDS / ALL TASKS
+// ============================================================
+async function allMeds(el){
+  const {data}=await sb.from('medications').select('*, clients(first_name,last_name,houses(name))').order('name');
+  const sb2={morning:'badge-blue',evening:'badge-purple',prn:'badge-amber',separate:'badge-green'};
+  const sl={morning:'Morning',evening:'Evening',prn:'PRN',separate:'Separate'};
+  el.innerHTML=`<div class="page"><div class="notice notice-blue">ℹ️ Add medications from the client detail page.</div><div class="card"><div class="table-wrap"><table><thead><tr><th>Medication</th><th>Dose</th><th>Schedule</th><th>Client</th><th>House</th></tr></thead><tbody id="allm-tbody"></tbody></table></div></div></div>`;
+  const tbody=document.getElementById('allm-tbody');
+  if(!(data||[]).length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty"><div class="empty-title">No medications yet</div></div></td></tr>`;return;}
+  data.forEach(m=>{const tr=document.createElement('tr');tr.innerHTML=`<td><strong>${m.name}</strong>${m.warnings?`<div style="font-size:11px;color:var(--red);">⚠ ${m.warnings}</div>`:''}</td><td class="mono" style="font-size:12px;">${m.dose||'—'}</td><td><span class="badge ${sb2[m.schedule]||'badge-gray'}">${sl[m.schedule]||m.schedule}</span></td><td>${m.clients?`${m.clients.first_name} ${m.clients.last_name||''}`:''}</td><td style="color:var(--muted);">${m.clients?.houses?.name||'—'}</td>`;tbody.appendChild(tr);});
+}
+
+async function allTasks(el){
+  const {data}=await sb.from('routine_tasks').select('*, clients(first_name,last_name,houses(name))').order('shift');
+  el.innerHTML=`<div class="page"><div class="card"><div class="table-wrap"><table><thead><tr><th>Task</th><th>Shift</th><th>Client</th><th>House</th></tr></thead><tbody id="allt-tbody"></tbody></table></div></div></div>`;
+  const tbody=document.getElementById('allt-tbody');
+  if(!(data||[]).length){tbody.innerHTML=`<tr><td colspan="4"><div class="empty"><div class="empty-title">No tasks yet</div></div></td></tr>`;return;}
+  data.forEach(t=>{const tr=document.createElement('tr');tr.innerHTML=`<td><strong>${t.task}</strong></td><td><span class="badge ${t.shift==='morning'?'badge-amber':'badge-purple'}">${t.shift==='morning'?'☀️ Morning':'🌙 Evening'}</span></td><td>${t.clients?`${t.clients.first_name} ${t.clients.last_name||''}`:''}</td><td style="color:var(--muted);">${t.clients?.houses?.name||'—'}</td>`;tbody.appendChild(tr);});
+}
+
+// ============================================================
+// CHECK-INS
+// ============================================================
+async function checkins(el){
+  const today=new Date().toISOString().slice(0,10);
+  const {data:checkinData}=await sb.from('shift_checkins').select('*, user_profiles(full_name)').eq('shift_date',today);
+  const {data:completions}=await sb.from('task_completions').select('*, routine_tasks(task,shift)').eq('shift_date',today);
+  const {data:caregivers}=await sb.from('user_profiles').select('*').eq('role','caregiver');
+  const {data:allT}=await sb.from('routine_tasks').select('id');
+  el.innerHTML=`<div class="page"><div style="font-size:13px;color:var(--muted);margin-bottom:18px;">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div><div class="cg-grid" id="cg-grid"></div></div>`;
+  const grid=document.getElementById('cg-grid');
+  if(!(caregivers||[]).length){grid.innerHTML='<div class="empty"><div class="empty-title">No caregivers yet</div></div>';return;}
+  const total=(allT||[]).length;
+  caregivers.forEach(cg=>{
+    const ci=(checkinData||[]).find(c=>c.user_id===cg.id);
+    const done=(completions||[]).filter(c=>c.user_id===cg.id);
+    const pct=total?Math.round((done.length/total)*100):0;
+    const initials=(cg.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const div=document.createElement('div'); div.className='cg-card';
+    div.innerHTML=`<div class="cg-card-top"><div class="cg-avatar">${initials}</div><div><div class="cg-name">${cg.full_name||'Unknown'}</div><div class="cg-role">${ci?`✓ In at ${new Date(ci.checked_in_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`:'⏳ Not started'}</div></div></div><div class="cg-progress-row"><span>${done.length} of ${total} tasks</span><span class="cg-pct">${pct}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;"></div></div>`;
+    grid.appendChild(div);
+  });
+}
+
+// ============================================================
+// CAREGIVER: MY SHIFT
+// ============================================================
+async function myShift(el){
+  const today=new Date().toISOString().slice(0,10);
+  const {data:assignments}=await sb.from('caregiver_houses').select('house_id').eq('user_id',currentUser.id);
+  const houseIds=(assignments||[]).map(a=>a.house_id);
+  if(houseIds.length) for(const hid of houseIds) await sb.from('shift_checkins').upsert({user_id:currentUser.id,house_id:hid,shift_date:today},{onConflict:'user_id,house_id,shift_date'}).select();
+  const {data:cls}=await sb.from('clients').select('*').in('house_id',houseIds.length?houseIds:['none']);
+  const clientIds=(cls||[]).map(c=>c.id);
+  const {data:tasks}=await sb.from('routine_tasks').select('*, clients(first_name,last_name)').in('client_id',clientIds.length?clientIds:['none']).order('shift');
+  const {data:completions}=await sb.from('task_completions').select('task_id').eq('user_id',currentUser.id).eq('shift_date',today);
+  const doneSet=new Set((completions||[]).map(c=>c.task_id));
+  const allTasks=tasks||[], total=allTasks.length, done=allTasks.filter(t=>doneSet.has(t.id)).length;
+  const pct=total?Math.round((done/total)*100):0;
+  allTasks.forEach(t=>{taskCompletions[t.id]=doneSet.has(t.id);});
+
+  el.innerHTML=`<div class="page">
+    ${unreadAnnouncements.length?`<div class="announcement-banner" onclick="navigate('myAnnouncements')"><div class="ann-icon">📢</div><div class="ann-content"><div class="ann-title">${unreadAnnouncements.length} new update${unreadAnnouncements.length>1?'s':''}</div><div class="ann-items">${unreadAnnouncements.slice(0,3).map(a=>`• ${a.title}`).join('<br>')}</div></div><button class="ann-dismiss" onclick="event.stopPropagation();markAllRead();this.closest('.announcement-banner').remove();">Got it</button></div>`:''}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div><div style="font-family:'Instrument Serif',serif;font-size:24px;">${greeting()}</div><div style="font-size:13px;color:var(--muted);margin-top:2px;">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div></div>
+      <div style="text-align:right;"><div style="font-family:'Geist Mono',monospace;font-size:28px;font-weight:500;color:var(--accent);">${pct}%</div><div style="font-size:12px;color:var(--muted);">${done} of ${total} tasks</div></div>
+    </div>
+    <div class="progress-bar" style="height:8px;margin-bottom:24px;"><div class="progress-fill" id="shiftBar" style="width:${pct}%;"></div></div>
+    ${!houseIds.length?`<div class="notice notice-amber">⚠️ You haven't been assigned to a house yet. Contact your supervisor.</div>`:''}
+    <div id="shift-morning" style="margin-bottom:24px;"></div>
+    <div id="shift-evening"></div>
+  </div>`;
+
+  renderShiftSection('shift-morning','☀️ Morning Tasks',allTasks.filter(t=>t.shift==='morning'),doneSet,allTasks.length);
+  renderShiftSection('shift-evening','🌙 Evening Tasks',allTasks.filter(t=>t.shift==='evening'),doneSet,allTasks.length);
+}
+
+function greeting(){
+  const h=new Date().getHours(), name=currentProfile?.full_name?.split(' ')[0]||'there';
+  if(h<12) return `Good morning, ${name}`;
+  if(h<17) return `Good afternoon, ${name}`;
+  return `Good evening, ${name}`;
+}
+
+function renderShiftSection(containerId,title,tasks,doneSet,total){
+  const el=document.getElementById(containerId); if(!el||!tasks.length) return;
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;">${title}</div><div style="font-size:12px;color:var(--muted);">${tasks.filter(t=>doneSet.has(t.id)).length} / ${tasks.length}</div></div><div class="checklist" id="${containerId}-list"></div>`;
+  const list=document.getElementById(`${containerId}-list`);
+  tasks.forEach(t=>{
+    const isDone=doneSet.has(t.id);
+    const item=document.createElement('div'); item.className='check-item'+(isDone?' done':''); item.dataset.taskId=t.id;
+    item.innerHTML=`<div class="check-box"><span class="checkmark">✓</span></div><div class="check-label"><strong>${t.task}</strong>${t.note?`<div class="sub">${t.note}</div>`:''}${t.clients?`<div class="sub" style="color:var(--muted2);">${t.clients.first_name} ${t.clients.last_name||''}</div>`:''}</div>`;
+    item.onclick=()=>toggleTask(t.id,item,total);
+    list.appendChild(item);
+  });
+}
+
+async function toggleTask(taskId,el,total){
+  const today=new Date().toISOString().slice(0,10);
+  const isDone=el.classList.contains('done');
+  if(isDone){ await sb.from('task_completions').delete().eq('task_id',taskId).eq('user_id',currentUser.id).eq('shift_date',today); el.classList.remove('done'); taskCompletions[taskId]=false; }
+  else { await sb.from('task_completions').upsert({task_id:taskId,user_id:currentUser.id,shift_date:today},{onConflict:'task_id,user_id,shift_date'}); el.classList.add('done'); taskCompletions[taskId]=true; }
+  const done=Object.values(taskCompletions).filter(Boolean).length;
+  const pct=total?Math.round((done/total)*100):0;
+  const bar=document.getElementById('shiftBar'); if(bar) bar.style.width=pct+'%';
+}
+
+async function myClients(el){
+  const {data:assignments}=await sb.from('caregiver_houses').select('house_id').eq('user_id',currentUser.id);
+  const houseIds=(assignments||[]).map(a=>a.house_id);
+  if(!houseIds.length){el.innerHTML=`<div class="page"><div class="notice notice-amber">⚠️ You haven't been assigned to a house yet.</div></div>`;return;}
+  const {data:clients}=await sb.from('clients').select('*, houses(name)').in('house_id',houseIds).order('first_name');
+  el.innerHTML=`<div class="page"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;" id="my-clients-grid"></div></div>`;
+  const grid=document.getElementById('my-clients-grid');
+  if(!(clients||[]).length){grid.innerHTML='<div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No clients in your house yet</div></div>';return;}
+  clients.forEach(c=>{
+    const div=document.createElement('div'); div.className='card'; div.style.cursor='pointer';
+    div.innerHTML=`<div class="card-header"><div><div class="card-title">${c.first_name} ${c.last_name||''}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${c.room||'No room'} · ${c.houses?.name||''}</div></div><span>→</span></div>${c.notes?`<div class="card-body" style="font-size:13px;color:var(--muted);">${c.notes}</div>`:''}`;
+    div.onclick=()=>navigate('cgClientDetail',{clientId:c.id});
+    grid.appendChild(div);
+  });
+}
+
+async function myAnnouncements(el){
+  const {data:assignments}=await sb.from('caregiver_houses').select('house_id').eq('user_id',currentUser.id);
+  const houseIds=(assignments||[]).map(a=>a.house_id);
+  const {data:anns}=await sb.from('announcements').select('*, clients(first_name,last_name)').in('house_id',houseIds.length?houseIds:['none']).order('created_at',{ascending:false});
+  const {data:reads}=await sb.from('announcement_reads').select('announcement_id').eq('user_id',currentUser.id);
+  const readIds=new Set((reads||[]).map(r=>r.announcement_id));
+  el.innerHTML=`<div class="page" id="ann-list"></div>`;
+  const list=document.getElementById('ann-list');
+  if(!(anns||[]).length){list.innerHTML='<div class="empty"><div class="empty-icon">📢</div><div class="empty-title">No announcements yet</div></div>';return;}
+  const typeIcon={med_added:'💊',task_added:'📋',behavior_updated:'🧠'};
+  anns.forEach(a=>{
+    const isNew=!readIds.has(a.id);
+    const div=document.createElement('div'); div.className='card'; div.style.marginBottom='12px';
+    div.innerHTML=`<div class="card-header"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:22px;">${typeIcon[a.type]||'📢'}</span><div><div class="card-title">${a.title}${isNew?` <span class="badge badge-green" style="margin-left:6px;">New</span>`:''}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${a.clients?`${a.clients.first_name} ${a.clients.last_name||''}`:''} · ${new Date(a.created_at).toLocaleDateString()}</div></div></div></div>${a.body?`<div class="card-body" style="font-size:13px;color:var(--muted);">${a.body}</div>`:''}`;
+    list.appendChild(div);
+  });
+  await markAllRead();
+}
+
+// ============================================================
+// SAVE HANDLERS
+// ============================================================
+async function saveHouse(){
+  const name=fv('hf-name'); if(!name){alert('Name required.');return;}
+  const data={name,address:fv('hf-address'),manager:fv('hf-manager'),phone:fv('hf-phone'),notes:fv('hf-notes')};
+  if(_editId) await sb.from('houses').update(data).eq('id',_editId);
+  else await sb.from('houses').insert(data);
+  closeModal('houseModal'); navigate(currentPage);
+}
+
+async function saveMed(){
+  const name=fv('mf-name'); if(!name){alert('Name required.');return;}
+  const clientId=_ctx.clientId, houseId=_ctx.houseId;
+  const data={name,dose:fv('mf-dose'),schedule:document.getElementById('mf-schedule').value,instructions:fv('mf-instructions'),warnings:fv('mf-warnings'),client_id:clientId};
+  if(_editId) await sb.from('medications').update(data).eq('id',_editId);
+  else{
+    await sb.from('medications').insert(data);
+    const {data:c}=await sb.from('clients').select('first_name').eq('id',clientId).single();
+    await createAnnouncement(houseId,clientId,'med_added',`New medication for ${c?.first_name||'client'}`,`${name}${data.dose?' '+data.dose:''}`);
+  }
+  closeModal('medModal'); navigate(currentPage);
+}
+
+async function saveTask(){
+  const task=fv('tf-task'); if(!task){alert('Task required.');return;}
+  const clientId=_ctx.clientId, houseId=_ctx.houseId;
+  const data={task,note:fv('tf-note'),shift:document.getElementById('tf-shift').value,client_id:clientId};
+  if(_editId) await sb.from('routine_tasks').update(data).eq('id',_editId);
+  else{
+    await sb.from('routine_tasks').insert(data);
+    const {data:c}=await sb.from('clients').select('first_name').eq('id',clientId).single();
+    await createAnnouncement(houseId,clientId,'task_added',`New task for ${c?.first_name||'client'}`,task);
+  }
+  closeModal('taskModal'); navigate(currentPage);
+}
+
+async function saveBehavior(){
+  const text=fv('bf-text'); if(!text){alert('Description required.');return;}
+  const clientId=_ctx.clientId, houseId=_ctx.houseId;
+  const data={type:document.getElementById('bf-type').value,label:fv('bf-label'),text,client_id:clientId};
+  if(_editId) await sb.from('behavior_notes').update(data).eq('id',_editId);
+  else{
+    await sb.from('behavior_notes').insert(data);
+    const {data:c}=await sb.from('clients').select('first_name').eq('id',clientId).single();
+    await createAnnouncement(houseId,clientId,'behavior_updated',`Behavior note for ${c?.first_name||'client'}`,text.slice(0,120));
+  }
+  closeModal('behaviorModal'); navigate(currentPage);
+}
+
+async function saveEmerg(){
+  const name=fv('ef-name'), phone=fv('ef-phone');
+  if(!name||!phone){alert('Name and phone required.');return;}
+  const data={name,role:fv('ef-role'),phone,is_primary:document.getElementById('ef-primary').value==='true',client_id:_ctx.clientId};
+  if(_editId) await sb.from('emergency_contacts').update(data).eq('id',_editId);
+  else await sb.from('emergency_contacts').insert(data);
+  closeModal('emergModal'); navigate(currentPage);
+}
+
+async function saveUser(){
+  const name=fv('uf-name'), email=fv('uf-email'), pass=fv('uf-pass'), role=document.getElementById('uf-role').value;
+  const selectedHouses=Array.from(document.getElementById('uf-houses').selectedOptions).map(o=>o.value);
+  if(!name||!email||!pass){alert('All fields required.');return;}
+  const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
+  if(error){alert('Error: '+error.message);return;}
+  const uid=data.user?.id;
+  if(uid){
+    await sb.from('user_profiles').upsert({id:uid,full_name:name,role,email},{onConflict:'id'});
+    if(selectedHouses.length) await sb.from('caregiver_houses').insert(selectedHouses.map(hid=>({user_id:uid,house_id:hid})));
+  }
+  closeModal('userModal'); navigate('team');
+}
+
+// ============================================================
+// MODAL OPENERS
+// ============================================================
+async function openHouseModal(id=''){
+  _editId=id||null;
+  const h=id?(await sb.from('houses').select('*').eq('id',id).single()).data:null;
+  document.getElementById('houseMT').textContent=h?'Edit House':'Add House';
+  sf('hf-name',h?.name); sf('hf-address',h?.address); sf('hf-manager',h?.manager); sf('hf-phone',h?.phone); sf('hf-notes',h?.notes);
+  openModal('houseModal');
+}
+function openMedModal(id='',clientId='',houseId=''){
+  _editId=id||null; _ctx.clientId=clientId; _ctx.houseId=houseId;
+  sf('mf-name',''); sf('mf-dose',''); sf('mf-instructions',''); sf('mf-warnings','');
+  document.getElementById('mf-schedule').value='morning';
+  openModal('medModal');
+}
+function openTaskModal(id='',clientId='',houseId=''){
+  _editId=id||null; _ctx.clientId=clientId; _ctx.houseId=houseId;
+  sf('tf-task',''); sf('tf-note','');
+  document.getElementById('tf-shift').value='morning';
+  openModal('taskModal');
+}
+function openBehaviorModal(id='',clientId=''){
+  _editId=id||null; _ctx.clientId=clientId;
+  sf('bf-label',''); sf('bf-text','');
+  document.getElementById('bf-type').value='general';
+  openModal('behaviorModal');
+}
+function openEmergModal(id='',clientId=''){
+  _editId=id||null; _ctx.clientId=clientId;
+  sf('ef-name',''); sf('ef-role',''); sf('ef-phone','');
+  document.getElementById('ef-primary').value='false';
+  openModal('emergModal');
+}
+async function openUserModal(){
+  sf('uf-name',''); sf('uf-email',''); sf('uf-pass','');
+  document.getElementById('uf-role').value='caregiver';
+  const {data:allHouses}=await sb.from('houses').select('*').order('name');
+  const sel=document.getElementById('uf-houses'); sel.innerHTML='';
+  (allHouses||[]).forEach(h=>{const o=document.createElement('option');o.value=h.id;o.textContent=h.name;sel.appendChild(o);});
+  openModal('userModal');
+}
+
+// ============================================================
+// DELETE / CONFIRM
+// ============================================================
+function confirmDel(table,id,label){
+  document.getElementById('confirmText').innerHTML=`Delete <strong>${label}</strong>? This cannot be undone.`;
+  document.getElementById('confirmOk').textContent='Delete'; document.getElementById('confirmOk').className='btn btn-danger';
+  document.getElementById('confirmOk').onclick=()=>{delRecord(table,id);closeModal('confirmModal');};
+  openModal('confirmModal');
+}
+async function delRecord(table,id){ await sb.from(table).delete().eq('id',id); navigate(currentPage); }
+
+// ============================================================
+// BLOG ADMIN — POST LIST
+// ============================================================
+const CAT_COLORS = {
+  'Caregiver Tips':  {bg:'var(--accent-light)',color:'var(--accent)',border:'var(--accent-border)'},
+  'For Supervisors': {bg:'var(--blue-light)',color:'var(--blue)',border:'var(--blue-border)'},
+  'Agency Growth':   {bg:'var(--amber-light)',color:'var(--amber)',border:'var(--amber-border)'},
+  'Product Update':  {bg:'var(--purple-light)',color:'var(--purple)',border:'var(--purple-border)'},
+  'Industry News':   {bg:'var(--red-light)',color:'var(--red)',border:'var(--red-border)'},
+};
+const CAT_EMOJIS = {'Caregiver Tips':'🧑‍⚕️','For Supervisors':'📋','Agency Growth':'📈','Product Update':'🚀','Industry News':'📰'};
+const COVER_GRADS = [
+  'linear-gradient(135deg,#0f2a1e,#1e5e3a)',
+  'linear-gradient(135deg,#1a3050,#2a5e8a)',
+  'linear-gradient(135deg,#2d1a50,#5e3a8a)',
+  'linear-gradient(135deg,#3a1a1a,#8a3a2a)',
+  'linear-gradient(135deg,#1a3020,#3a8a4a)',
+];
+
+async function blogAdmin(el){
+  const {data:posts} = await sb.from('blog_posts').select('*').order('created_at',{ascending:false});
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="navigate('blogEditor',{postId:''})">✍️ New Post</button>`;
+
+  el.innerHTML=`<div class="page">
+    <div class="notice notice-blue" style="margin-bottom:20px;">✍️ Posts you publish here appear instantly on the public blog at <strong>index.html</strong>. Drafts are only visible to you.</div>
+    <div class="card">
+      <div id="posts-list"></div>
+    </div>
+  </div>`;
+
+  const list = document.getElementById('posts-list');
+  if(!(posts||[]).length){
+    list.innerHTML=`<div class="empty">
+      <div class="empty-icon">✍️</div>
+      <div class="empty-title">No posts yet</div>
+      <div class="empty-sub">Write your first post — guides, tips, or agency news.</div>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="navigate('blogEditor',{postId:''})">Write First Post</button>
+    </div>`;
+    return;
+  }
+
+  posts.forEach((p,i)=>{
+    const cat = p.category||'General';
+    const cs = CAT_COLORS[cat]||{bg:'var(--surface2)',color:'var(--muted)',border:'var(--border2)'};
+    const emoji = CAT_EMOJIS[cat]||'📄';
+    const grad = COVER_GRADS[i % COVER_GRADS.length];
+    const date = new Date(p.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const words = (p.content||'').split(' ').length;
+    const readTime = Math.max(1,Math.ceil(words/200))+'m read';
+    const row = document.createElement('div'); row.className='post-row';
+    row.innerHTML=`
+      <div class="post-row-cover" style="background:${grad};">${emoji}</div>
+      <div class="post-row-body">
+        <div class="post-row-title">${p.title||'Untitled'}</div>
+        <div class="post-row-meta">
+          <span class="badge ${p.published?'badge-green':'badge-gray'}">${p.published?'Published':'Draft'}</span>
+          <span style="background:${cs.bg};color:${cs.color};border:1px solid ${cs.border};padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;">${cat}</span>
+          <span>${date} · ${readTime}</span>
+        </div>
+      </div>
+      <div class="post-row-actions">
+        <button class="btn btn-ghost btn-sm" onclick="togglePublish('${p.id}',${p.published})">${p.published?'Unpublish':'Publish'}</button>
+        <button class="btn-icon" onclick="navigate('blogEditor',{postId:'${p.id}'})">✏</button>
+        <button class="btn-icon" onclick="confirmDel('blog_posts','${p.id}','${(p.title||'post').replace(/'/g,"\\'")}')">🗑</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+async function togglePublish(id, currentStatus){
+  await sb.from('blog_posts').update({published:!currentStatus}).eq('id',id);
+  navigate('blogAdmin');
+}
+
+// ============================================================
+// BLOG EDITOR
+// ============================================================
+async function blogEditor(el){
+  const postId = _ctx.postId||'';
+  let post = null;
+  if(postId){
+    const {data} = await sb.from('blog_posts').select('*').eq('id',postId).single();
+    post = data;
+  }
+
+  document.getElementById('topbarActions').innerHTML=`
+    <button class="btn btn-ghost btn-sm" onclick="navigate('blogAdmin')">← All Posts</button>
+    <button class="btn btn-ghost btn-sm" id="saveDraftBtn" onclick="saveBlogPost(false)">Save Draft</button>
+    <button class="btn btn-primary btn-sm" id="publishBtn" onclick="saveBlogPost(true)">🚀 Publish</button>
+  `;
+
+  const categories = ['Caregiver Tips','For Supervisors','Agency Growth','Product Update','Industry News'];
+
+  el.innerHTML=`<div class="page">
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:20px;margin-bottom:20px;">
+      <!-- Main editor -->
+      <div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <input class="form-input" id="be-title" placeholder="Post title…" style="font-size:20px;font-weight:700;padding:14px 16px;" value="${(post?.title||'').replace(/"/g,'&quot;')}"/>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <input class="form-input" id="be-excerpt" placeholder="Short excerpt shown on the blog card (1–2 sentences)…" value="${(post?.excerpt||'').replace(/"/g,'&quot;')}"/>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="blog-toolbar">
+          <button class="toolbar-btn" onclick="insertMd('## ','','Heading 2')" title="Heading 2">H2</button>
+          <button class="toolbar-btn" onclick="insertMd('### ','','Heading 3')" title="Heading 3">H3</button>
+          <div class="toolbar-sep"></div>
+          <button class="toolbar-btn" onclick="insertMd('**','**','bold text')" title="Bold"><strong>B</strong></button>
+          <button class="toolbar-btn" onclick="insertMd('*','*','italic text')" title="Italic"><em>I</em></button>
+          <div class="toolbar-sep"></div>
+          <button class="toolbar-btn" onclick="insertMd('> ','','quote')" title="Blockquote">"</button>
+          <button class="toolbar-btn" onclick="insertMd('- ','','list item')" title="Bullet list">• List</button>
+          <div class="toolbar-sep"></div>
+          <button class="toolbar-btn" onclick="insertMd('\n\n---\n\n','','')" title="Divider">— HR</button>
+          <div style="flex:1;"></div>
+          <button class="toolbar-btn" style="color:var(--accent);border-color:var(--accent-border);background:var(--accent-light);" onclick="togglePreview()">👁 Preview</button>
+        </div>
+
+        <!-- Content area -->
+        <textarea class="form-input blog-content-area" id="be-content" placeholder="Write your post here…
+
+## Use headings to structure your post
+Your paragraph text goes here. Use **bold** for emphasis.
+
+## Tips for formatting
+- Use bullet points for lists
+- Keep paragraphs short and readable
+
+> Use quotes for important callouts or testimonials
+
+Write naturally — your readers will thank you."
+          oninput="livePreview()" onkeydown="handleTabKey(event)">${post?.content||''}</textarea>
+      </div>
+
+      <!-- Settings panel -->
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Post Settings</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Category</label>
+              <select class="form-input form-select" id="be-category">
+                ${categories.map(c=>`<option value="${c}" ${post?.category===c?'selected':''}>${c}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Author Name</label>
+              <input class="form-input" id="be-author" placeholder="e.g. CareGuide Team" value="${(post?.author||currentProfile?.full_name||'').replace(/"/g,'&quot;')}"/>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Read Time</label>
+              <input class="form-input" id="be-readtime" placeholder="e.g. 5 min read" value="${post?.read_time||''}"/>
+              <div class="form-hint">Leave blank to calculate automatically</div>
+            </div>
+            <div style="padding:10px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);">
+              Status: <strong style="color:${post?.published?'var(--accent)':'var(--amber)'};">${post?.published?'Published ✓':'Draft'}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live preview pane -->
+        <div class="blog-preview-pane" id="preview-pane" style="display:none;">
+          <div class="blog-preview-title">👁 Live Preview</div>
+          <div class="blog-preview-body" id="preview-body"></div>
+        </div>
+
+        <!-- Formatting cheatsheet -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">✏ Formatting Guide</div></div>
+          <div class="card-body" style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px;line-height:1.6;">
+            <div><code style="background:var(--surface2);padding:1px 5px;border-radius:4px;">## Heading</code> → Big heading</div>
+            <div><code style="background:var(--surface2);padding:1px 5px;border-radius:4px;">### Heading</code> → Small heading</div>
+            <div><code style="background:var(--surface2);padding:1px 5px;border-radius:4px;">**bold**</code> → <strong>bold</strong></div>
+            <div><code style="background:var(--surface2);padding:1px 5px;border-radius:4px;">*italic*</code> → <em>italic</em></div>
+            <div><code style="background:var(--surface2);padding:1px 5px;border-radius:4px;">> quote</code> → blockquote</div>
+            <div><code style="background:var(--surface2);padding:1px 5px;border-radius:4px;">- item</code> → bullet list</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Store post id for saving
+  el.dataset.postId = postId;
+  // Trigger initial preview if editing
+  if(post?.content) livePreview();
+}
+
+function insertMd(before, after, placeholder){
+  const ta = document.getElementById('be-content');
+  if(!ta) return;
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const selected = ta.value.slice(start,end) || placeholder;
+  const insertion = before + selected + after;
+  ta.value = ta.value.slice(0,start) + insertion + ta.value.slice(end);
+  ta.focus();
+  ta.selectionStart = start + before.length;
+  ta.selectionEnd = start + before.length + selected.length;
+  livePreview();
+}
+
+function handleTabKey(e){
+  if(e.key==='Tab'){
+    e.preventDefault();
+    insertMd('  ','','');
+  }
+}
+
+let _previewVisible = false;
+function togglePreview(){
+  _previewVisible = !_previewVisible;
+  const pane = document.getElementById('preview-pane');
+  if(pane){ pane.style.display = _previewVisible ? 'block' : 'none'; }
+  if(_previewVisible) livePreview();
+}
+
+function livePreview(){
+  const el = document.getElementById('preview-body');
+  if(!el) return;
+  const raw = (document.getElementById('be-content')?.value||'');
+  el.innerHTML = renderMarkdown(raw);
+}
+
+function renderMarkdown(raw){
+  return raw
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]+?<\/li>)(?![\s\S]*<li>)/g,'<ul>$1</ul>')
+    .replace(/^---$/gm,'<hr style="border:none;border-top:1.5px solid var(--border);margin:16px 0;">')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/\n/g,'<br>')
+    .trim();
+}
+
+async function saveBlogPost(publish){
+  const title = fv('be-title');
+  if(!title){ alert('Please add a title before saving.'); return; }
+
+  const content = document.getElementById('be-content')?.value||'';
+  const words = content.split(' ').length;
+  const autoReadTime = Math.max(1,Math.ceil(words/200))+' min read';
+
+  const payload = {
+    title,
+    excerpt: fv('be-excerpt'),
+    content,
+    category: document.getElementById('be-category')?.value||'Caregiver Tips',
+    author: fv('be-author') || currentProfile?.full_name || 'CareGuide Team',
+    read_time: fv('be-readtime') || autoReadTime,
+    published: publish,
+    created_by: currentUser.id,
+  };
+
+  const btn = publish
+    ? document.getElementById('publishBtn')
+    : document.getElementById('saveDraftBtn');
+  const origText = btn.textContent;
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
+  const el = document.getElementById('mainContent');
+  const postId = el?.dataset?.postId || _ctx.postId || '';
+
+  let error;
+  if(postId){
+    ({error} = await sb.from('blog_posts').update(payload).eq('id',postId));
+  } else {
+    ({error} = await sb.from('blog_posts').insert(payload));
+  }
+
+  btn.textContent = origText; btn.disabled = false;
+
+  if(error){ alert('Error saving: '+error.message); return; }
+
+  // Show toast-style feedback
+  const toast = document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--accent);color:white;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);animation:fadeUp .25s ease both;';
+  toast.textContent = publish ? '🚀 Published!' : '✓ Draft saved';
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(), 2500);
+
+  navigate('blogAdmin');
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fv(id){ return (document.getElementById(id)?.value||'').trim(); }
+function sf(id,val){ const el=document.getElementById(id); if(el) el.value=val||''; }
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+document.getElementById('wizardOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('wizardOverlay'))closeWizard();});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const signUpVisible=!document.getElementById('signUpCard').classList.contains('hidden');
+    if(signUpVisible) signUp(); else if(!document.getElementById('loginView').classList.contains('hidden')) signIn();
+  }
+  if(e.key==='Escape') closeWizard();
+});
+
+boot();
+</script>
+</body>
+</html>
