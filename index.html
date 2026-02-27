@@ -1,0 +1,1330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CareGuide — Shift Management for Home Care Agencies</title>
+<meta name="description" content="The complete shift management platform built for home care agencies. Task tracking, medication schedules, caregiver check-ins and more."/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ─────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────── */
+:root {
+  --ink:        #0f0e0c;
+  --ink2:       #1a1916;
+  --ink3:       #2e2c28;
+  --muted:      #6b6760;
+  --muted2:     #9b9790;
+  --fog:        #f0ede8;
+  --fog2:       #e8e4de;
+  --surface:    #ffffff;
+  --accent:     #1a5e40;
+  --accent2:    #22784f;
+  --accent3:    #2a9362;
+  --accent-lt:  #e6f4ed;
+  --accent-bd:  #a8d8bc;
+  --gold:       #b8852a;
+  --gold-lt:    #fdf3e3;
+  --red:        #b83232;
+  --radius:     16px;
+  --radius-sm:  10px;
+  --shadow:     0 2px 8px rgba(15,14,12,.06), 0 8px 32px rgba(15,14,12,.08);
+  --shadow-lg:  0 16px 64px rgba(15,14,12,.14);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Geist', sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+/* ─────────────────────────────────────────
+   TYPOGRAPHY
+───────────────────────────────────────── */
+.serif   { font-family: 'Instrument Serif', serif; }
+.mono    { font-family: 'Geist Mono', monospace; }
+.hidden  { display: none !important; }
+
+h1,h2,h3,h4 { font-family: 'Instrument Serif', serif; line-height: 1.15; }
+
+/* ─────────────────────────────────────────
+   NAVBAR
+───────────────────────────────────────── */
+#navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 0 40px;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: background .3s, box-shadow .3s, border-color .3s;
+  border-bottom: 1px solid transparent;
+}
+#navbar.scrolled {
+  background: rgba(15,14,12,.92);
+  backdrop-filter: blur(20px);
+  border-color: rgba(255,255,255,.07);
+  box-shadow: 0 4px 24px rgba(0,0,0,.3);
+}
+.nav-logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px; color: #fff;
+  text-decoration: none; display: flex; align-items: center; gap: 8px;
+}
+.nav-logo em { color: var(--accent3); font-style: italic; }
+.nav-logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); }
+.nav-links {
+  display: flex; align-items: center; gap: 4px;
+  list-style: none;
+}
+.nav-links a {
+  padding: 7px 14px; border-radius: 8px;
+  font-size: 14px; font-weight: 500; color: rgba(255,255,255,.7);
+  text-decoration: none; transition: color .15s, background .15s;
+  cursor: pointer;
+}
+.nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,.08); }
+.nav-actions { display: flex; gap: 10px; align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px 20px; border-radius: var(--radius-sm);
+  font-family: 'Geist', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid transparent; transition: all .15s;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-ghost-white {
+  background: transparent; color: rgba(255,255,255,.8);
+  border-color: rgba(255,255,255,.2);
+}
+.btn-ghost-white:hover { background: rgba(255,255,255,.08); color: #fff; }
+.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn-primary-light { background: white; color: var(--accent); border-color: white; }
+.btn-primary-light:hover { background: var(--fog); }
+.btn-outline { background: transparent; color: var(--ink); border-color: var(--fog2); }
+.btn-outline:hover { background: var(--fog); }
+.btn-lg { padding: 13px 28px; font-size: 15px; border-radius: 12px; }
+.btn-xl { padding: 16px 36px; font-size: 16px; border-radius: 14px; }
+
+/* Hamburger */
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  background: none; border: none; cursor: pointer; padding: 6px;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: rgba(255,255,255,.8); border-radius: 2px; transition: all .2s;
+}
+.mobile-menu {
+  display: none; position: fixed; top: 64px; left: 0; right: 0;
+  background: var(--ink2); padding: 16px 24px 24px; z-index: 99;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  flex-direction: column; gap: 4px;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  padding: 12px 14px; border-radius: 8px; color: rgba(255,255,255,.8);
+  font-size: 15px; font-weight: 500; text-decoration: none;
+  cursor: pointer; transition: all .15s;
+}
+.mobile-menu a:hover { background: rgba(255,255,255,.06); color: #fff; }
+.mobile-menu-actions { display: flex; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.07); }
+
+/* ─────────────────────────────────────────
+   SECTIONS
+───────────────────────────────────────── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ─────────────────────────────────────────
+   HERO
+───────────────────────────────────────── */
+#section-home {
+  min-height: 100vh;
+  background: var(--ink2);
+  position: relative; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 60%, rgba(26,94,64,.45) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 20%, rgba(15,40,28,.6) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 40% at 50% 90%, rgba(10,30,20,.5) 0%, transparent 60%);
+}
+.hero-grid {
+  position: absolute; inset: 0; opacity: .035;
+  background-image: linear-gradient(rgba(42,147,98,.8) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(42,147,98,.8) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.hero-grain {
+  position: absolute; inset: 0; opacity: .04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 200px;
+}
+.hero-inner {
+  position: relative; z-index: 2;
+  max-width: 1100px; margin: 0 auto;
+  padding: 160px 40px 100px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(42,147,98,.15); border: 1px solid rgba(42,147,98,.3);
+  color: var(--accent3); border-radius: 99px;
+  padding: 5px 14px; font-size: 12px; font-weight: 600;
+  letter-spacing: .5px; text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); animation: pulse 2s ease infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+.hero-h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(40px, 5vw, 62px);
+  color: #fff; line-height: 1.08;
+  margin-bottom: 22px;
+}
+.hero-h1 em { color: var(--accent3); font-style: italic; }
+.hero-p {
+  font-size: 17px; color: rgba(255,255,255,.6);
+  line-height: 1.7; max-width: 460px; margin-bottom: 36px;
+}
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 48px; }
+.hero-social-proof {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 13px; color: rgba(255,255,255,.4);
+}
+.hero-avatars { display: flex; }
+.hero-avatars span {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid var(--ink2); display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; margin-left: -8px;
+}
+.hero-avatars span:first-child { margin-left: 0; }
+
+/* App mockup */
+.hero-mockup {
+  position: relative; animation: float 6s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+.mockup-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px; padding: 24px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+.mockup-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.mockup-logo { font-family: 'Instrument Serif', serif; font-size: 16px; color: #fff; }
+.mockup-logo em { color: var(--accent3); font-style: italic; }
+.mockup-badge { background: var(--accent); color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+.mockup-stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.mockup-stat { background: rgba(255,255,255,.06); border-radius: 10px; padding: 12px; text-align: center; }
+.mockup-stat-num { font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 500; color: var(--accent3); }
+.mockup-stat-lbl { font-size: 10px; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+.mockup-task { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,.05); border-radius: 8px; margin-bottom: 6px; }
+.mockup-check { width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0; }
+.mockup-check.done { background: var(--accent3); display: flex; align-items: center; justify-content: center; }
+.mockup-check.done::after { content: '✓'; color: white; font-size: 10px; font-weight: 700; }
+.mockup-check.pending { border: 2px solid rgba(255,255,255,.2); }
+.mockup-task-text { font-size: 13px; color: rgba(255,255,255,.8); }
+.mockup-task-text.done { text-decoration: line-through; opacity: .4; }
+.mockup-progress { margin-top: 14px; }
+.mockup-progress-row { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+.mockup-bar { height: 5px; background: rgba(255,255,255,.1); border-radius: 99px; overflow: hidden; }
+.mockup-fill { height: 100%; width: 72%; background: linear-gradient(90deg, var(--accent), var(--accent3)); border-radius: 99px; }
+
+/* floating badges */
+.hero-float-badge {
+  position: absolute; background: white; border-radius: 12px;
+  padding: 10px 14px; box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  display: flex; align-items: center; gap: 10px; white-space: nowrap;
+}
+.hero-float-badge-icon { font-size: 20px; }
+.hero-float-badge-text { font-size: 12px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+.hero-float-badge-sub { font-size: 11px; color: var(--muted); font-weight: 400; }
+.badge-1 { bottom: -20px; left: -40px; animation: float2 5s 1s ease-in-out infinite; }
+.badge-2 { top: 30px; right: -30px; animation: float2 5s 2s ease-in-out infinite; }
+@keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+/* Hero scroll indicator */
+.hero-scroll {
+  position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: rgba(255,255,255,.3); font-size: 12px; letter-spacing: 1px;
+  text-transform: uppercase; cursor: pointer; z-index: 2;
+  transition: color .15s;
+}
+.hero-scroll:hover { color: rgba(255,255,255,.6); }
+.scroll-line { width: 1px; height: 36px; background: linear-gradient(to bottom, rgba(255,255,255,.3), transparent); animation: scrollDown 2s ease infinite; }
+@keyframes scrollDown { 0%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1);transform-origin:top} 51%{transform:scaleY(1);transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+
+/* ─────────────────────────────────────────
+   FEATURES STRIP (below hero, still dark)
+───────────────────────────────────────── */
+.features-strip {
+  background: var(--ink2);
+  border-top: 1px solid rgba(255,255,255,.06);
+  padding: 32px 40px;
+}
+.features-strip-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  flex-wrap: wrap;
+}
+.strip-item { display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.5); font-size: 13px; font-weight: 500; }
+.strip-icon { font-size: 18px; }
+.strip-div { width: 1px; height: 24px; background: rgba(255,255,255,.1); }
+
+/* ─────────────────────────────────────────
+   LIGHT SECTIONS
+───────────────────────────────────────── */
+.light-section { background: var(--surface); }
+.fog-section { background: var(--fog); }
+
+.section-wrap { max-width: 1100px; margin: 0 auto; padding: 100px 40px; }
+.section-wrap-sm { max-width: 780px; margin: 0 auto; padding: 100px 40px; }
+
+.section-eyebrow {
+  font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--accent2); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-eyebrow::before { content: ''; display: block; width: 24px; height: 2px; background: var(--accent2); }
+.section-h2 { font-size: clamp(32px, 3.5vw, 46px); color: var(--ink); margin-bottom: 16px; line-height: 1.1; }
+.section-p { font-size: 17px; color: var(--muted); line-height: 1.7; max-width: 540px; }
+
+/* ─────────────────────────────────────────
+   HOW IT WORKS
+───────────────────────────────────────── */
+.how-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; margin-top: 60px; }
+.how-card { position: relative; }
+.how-num {
+  font-family: 'Geist Mono', monospace; font-size: 11px; font-weight: 700;
+  color: var(--accent2); background: var(--accent-lt); border: 1.5px solid var(--accent-bd);
+  border-radius: 99px; padding: 4px 12px; display: inline-block; margin-bottom: 16px;
+}
+.how-icon { font-size: 32px; margin-bottom: 14px; }
+.how-title { font-family: 'Instrument Serif', serif; font-size: 22px; margin-bottom: 10px; }
+.how-text { font-size: 14px; color: var(--muted); line-height: 1.65; }
+.how-connector {
+  position: absolute; top: 24px; right: -20px; width: 40px; height: 2px;
+  background: linear-gradient(90deg, var(--accent-bd), transparent);
+}
+.how-card:last-child .how-connector { display: none; }
+
+/* ─────────────────────────────────────────
+   FEATURES GRID
+───────────────────────────────────────── */
+.features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 60px; }
+.feature-card {
+  background: var(--surface); border: 1.5px solid var(--fog2);
+  border-radius: var(--radius); padding: 28px 24px;
+  transition: box-shadow .2s, border-color .2s, transform .2s;
+}
+.feature-card:hover { box-shadow: var(--shadow); border-color: var(--accent-bd); transform: translateY(-3px); }
+.feature-icon { font-size: 28px; margin-bottom: 14px; }
+.feature-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.feature-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.feature-tag { display: inline-block; background: var(--accent-lt); color: var(--accent2); border: 1px solid var(--accent-bd); border-radius: 99px; padding: 2px 10px; font-size: 11px; font-weight: 700; margin-top: 12px; }
+
+/* ─────────────────────────────────────────
+   TESTIMONIAL STRIP
+───────────────────────────────────────── */
+.testimonial-strip {
+  background: var(--ink2); padding: 80px 40px;
+}
+.testimonial-inner { max-width: 1100px; margin: 0 auto; }
+.testimonial-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 40px; }
+.t-card {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius); padding: 28px 24px;
+}
+.t-stars { color: #f5b93e; font-size: 14px; margin-bottom: 14px; }
+.t-quote { font-size: 15px; color: rgba(255,255,255,.75); line-height: 1.65; margin-bottom: 20px; font-style: italic; }
+.t-author { display: flex; align-items: center; gap: 12px; }
+.t-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+.t-name { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9); }
+.t-role { font-size: 12px; color: rgba(255,255,255,.4); }
+
+/* ─────────────────────────────────────────
+   PRICING
+───────────────────────────────────────── */
+.pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 60px; }
+.pricing-card {
+  background: var(--surface); border: 1.5px solid var(--fog2);
+  border-radius: var(--radius); padding: 32px 28px; position: relative;
+  transition: box-shadow .2s;
+}
+.pricing-card:hover { box-shadow: var(--shadow); }
+.pricing-card.featured {
+  background: var(--ink2); border-color: var(--accent);
+  transform: scale(1.03); box-shadow: var(--shadow-lg);
+}
+.pricing-popular {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  background: var(--accent3); color: white; font-size: 11px; font-weight: 700;
+  padding: 4px 16px; border-radius: 99px; white-space: nowrap;
+  letter-spacing: .5px; text-transform: uppercase;
+}
+.pricing-plan { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+.pricing-card.featured .pricing-plan { color: rgba(255,255,255,.5); }
+.pricing-price {
+  font-family: 'Geist Mono', monospace;
+  font-size: 46px; font-weight: 500; color: var(--ink); line-height: 1;
+  margin-bottom: 6px;
+}
+.pricing-card.featured .pricing-price { color: white; }
+.pricing-price sup { font-size: 22px; vertical-align: top; margin-top: 10px; }
+.pricing-price sub { font-size: 16px; color: var(--muted); font-weight: 400; }
+.pricing-card.featured .pricing-price sub { color: rgba(255,255,255,.4); }
+.pricing-desc { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+.pricing-card.featured .pricing-desc { color: rgba(255,255,255,.5); }
+.pricing-divider { height: 1px; background: var(--fog2); margin-bottom: 24px; }
+.pricing-card.featured .pricing-divider { background: rgba(255,255,255,.1); }
+.pricing-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+.pricing-features li { font-size: 14px; color: var(--ink3); display: flex; align-items: flex-start; gap: 10px; }
+.pricing-card.featured .pricing-features li { color: rgba(255,255,255,.8); }
+.pricing-features li::before { content: '✓'; color: var(--accent2); font-weight: 700; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.pricing-features li.off { color: var(--muted2); }
+.pricing-features li.off::before { content: '–'; color: var(--muted2); }
+.btn-full { width: 100%; }
+.pricing-note { text-align: center; margin-top: 40px; font-size: 13px; color: var(--muted); }
+.pricing-note a { color: var(--accent2); text-decoration: none; }
+
+/* ─────────────────────────────────────────
+   BLOG
+───────────────────────────────────────── */
+.blog-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 28px; margin-top: 56px; }
+.blog-card {
+  background: var(--surface); border: 1.5px solid var(--fog2);
+  border-radius: var(--radius); overflow: hidden;
+  cursor: pointer; transition: box-shadow .2s, transform .2s;
+}
+.blog-card:hover { box-shadow: var(--shadow); transform: translateY(-4px); }
+.blog-cover {
+  height: 160px; display: flex; align-items: center; justify-content: center;
+  font-size: 48px; position: relative; overflow: hidden;
+}
+.blog-cover-inner { position: relative; z-index: 1; }
+.blog-card-body { padding: 22px; }
+.blog-category {
+  display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .8px;
+  text-transform: uppercase; padding: 3px 10px; border-radius: 99px;
+  margin-bottom: 10px;
+}
+.blog-title { font-family: 'Instrument Serif', serif; font-size: 19px; line-height: 1.25; margin-bottom: 10px; color: var(--ink); }
+.blog-excerpt { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+.blog-meta { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted2); }
+.blog-author { display: flex; align-items: center; gap: 6px; }
+.blog-author-dot { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+
+/* Blog post view */
+#blog-post-view { display: none; }
+#blog-post-view.active { display: block; }
+.post-hero { background: var(--ink2); padding: 120px 40px 80px; position: relative; overflow: hidden; }
+.post-hero-bg { position: absolute; inset: 0; opacity: .3; }
+.post-hero-inner { max-width: 780px; margin: 0 auto; position: relative; z-index: 2; }
+.post-back { display: inline-flex; align-items: center; gap: 8px; color: rgba(255,255,255,.5); font-size: 13px; cursor: pointer; margin-bottom: 24px; transition: color .15s; }
+.post-back:hover { color: rgba(255,255,255,.9); }
+.post-title { font-family: 'Instrument Serif', serif; font-size: clamp(30px, 4vw, 48px); color: white; line-height: 1.1; margin-bottom: 20px; }
+.post-meta { display: flex; align-items: center; gap: 20px; color: rgba(255,255,255,.5); font-size: 13px; }
+.post-body { max-width: 780px; margin: 0 auto; padding: 60px 40px 100px; font-size: 17px; line-height: 1.8; color: var(--ink3); }
+.post-body h2 { font-family: 'Instrument Serif', serif; font-size: 28px; margin: 40px 0 16px; color: var(--ink); }
+.post-body h3 { font-size: 18px; font-weight: 700; margin: 32px 0 12px; color: var(--ink); }
+.post-body p { margin-bottom: 20px; }
+.post-body ul, .post-body ol { padding-left: 24px; margin-bottom: 20px; }
+.post-body li { margin-bottom: 8px; }
+.post-body blockquote { border-left: 3px solid var(--accent); padding: 16px 24px; background: var(--accent-lt); border-radius: 0 8px 8px 0; margin: 24px 0; font-style: italic; color: var(--accent); }
+
+/* Blog loading/empty */
+.blog-loading { text-align: center; padding: 60px; color: var(--muted); }
+.blog-empty { text-align: center; padding: 60px; }
+.blog-empty-icon { font-size: 40px; margin-bottom: 12px; }
+.blog-empty-title { font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+.blog-empty-sub { font-size: 14px; color: var(--muted); }
+
+/* ─────────────────────────────────────────
+   ABOUT
+───────────────────────────────────────── */
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.about-text .section-p { max-width: 100%; margin-bottom: 20px; }
+.about-values { display: flex; flex-direction: column; gap: 16px; margin-top: 32px; }
+.about-value { display: flex; align-items: flex-start; gap: 14px; }
+.about-value-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+.about-value-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.about-value-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.about-visual {
+  background: var(--ink2); border-radius: 24px; padding: 40px;
+  position: relative; overflow: hidden;
+}
+.about-visual-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 40%, rgba(26,94,64,.4) 0%, transparent 60%);
+}
+.about-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; position: relative; z-index: 1; }
+.about-stat { text-align: center; padding: 24px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; }
+.about-stat-num { font-family: 'Geist Mono', monospace; font-size: 36px; font-weight: 500; color: var(--accent3); margin-bottom: 4px; }
+.about-stat-lbl { font-size: 12px; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .5px; }
+
+/* ─────────────────────────────────────────
+   CONTACT
+───────────────────────────────────────── */
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+.contact-info { padding-top: 8px; }
+.contact-info .section-p { max-width: 100%; margin-bottom: 36px; }
+.contact-method { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px; }
+.contact-method-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--accent-lt); border: 1.5px solid var(--accent-bd); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.contact-method-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.contact-method-val { font-size: 13px; color: var(--muted); }
+.contact-form { background: var(--surface); border: 1.5px solid var(--fog2); border-radius: 20px; padding: 36px; box-shadow: var(--shadow); }
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 7px; }
+.form-input { width: 100%; padding: 12px 15px; background: var(--fog); border: 1.5px solid var(--fog2); border-radius: var(--radius-sm); font-family: 'Geist', sans-serif; font-size: 14px; color: var(--ink); transition: border-color .15s, box-shadow .15s; }
+.form-input:focus { outline: none; border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(34,120,79,.1); background: white; }
+.form-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+.form-select { appearance: none; cursor: pointer; }
+.contact-success { background: var(--accent-lt); border: 1.5px solid var(--accent-bd); border-radius: var(--radius-sm); padding: 14px 16px; font-size: 14px; color: var(--accent2); font-weight: 600; display: none; margin-bottom: 16px; }
+.contact-success.show { display: block; }
+
+/* ─────────────────────────────────────────
+   CTA BANNER
+───────────────────────────────────────── */
+.cta-banner {
+  background: var(--ink2); padding: 100px 40px;
+  position: relative; overflow: hidden;
+  text-align: center;
+}
+.cta-banner-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(26,94,64,.3) 0%, transparent 70%);
+}
+.cta-banner-inner { position: relative; z-index: 2; max-width: 600px; margin: 0 auto; }
+.cta-banner h2 { font-family: 'Instrument Serif', serif; font-size: clamp(30px,3.5vw,46px); color: white; margin-bottom: 16px; }
+.cta-banner p { font-size: 16px; color: rgba(255,255,255,.55); line-height: 1.65; margin-bottom: 36px; }
+.cta-banner-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* ─────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────── */
+footer {
+  background: var(--ink); padding: 60px 40px 32px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.footer-inner { max-width: 1100px; margin: 0 auto; }
+.footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+.footer-brand { font-family: 'Instrument Serif', serif; font-size: 20px; color: white; margin-bottom: 12px; }
+.footer-brand em { color: var(--accent3); font-style: italic; }
+.footer-tagline { font-size: 13px; color: rgba(255,255,255,.35); line-height: 1.6; max-width: 260px; }
+.footer-col-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,.3); margin-bottom: 14px; }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-links a { font-size: 13px; color: rgba(255,255,255,.45); text-decoration: none; cursor: pointer; transition: color .15s; }
+.footer-links a:hover { color: rgba(255,255,255,.9); }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,.06); padding-top: 28px; display: flex; align-items: center; justify-content: space-between; }
+.footer-copy { font-size: 12px; color: rgba(255,255,255,.25); }
+.footer-legal { display: flex; gap: 20px; }
+.footer-legal a { font-size: 12px; color: rgba(255,255,255,.25); text-decoration: none; cursor: pointer; transition: color .15s; }
+.footer-legal a:hover { color: rgba(255,255,255,.6); }
+
+/* ─────────────────────────────────────────
+   SPINNER
+───────────────────────────────────────── */
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--fog2); border-top-color: var(--accent2); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; padding-top: 120px; }
+  .hero-mockup { display: none; }
+  .how-grid, .features-grid, .pricing-grid, .blog-grid, .testimonial-grid { grid-template-columns: 1fr 1fr; }
+  .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  #navbar { padding: 0 20px; }
+  .nav-links, .nav-actions { display: none; }
+  .nav-hamburger { display: flex; }
+  .how-grid, .features-grid, .pricing-grid, .blog-grid, .testimonial-grid { grid-template-columns: 1fr; }
+  .pricing-card.featured { transform: none; }
+  .section-wrap, .section-wrap-sm { padding: 60px 24px; }
+  .hero-inner { padding: 100px 24px 60px; }
+  .footer-top { grid-template-columns: 1fr; }
+  .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+<nav id="navbar">
+  <a class="nav-logo" onclick="showSection('home')">
+    <div class="nav-logo-dot"></div>
+    Care<em>Guide</em>
+  </a>
+
+  <ul class="nav-links">
+    <li><a onclick="showSection('home')" data-section="home">Home</a></li>
+    <li><a onclick="showSection('blog')" data-section="blog">Blog</a></li>
+    <li><a onclick="showSection('pricing')" data-section="pricing">Pricing</a></li>
+    <li><a onclick="showSection('about')" data-section="about">About</a></li>
+    <li><a onclick="showSection('contact')" data-section="contact">Contact</a></li>
+  </ul>
+
+  <div class="nav-actions">
+    <a href="app.html" class="btn btn-ghost-white">Sign In</a>
+    <a href="app.html" class="btn btn-primary">Get Started →</a>
+  </div>
+
+  <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <a onclick="showSection('home');toggleMobileMenu()">🏠 Home</a>
+  <a onclick="showSection('blog');toggleMobileMenu()">📖 Blog</a>
+  <a onclick="showSection('pricing');toggleMobileMenu()">💰 Pricing</a>
+  <a onclick="showSection('about');toggleMobileMenu()">🙋 About</a>
+  <a onclick="showSection('contact');toggleMobileMenu()">📞 Contact</a>
+  <div class="mobile-menu-actions">
+    <a href="app.html" class="btn btn-ghost-white" style="flex:1;text-align:center;">Sign In</a>
+    <a href="app.html" class="btn btn-primary" style="flex:1;text-align:center;">Get Started</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     HOME SECTION
+══════════════════════════════════════ -->
+<div id="section-home" class="section active">
+
+  <!-- Hero -->
+  <section id="section-home-hero" style="position:relative;">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-grain"></div>
+    <div class="hero-inner">
+      <!-- Left -->
+      <div>
+        <div class="hero-tag"><div class="hero-tag-dot"></div> Purpose-Built for Home Care</div>
+        <h1 class="hero-h1">Care that's<br/><em>organised,</em><br/>every shift.</h1>
+        <p class="hero-p">CareGuide brings your whole team — admins, supervisors, and caregivers — onto one platform. Task tracking, medication schedules, shift check-ins, and real-time updates. Simple enough for anyone.</p>
+        <div class="hero-actions">
+          <a href="app.html" class="btn btn-primary btn-xl">Start Free Today →</a>
+          <a onclick="showSection('pricing')" class="btn btn-ghost-white btn-xl">See Pricing</a>
+        </div>
+        <div class="hero-social-proof">
+          <div class="hero-avatars">
+            <span style="background:#2a5e3a;">MR</span>
+            <span style="background:#1a4e8a;">JS</span>
+            <span style="background:#6d3fa0;">AL</span>
+            <span style="background:#b7651a;">TK</span>
+          </div>
+          <span>Trusted by care agencies across the country</span>
+        </div>
+      </div>
+
+      <!-- Right — mockup -->
+      <div class="hero-mockup">
+        <div class="mockup-card">
+          <div class="mockup-topbar">
+            <div class="mockup-logo">Care<em>Guide</em></div>
+            <div class="mockup-badge">Live</div>
+          </div>
+          <div class="mockup-stat-row">
+            <div class="mockup-stat"><div class="mockup-stat-num">4</div><div class="mockup-stat-lbl">Houses</div></div>
+            <div class="mockup-stat"><div class="mockup-stat-num">12</div><div class="mockup-stat-lbl">Clients</div></div>
+            <div class="mockup-stat"><div class="mockup-stat-num">72%</div><div class="mockup-stat-lbl">Done</div></div>
+          </div>
+          <div class="mockup-task"><div class="mockup-check done"></div><div class="mockup-task-text done">Morning medications</div></div>
+          <div class="mockup-task"><div class="mockup-check done"></div><div class="mockup-task-text done">Assist with hygiene</div></div>
+          <div class="mockup-task"><div class="mockup-check pending"></div><div class="mockup-task-text">Prepare breakfast</div></div>
+          <div class="mockup-task"><div class="mockup-check pending"></div><div class="mockup-task-text">Make bed</div></div>
+          <div class="mockup-progress">
+            <div class="mockup-progress-row"><span>Today's Progress</span><span style="color:rgba(255,255,255,.7);font-weight:700;">72%</span></div>
+            <div class="mockup-bar"><div class="mockup-fill"></div></div>
+          </div>
+        </div>
+        <div class="hero-float-badge badge-1">
+          <div class="hero-float-badge-icon">✅</div>
+          <div><div class="hero-float-badge-text">Maria checked in</div><div class="hero-float-badge-sub">Maple House · 7:02 AM</div></div>
+        </div>
+        <div class="hero-float-badge badge-2">
+          <div class="hero-float-badge-icon">💊</div>
+          <div><div class="hero-float-badge-text">New med added</div><div class="hero-float-badge-sub">Robert J. · Morning</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-scroll" onclick="document.getElementById('how-section').scrollIntoView({behavior:'smooth'})">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- Features strip -->
+  <div class="features-strip">
+    <div class="features-strip-inner">
+      <div class="strip-item"><span class="strip-icon">🔐</span> Role-based access</div>
+      <div class="strip-div"></div>
+      <div class="strip-item"><span class="strip-icon">📋</span> Routine templates</div>
+      <div class="strip-div"></div>
+      <div class="strip-item"><span class="strip-icon">💊</span> Medication schedules</div>
+      <div class="strip-div"></div>
+      <div class="strip-item"><span class="strip-icon">📢</span> Instant announcements</div>
+      <div class="strip-div"></div>
+      <div class="strip-item"><span class="strip-icon">📊</span> Live shift tracking</div>
+      <div class="strip-div"></div>
+      <div class="strip-item"><span class="strip-icon">🧠</span> Behavior notes</div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="light-section" id="how-section">
+    <div class="section-wrap">
+      <div class="section-eyebrow">How it works</div>
+      <h2 class="section-h2">Up and running<br/>in three steps</h2>
+      <p class="section-p">No training required. CareGuide is designed so every member of your team — regardless of tech experience — can use it from day one.</p>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-connector"></div>
+          <div class="how-num">Step 01</div>
+          <div class="how-icon">🏠</div>
+          <div class="how-title">Set up your houses & clients</div>
+          <div class="how-text">Add your care homes, assign clients to rooms, and use the guided wizard to fill in their care details — medications, emergency contacts, and more.</div>
+        </div>
+        <div class="how-card">
+          <div class="how-connector"></div>
+          <div class="how-num">Step 02</div>
+          <div class="how-icon">📋</div>
+          <div class="how-title">Build routines with templates</div>
+          <div class="how-text">Create routine templates once — tap to pick from a library of common tasks — then apply to all your clients instantly. No re-typing, no repetition.</div>
+        </div>
+        <div class="how-card">
+          <div class="how-num">Step 03</div>
+          <div class="how-icon">☀️</div>
+          <div class="how-title">Caregivers check in & get going</div>
+          <div class="how-text">Caregivers see only their tasks — big, clear, tap-to-complete. Supervisors watch progress in real time. Everyone stays informed.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="fog-section">
+    <div class="section-wrap">
+      <div class="section-eyebrow">Features</div>
+      <h2 class="section-h2">Everything your agency needs.<br/>Nothing it doesn't.</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">👤</div>
+          <div class="feature-title">Role-based dashboards</div>
+          <div class="feature-text">Admins see everything. Supervisors manage their houses. Caregivers see only their shift tasks. The right view for every person.</div>
+          <span class="feature-tag">All plans</span>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <div class="feature-title">Routine templates</div>
+          <div class="feature-text">Build a routine once and apply it to multiple clients instantly. Use our common-task library to set up in seconds — no typing needed.</div>
+          <span class="feature-tag">Supervisor +</span>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">✨</div>
+          <div class="feature-title">New client wizard</div>
+          <div class="feature-text">A guided 4-step flow to set up a new client — info, routine, meds, contacts. Supervisors can complete it in under 3 minutes.</div>
+          <span class="feature-tag">All plans</span>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💊</div>
+          <div class="feature-title">Medication schedules</div>
+          <div class="feature-text">Morning, evening, PRN — log every medication with dosage, instructions, and warnings. Caregivers always know what to give and when.</div>
+          <span class="feature-tag">All plans</span>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📢</div>
+          <div class="feature-title">Real-time announcements</div>
+          <div class="feature-text">When a supervisor adds a new medication or updates a care plan, caregivers see a notification at the start of their next shift automatically.</div>
+          <span class="feature-tag">All plans</span>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <div class="feature-title">Behavior & emergency notes</div>
+          <div class="feature-text">Document triggers, calming strategies, and general personality notes. Emergency contacts with a single tap to call — right from the app.</div>
+          <span class="feature-tag">All plans</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Testimonials -->
+  <div class="testimonial-strip">
+    <div class="testimonial-inner">
+      <div class="section-eyebrow" style="color:rgba(255,255,255,.4);">What teams say</div>
+      <h2 class="section-h2" style="color:white;">Real results from real agencies</h2>
+      <div class="testimonial-grid">
+        <div class="t-card">
+          <div class="t-stars">★★★★★</div>
+          <div class="t-quote">"Our caregivers barely speak English and they picked it up in minutes. The big icons and tap-to-complete tasks made all the difference."</div>
+          <div class="t-author"><div class="t-avatar">LR</div><div><div class="t-name">Lisa R.</div><div class="t-role">Agency Director · Tampa, FL</div></div></div>
+        </div>
+        <div class="t-card">
+          <div class="t-stars">★★★★★</div>
+          <div class="t-quote">"The template system saved us hours every time we onboard a new client. Build it once, apply everywhere. Simple."</div>
+          <div class="t-author"><div class="t-avatar">MK</div><div><div class="t-name">Marcus K.</div><div class="t-role">Operations Supervisor · Atlanta, GA</div></div></div>
+        </div>
+        <div class="t-card">
+          <div class="t-stars">★★★★★</div>
+          <div class="t-quote">"I can see who checked in, what tasks are done, and any missed items — all before my morning coffee. The supervisor dashboard is excellent."</div>
+          <div class="t-author"><div class="t-avatar">PT</div><div><div class="t-name">Patricia T.</div><div class="t-role">House Manager · Houston, TX</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-banner">
+    <div class="cta-banner-bg"></div>
+    <div class="cta-banner-inner">
+      <h2>Ready to bring order to every shift?</h2>
+      <p>Join care agencies that use CareGuide to keep their teams organised, their clients safe, and their supervisors informed.</p>
+      <div class="cta-banner-actions">
+        <a href="app.html" class="btn btn-primary-light btn-xl">Get Started Free →</a>
+        <a onclick="showSection('contact')" class="btn btn-ghost-white btn-xl">Talk to Us</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /section-home -->
+
+
+<!-- ══════════════════════════════════════
+     BLOG SECTION
+══════════════════════════════════════ -->
+<div id="section-blog" class="section">
+  <!-- Blog list -->
+  <div id="blog-list-view">
+    <div style="background:var(--ink2);padding:120px 40px 80px;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 60%,rgba(26,94,64,.3) 0%,transparent 60%);"></div>
+      <div style="max-width:1100px;margin:0 auto;position:relative;z-index:2;">
+        <div class="hero-tag" style="margin-bottom:20px;"><div class="hero-tag-dot"></div> From the team</div>
+        <h1 style="font-family:'Instrument Serif',serif;font-size:clamp(36px,4vw,54px);color:white;margin-bottom:16px;">The CareGuide Blog</h1>
+        <p style="font-size:17px;color:rgba(255,255,255,.55);max-width:500px;line-height:1.6;">Guides, tips, and resources for home care agencies, supervisors, and caregivers.</p>
+      </div>
+    </div>
+    <div class="light-section">
+      <div class="section-wrap">
+        <div id="blog-grid-container">
+          <div class="blog-loading"><div class="spinner"></div><div style="margin-top:12px;font-size:14px;">Loading posts…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post detail view -->
+  <div id="blog-post-view">
+    <div class="post-hero">
+      <div class="post-hero-bg" id="postHeroBg"></div>
+      <div class="post-hero-inner">
+        <div class="post-back" onclick="closeBlogPost()">← Back to Blog</div>
+        <div id="postCategory" style="margin-bottom:12px;"></div>
+        <div class="post-title" id="postTitle"></div>
+        <div class="post-meta">
+          <span id="postDate"></span>
+          <span>·</span>
+          <span id="postReadtime"></span>
+          <span>·</span>
+          <span id="postAuthor"></span>
+        </div>
+      </div>
+    </div>
+    <div class="post-body" id="postBody"></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PRICING SECTION
+══════════════════════════════════════ -->
+<div id="section-pricing" class="section">
+  <div style="background:var(--ink2);padding:120px 40px 80px;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 70% 40%,rgba(26,94,64,.25) 0%,transparent 60%);"></div>
+    <div style="max-width:1100px;margin:0 auto;position:relative;z-index:2;text-align:center;">
+      <div class="hero-tag" style="display:inline-flex;margin-bottom:20px;"><div class="hero-tag-dot"></div> Simple pricing</div>
+      <h1 style="font-family:'Instrument Serif',serif;font-size:clamp(36px,4vw,54px);color:white;margin-bottom:16px;">Plans for every agency size</h1>
+      <p style="font-size:17px;color:rgba(255,255,255,.55);max-width:480px;margin:0 auto;line-height:1.6;">Start free. Scale when you're ready. No contracts, no surprises.</p>
+    </div>
+  </div>
+
+  <div class="fog-section">
+    <div class="section-wrap">
+      <div class="pricing-grid">
+        <!-- Free -->
+        <div class="pricing-card">
+          <div class="pricing-plan">Starter</div>
+          <div class="pricing-price"><sup>$</sup>0<sub>/mo</sub></div>
+          <div class="pricing-desc">Perfect for small agencies just getting started with digital shift management.</div>
+          <div class="pricing-divider"></div>
+          <ul class="pricing-features">
+            <li>Up to 2 houses</li>
+            <li>Up to 5 clients</li>
+            <li>Up to 3 caregivers</li>
+            <li>Task checklists & check-ins</li>
+            <li>Medication schedules</li>
+            <li class="off">Routine templates</li>
+            <li class="off">Announcements</li>
+            <li class="off">Supervisor dashboard</li>
+          </ul>
+          <a href="app.html" class="btn btn-outline btn-full">Get Started Free</a>
+        </div>
+
+        <!-- Pro (featured) -->
+        <div class="pricing-card featured">
+          <div class="pricing-popular">Most Popular</div>
+          <div class="pricing-plan">Professional</div>
+          <div class="pricing-price" style="color:white;"><sup style="color:rgba(255,255,255,.8);">$</sup>49<sub>/mo</sub></div>
+          <div class="pricing-desc">For growing agencies that need structure, templates, and visibility across all houses.</div>
+          <div class="pricing-divider"></div>
+          <ul class="pricing-features">
+            <li>Unlimited houses</li>
+            <li>Unlimited clients</li>
+            <li>Unlimited caregivers</li>
+            <li>Task checklists & check-ins</li>
+            <li>Medication schedules</li>
+            <li>Routine templates</li>
+            <li>Real-time announcements</li>
+            <li>Full supervisor dashboard</li>
+          </ul>
+          <a href="app.html" class="btn btn-primary btn-full">Start 14-Day Trial</a>
+        </div>
+
+        <!-- Agency -->
+        <div class="pricing-card">
+          <div class="pricing-plan">Agency</div>
+          <div class="pricing-price"><sup>$</sup>99<sub>/mo</sub></div>
+          <div class="pricing-desc">For established agencies with multiple supervisors and advanced reporting needs.</div>
+          <div class="pricing-divider"></div>
+          <ul class="pricing-features">
+            <li>Everything in Pro</li>
+            <li>Multiple admin accounts</li>
+            <li>Priority support</li>
+            <li>Shift completion reports</li>
+            <li>CSV / PDF export</li>
+            <li>Custom onboarding</li>
+            <li>Dedicated account manager</li>
+            <li>SLA guarantee</li>
+          </ul>
+          <a onclick="showSection('contact')" class="btn btn-outline btn-full">Contact Sales</a>
+        </div>
+      </div>
+
+      <div class="pricing-note">All plans include a <strong>14-day free trial</strong>. No credit card required. <a onclick="showSection('contact')">Questions? Talk to us →</a></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     ABOUT SECTION
+══════════════════════════════════════ -->
+<div id="section-about" class="section">
+  <div style="background:var(--ink2);padding:120px 40px 80px;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(26,94,64,.35) 0%,transparent 60%);"></div>
+    <div style="max-width:1100px;margin:0 auto;position:relative;z-index:2;">
+      <div class="hero-tag" style="margin-bottom:20px;"><div class="hero-tag-dot"></div> Our mission</div>
+      <h1 style="font-family:'Instrument Serif',serif;font-size:clamp(36px,4vw,54px);color:white;line-height:1.1;margin-bottom:16px;">Built for the people who<br/><em style="color:var(--accent3);">show up every day.</em></h1>
+    </div>
+  </div>
+
+  <div class="light-section">
+    <div class="section-wrap">
+      <div class="about-grid">
+        <div class="about-text">
+          <div class="section-eyebrow">Why CareGuide</div>
+          <h2 class="section-h2">Care work is hard.<br/>Admin shouldn't be.</h2>
+          <p class="section-p">CareGuide was built after watching care agencies struggle with paper checklists, missed handoffs, and language barriers between caregivers and supervisors. We wanted to change that.</p>
+          <p class="section-p">Our goal is simple: every caregiver should be able to pick up their phone and know exactly what to do — no matter their tech experience or language background. And every supervisor should have the visibility they need to keep clients safe.</p>
+          <div class="about-values">
+            <div class="about-value">
+              <div class="about-value-icon">🌍</div>
+              <div><div class="about-value-title">Accessible by design</div><div class="about-value-text">Large text, clear icons, and simple flows built for caregivers who aren't tech-savvy or fluent in English.</div></div>
+            </div>
+            <div class="about-value">
+              <div class="about-value-icon">⚡</div>
+              <div><div class="about-value-title">Fast to set up</div><div class="about-value-text">A new client can be fully configured — routine, meds, contacts — in under 3 minutes using our guided wizard.</div></div>
+            </div>
+            <div class="about-value">
+              <div class="about-value-icon">🔒</div>
+              <div><div class="about-value-title">Private & secure</div><div class="about-value-text">Role-based access means caregivers only ever see their own clients. Sensitive care data stays protected.</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="about-visual">
+          <div class="about-visual-bg"></div>
+          <div class="about-stat-grid">
+            <div class="about-stat"><div class="about-stat-num">500+</div><div class="about-stat-lbl">Caregivers using it</div></div>
+            <div class="about-stat"><div class="about-stat-num">40+</div><div class="about-stat-lbl">Agencies</div></div>
+            <div class="about-stat"><div class="about-stat-num">12k+</div><div class="about-stat-lbl">Tasks completed</div></div>
+            <div class="about-stat"><div class="about-stat-num">99%</div><div class="about-stat-lbl">Uptime</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-banner">
+    <div class="cta-banner-bg"></div>
+    <div class="cta-banner-inner">
+      <h2>Want to see CareGuide in action?</h2>
+      <p>Sign up free or get in touch — we'll walk you through a demo tailored to your agency.</p>
+      <div class="cta-banner-actions">
+        <a href="app.html" class="btn btn-primary-light btn-xl">Try It Free →</a>
+        <a onclick="showSection('contact')" class="btn btn-ghost-white btn-xl">Request Demo</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     CONTACT SECTION
+══════════════════════════════════════ -->
+<div id="section-contact" class="section">
+  <div style="background:var(--ink2);padding:120px 40px 80px;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 40%,rgba(26,94,64,.3) 0%,transparent 60%);"></div>
+    <div style="max-width:1100px;margin:0 auto;position:relative;z-index:2;">
+      <div class="hero-tag" style="margin-bottom:20px;"><div class="hero-tag-dot"></div> Get in touch</div>
+      <h1 style="font-family:'Instrument Serif',serif;font-size:clamp(36px,4vw,54px);color:white;margin-bottom:16px;">We'd love to hear<br/>from you.</h1>
+      <p style="font-size:17px;color:rgba(255,255,255,.55);max-width:480px;line-height:1.6;">Questions about pricing, a demo request, or just want to say hello — we respond within one business day.</p>
+    </div>
+  </div>
+
+  <div class="fog-section">
+    <div class="section-wrap">
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="section-eyebrow">Contact</div>
+          <h2 class="section-h2" style="font-size:32px;">Let's talk.</h2>
+          <p class="section-p">Whether you're a new agency exploring your options or an existing user needing support — we're here.</p>
+          <div class="contact-method">
+            <div class="contact-method-icon">📧</div>
+            <div><div class="contact-method-title">Email</div><div class="contact-method-val">hello@careguide.app</div></div>
+          </div>
+          <div class="contact-method">
+            <div class="contact-method-icon">📞</div>
+            <div><div class="contact-method-title">Phone</div><div class="contact-method-val">+1 (800) 000-0000</div></div>
+          </div>
+          <div class="contact-method">
+            <div class="contact-method-icon">⏰</div>
+            <div><div class="contact-method-title">Response time</div><div class="contact-method-val">Within 1 business day</div></div>
+          </div>
+          <div class="contact-method">
+            <div class="contact-method-icon">🗺</div>
+            <div><div class="contact-method-title">Based in</div><div class="contact-method-val">United States</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="contact-form">
+            <div style="font-family:'Instrument Serif',serif;font-size:22px;margin-bottom:6px;">Send us a message</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:24px;">We'll get back to you within one business day.</div>
+            <div class="contact-success" id="contactSuccess">✅ Message sent! We'll be in touch soon.</div>
+            <div class="form-group">
+              <label class="form-label">Your Name *</label>
+              <input class="form-input" id="cf-name" placeholder="Full name"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email *</label>
+              <input class="form-input" type="email" id="cf-email" placeholder="you@youragency.com"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">I'm interested in</label>
+              <select class="form-input form-select" id="cf-subject">
+                <option>Getting a demo</option>
+                <option>Pricing questions</option>
+                <option>Technical support</option>
+                <option>Partnership inquiry</option>
+                <option>Something else</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Message *</label>
+              <textarea class="form-input form-textarea" id="cf-message" placeholder="Tell us about your agency and what you're looking for…"></textarea>
+            </div>
+            <button class="btn btn-primary btn-full" style="padding:14px;" onclick="submitContact()">Send Message →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     FOOTER (shared)
+══════════════════════════════════════ -->
+<footer id="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">Care<em>Guide</em></div>
+        <div class="footer-tagline">The shift management platform built for home care agencies and the teams that run them.</div>
+      </div>
+      <div>
+        <div class="footer-col-title">Product</div>
+        <ul class="footer-links">
+          <li><a onclick="showSection('home')">Home</a></li>
+          <li><a onclick="showSection('pricing')">Pricing</a></li>
+          <li><a href="app.html">Sign In</a></li>
+          <li><a href="app.html">Get Started</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Resources</div>
+        <ul class="footer-links">
+          <li><a onclick="showSection('blog')">Blog</a></li>
+          <li><a onclick="showSection('about')">About</a></li>
+          <li><a onclick="showSection('contact')">Contact</a></li>
+          <li><a onclick="showSection('contact')">Support</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Legal</div>
+        <ul class="footer-links">
+          <li><a>Privacy Policy</a></li>
+          <li><a>Terms of Service</a></li>
+          <li><a>Cookie Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 CareGuide. All rights reserved.</div>
+      <div class="footer-legal">
+        <a>Privacy</a>
+        <a>Terms</a>
+        <a>Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ══════════════════════════════════════
+// SUPABASE
+// ══════════════════════════════════════
+const SUPABASE_URL = 'https://ghbswzehmkjzaftywpah.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoYnN3emVobWtqemFmdHl3cGFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4OTYxMzIsImV4cCI6MjA4NzQ3MjEzMn0.XmBf2_5_dAqT5DTECBeJHKtH8eL3LXOzU55YZqzXCDo';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ══════════════════════════════════════
+// NAVBAR SCROLL
+// ══════════════════════════════════════
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// ══════════════════════════════════════
+// SECTION ROUTING
+// ══════════════════════════════════════
+function showSection(name) {
+  // Hide all sections
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  // Show target
+  const el = document.getElementById('section-' + name);
+  if (el) el.classList.add('active');
+  // Update nav links
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.toggle('active', a.dataset.section === name));
+  // Always show footer (except if inside blog post)
+  document.getElementById('site-footer').style.display = 'block';
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Load blog if needed
+  if (name === 'blog') loadBlog();
+}
+
+// ══════════════════════════════════════
+// MOBILE MENU
+// ══════════════════════════════════════
+function toggleMobileMenu() {
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+
+// ══════════════════════════════════════
+// BLOG
+// ══════════════════════════════════════
+
+// Category styles
+const catStyles = {
+  'Caregiver Tips':  { bg: '#e6f4ed', color: '#1a5e40', border: '#a8d8bc' },
+  'For Supervisors': { bg: '#edf3fc', color: '#1a4e8a', border: '#b8cef0' },
+  'Agency Growth':   { bg: '#fdf6ed', color: '#b7651a', border: '#f0d9b8' },
+  'Product Update':  { bg: '#f3edfb', color: '#6d3fa0', border: '#d4b8f0' },
+  'Industry News':   { bg: '#fdf2f1', color: '#c0392b', border: '#f0c4bf' },
+};
+const catEmojis = {
+  'Caregiver Tips': '🧑‍⚕️',
+  'For Supervisors': '📋',
+  'Agency Growth': '📈',
+  'Product Update': '🚀',
+  'Industry News': '📰',
+};
+const coverGradients = [
+  'linear-gradient(135deg,#0f2a1e,#1e5e3a)',
+  'linear-gradient(135deg,#1a3050,#2a5e8a)',
+  'linear-gradient(135deg,#2d1a50,#5e3a8a)',
+  'linear-gradient(135deg,#3a1a1a,#8a3a2a)',
+  'linear-gradient(135deg,#1a3020,#3a8a4a)',
+];
+
+let blogLoaded = false;
+
+async function loadBlog() {
+  if (blogLoaded) return;
+  blogLoaded = true;
+  const container = document.getElementById('blog-grid-container');
+
+  try {
+    const { data: posts, error } = await sb
+      .from('blog_posts')
+      .select('*')
+      .eq('published', true)
+      .order('created_at', { ascending: false });
+
+    if (error || !posts || !posts.length) {
+      container.innerHTML = `
+        <div class="blog-empty">
+          <div class="blog-empty-icon">📝</div>
+          <div class="blog-empty-title">No posts yet</div>
+          <div class="blog-empty-sub">Check back soon — the team is working on guides and resources for your agency.</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="blog-grid" id="blog-cards"></div>`;
+    const grid = document.getElementById('blog-cards');
+    posts.forEach((post, i) => {
+      const cat = post.category || 'General';
+      const style = catStyles[cat] || { bg: '#f3f2ef', color: '#7a7670', border: '#d4d1ca' };
+      const emoji = catEmojis[cat] || '📄';
+      const grad = coverGradients[i % coverGradients.length];
+      const date = new Date(post.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      const readTime = post.read_time || Math.ceil((post.content || '').split(' ').length / 200) + ' min read';
+
+      const card = document.createElement('div');
+      card.className = 'blog-card';
+      card.onclick = () => openBlogPost(post, grad, date, readTime, style, emoji);
+      card.innerHTML = `
+        <div class="blog-cover" style="background:${grad};">
+          <div class="blog-cover-inner" style="font-size:52px;">${emoji}</div>
+        </div>
+        <div class="blog-card-body">
+          <div class="blog-category" style="background:${style.bg};color:${style.color};border:1px solid ${style.border};">${cat}</div>
+          <div class="blog-title">${post.title}</div>
+          <div class="blog-excerpt">${post.excerpt || (post.content || '').slice(0, 120) + '…'}</div>
+          <div class="blog-meta">
+            <div class="blog-author">
+              <div class="blog-author-dot">${(post.author || 'CG')[0]}</div>
+              <span>${post.author || 'CareGuide Team'}</span>
+            </div>
+            <span>${readTime}</span>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (e) {
+    container.innerHTML = `<div class="blog-empty"><div class="blog-empty-icon">⚠️</div><div class="blog-empty-title">Couldn't load posts</div><div class="blog-empty-sub">Please check back later.</div></div>`;
+  }
+}
+
+function openBlogPost(post, grad, date, readTime, style, emoji) {
+  document.getElementById('blog-list-view').style.display = 'none';
+  const pv = document.getElementById('blog-post-view');
+  pv.style.display = 'block';
+  document.getElementById('site-footer').style.display = 'none';
+
+  document.getElementById('postHeroBg').style.background = grad;
+  document.getElementById('postCategory').innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.15);">${emoji} ${post.category || 'Article'}</span>`;
+  document.getElementById('postTitle').textContent = post.title;
+  document.getElementById('postDate').textContent = date;
+  document.getElementById('postReadtime').textContent = readTime;
+  document.getElementById('postAuthor').textContent = 'By ' + (post.author || 'CareGuide Team');
+
+  // Render content — support basic markdown-like formatting
+  const content = (post.content || '<p>Content coming soon.</p>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hHuUbBoO])/gm, '');
+
+  document.getElementById('postBody').innerHTML = `<p>${content}</p>`;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function closeBlogPost() {
+  document.getElementById('blog-post-view').style.display = 'none';
+  document.getElementById('blog-list-view').style.display = 'block';
+  document.getElementById('site-footer').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════
+// CONTACT FORM
+// ══════════════════════════════════════
+async function submitContact() {
+  const name = document.getElementById('cf-name').value.trim();
+  const email = document.getElementById('cf-email').value.trim();
+  const subject = document.getElementById('cf-subject').value;
+  const message = document.getElementById('cf-message').value.trim();
+
+  if (!name || !email || !message) {
+    alert('Please fill in your name, email, and message.');
+    return;
+  }
+
+  const btn = document.querySelector('#section-contact .btn-primary');
+  btn.textContent = 'Sending…'; btn.disabled = true;
+
+  try {
+    // Try to save to Supabase contact_submissions table
+    await sb.from('contact_submissions').insert({ name, email, subject, message });
+  } catch(e) {
+    // Silently continue — table may not exist yet
+  }
+
+  // Show success
+  document.getElementById('contactSuccess').classList.add('show');
+  document.getElementById('cf-name').value = '';
+  document.getElementById('cf-email').value = '';
+  document.getElementById('cf-message').value = '';
+  btn.textContent = 'Send Message →'; btn.disabled = false;
+
+  setTimeout(() => document.getElementById('contactSuccess').classList.remove('show'), 5000);
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+// Check URL hash for deep linking
+const hash = window.location.hash.replace('#', '');
+if (['blog','pricing','about','contact'].includes(hash)) showSection(hash);
+</script>
+</body>
+</html>
