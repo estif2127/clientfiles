@@ -2126,6 +2126,14 @@ async function jobPosts(el){
   });
 }
 
+function copyJobShareLink(jobId){
+  const url = `${location.origin}${location.pathname.replace('app.html','index.html')}#job/${jobId}`;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = document.querySelector('[onclick^="copyJobShareLink"]');
+    if(btn){ const o=btn.textContent; btn.textContent='✓ Copied!'; setTimeout(()=>btn.textContent=o,2000); }
+  });
+}
+
 async function toggleJobOpen(id, current){
   await sb.from('job_posts').update({open:!current}).eq('id',id);
   navigate('jobPosts');
@@ -2146,6 +2154,7 @@ async function jobEditor(el){
 
   document.getElementById('topbarActions').innerHTML=`
     <button class="btn btn-ghost btn-sm" onclick="navigate('jobPosts')">← All Jobs</button>
+    ${jobId?`<button class="btn btn-ghost btn-sm" onclick="copyJobShareLink('${jobId}')">🔗 Copy Link</button>`:''}
     <button class="btn btn-primary btn-sm" onclick="saveJobPost()">💾 Save Post</button>
   `;
 
