@@ -329,7 +329,31 @@ tr:hover td { background:var(--surface2); }
 .tab:hover { color:var(--ink);background:var(--surface3); }
 .tab.active { background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08); }
 
-/* ── BLOG EDITOR ── */
+/* ── JOB POSTS ── */
+.job-card { background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:box-shadow .15s; }
+.job-card:hover { box-shadow:var(--shadow); }
+.job-card-head { padding:18px 20px;border-bottom:1.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px; }
+.job-card-title { font-size:16px;font-weight:700;margin-bottom:4px; }
+.job-card-meta { display:flex;flex-wrap:wrap;gap:6px;margin-top:8px; }
+.job-card-body { padding:14px 20px;font-size:13px;color:var(--muted);line-height:1.6; }
+.job-card-foot { padding:12px 20px;border-top:1.5px solid var(--border);display:flex;gap:8px;align-items:center; }
+.job-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px; }
+.lang-chip { display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-border); }
+.applicant-row { display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:1.5px solid var(--border);transition:background .12s; }
+.applicant-row:hover { background:var(--surface2); }
+.applicant-row:last-child { border-bottom:none; }
+.applicant-avatar { width:40px;height:40px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0; }
+.applicant-body { flex:1;min-width:0; }
+.applicant-name { font-size:14px;font-weight:700; }
+.applicant-meta { font-size:12px;color:var(--muted);margin-top:2px;display:flex;flex-wrap:wrap;gap:8px; }
+.applicant-message { font-size:13px;color:var(--ink3);margin-top:8px;line-height:1.55;background:var(--surface2);border-radius:8px;padding:10px 12px; }
+.applicant-actions { display:flex;gap:6px;flex-shrink:0;flex-direction:column;align-items:flex-end; }
+.status-select { font-family:'Geist',sans-serif;font-size:12px;font-weight:600;border-radius:99px;padding:4px 10px;border:1.5px solid;cursor:pointer;appearance:none;text-align:center; }
+.status-new { background:var(--blue-light);color:var(--blue);border-color:var(--blue-border); }
+.status-reviewed { background:var(--amber-light);color:var(--amber);border-color:var(--amber-border); }
+.status-interviewed { background:var(--purple-light);color:var(--purple);border-color:var(--purple-border); }
+.status-hired { background:var(--accent-light);color:var(--accent);border-color:var(--accent-border); }
+.status-rejected { background:var(--red-light);color:var(--red);border-color:var(--red-border); }
 .blog-editor-wrap { display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start; }
 .blog-toolbar { display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:var(--surface2);border:1.5px solid var(--border);border-bottom:none;border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
 .toolbar-btn { background:none;border:1.5px solid transparent;border-radius:6px;padding:5px 10px;font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s; }
@@ -727,6 +751,7 @@ function buildSidebar(role){
     nav.innerHTML+=ss('Overview')+ni('dashboard','📊','Dashboard')+ni('checkins','✅',"Today's Check-ins");
     nav.innerHTML+=ss('Management')+ni('houses','🏠','Houses')+ni('clients','👤','Clients')+ni('team','👥','Team');
     nav.innerHTML+=ss('Care Tools')+ni('templates','📋','Routine Templates')+ni('allMeds','💊','Medications')+ni('allTasks','📝','All Tasks');
+    nav.innerHTML+=ss('Hiring')+ni('jobPosts','💼','Job Posts')+ni('applicants','📬','Applicants','applicantBadge');
   if(role==='admin'){
     nav.innerHTML+=ss('Website')+ni('blogAdmin','✍️','Blog Posts');
   }
@@ -803,7 +828,7 @@ async function createAnnouncement(houseId,clientId,type,title,body){
 function navigate(page,ctx={}){
   currentPage=page; Object.assign(_ctx,ctx);
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
-  const titles={dashboard:'Dashboard',houses:'Houses',clients:'All Clients',team:'Team',allMeds:'All Medications',allTasks:'All Tasks',checkins:"Today's Check-ins",myShift:'My Shift',myClients:'My Clients',myAnnouncements:'Announcements',clientDetail:'Client',houseDetail:'House',templates:'Routine Templates',blogAdmin:'Blog Posts',blogEditor:'Blog Editor'};
+  const titles={dashboard:'Dashboard',houses:'Houses',clients:'All Clients',team:'Team',allMeds:'All Medications',allTasks:'All Tasks',checkins:"Today's Check-ins",myShift:'My Shift',myClients:'My Clients',myAnnouncements:'Announcements',clientDetail:'Client',houseDetail:'House',templates:'Routine Templates',blogAdmin:'Blog Posts',blogEditor:'Blog Editor',jobPosts:'Job Posts',jobEditor:'Job Editor',applicants:'Applicants'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarActions').innerHTML='';
   renderPage(page);
@@ -811,7 +836,7 @@ function navigate(page,ctx={}){
 async function renderPage(page){
   const el=document.getElementById('mainContent');
   el.innerHTML='<div class="empty"><div class="spinner"></div></div>';
-  const map={dashboard,houses,houseDetail,clients,clientDetail,team,allMeds,allTasks,checkins,myShift,myClients,myAnnouncements,templates,blogAdmin,blogEditor};
+  const map={dashboard,houses,houseDetail,clients,clientDetail,team,allMeds,allTasks,checkins,myShift,myClients,myAnnouncements,templates,blogAdmin,blogEditor,jobPosts,jobEditor,applicants};
   if(map[page]) await map[page](el);
 }
 
@@ -2038,6 +2063,311 @@ async function saveBlogPost(publish){
   setTimeout(()=>toast.remove(), 2500);
 
   navigate('blogAdmin');
+}
+
+// ============================================================
+// JOB POSTS — LIST
+// ============================================================
+const SHIFT_LABELS = {morning:'☀️ Morning',evening:'🌙 Evening',both:'☀️🌙 Both Shifts',weekends:'📅 Weekends'};
+const TYPE_LABELS  = {full_time:'Full Time',part_time:'Part Time',per_diem:'Per Diem'};
+const LANGUAGES    = ['English','Spanish','Creole','Portuguese','French','Somali','Arabic','Other'];
+
+async function jobPosts(el){
+  const {data:jobs} = await sb.from('job_posts').select('*, houses(name)').order('created_at',{ascending:false});
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="navigate('jobEditor',{jobId:''})">💼 Post a Job</button>`;
+
+  // Badge for new applicants
+  const {data:newApps} = await sb.from('job_applications').select('id').eq('status','new');
+  if((newApps||[]).length){ const b=document.getElementById('applicantBadge'); if(b){b.textContent=newApps.length;b.classList.remove('hidden');} }
+
+  el.innerHTML=`<div class="page">
+    <div class="notice notice-blue" style="margin-bottom:20px;">💼 Open job posts appear on the public <strong>Careers</strong> page of your website. Close them once the position is filled.</div>
+    <div class="job-grid" id="jobs-grid"></div>
+  </div>`;
+
+  const grid = document.getElementById('jobs-grid');
+  if(!(jobs||[]).length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1;">
+      <div class="empty-icon">💼</div>
+      <div class="empty-title">No job posts yet</div>
+      <div class="empty-sub">Post your first opening — it'll appear on your public careers page.</div>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="navigate('jobEditor',{jobId:''})">Post First Job</button>
+    </div>`;
+    return;
+  }
+
+  jobs.forEach(j=>{
+    const langs = (j.languages||[]);
+    const card = document.createElement('div'); card.className='job-card';
+    card.innerHTML=`
+      <div class="job-card-head">
+        <div style="flex:1;">
+          <div class="job-card-title">${j.title}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">🏠 ${j.houses?.name||'Any house'}</div>
+          <div class="job-card-meta">
+            <span class="badge ${j.open?'badge-green':'badge-gray'}">${j.open?'🟢 Open':'⭕ Closed'}</span>
+            ${j.shift?`<span class="badge badge-amber">${SHIFT_LABELS[j.shift]||j.shift}</span>`:''}
+            ${j.type?`<span class="badge badge-blue">${TYPE_LABELS[j.type]||j.type}</span>`:''}
+            ${j.pay?`<span class="badge badge-purple">💵 ${j.pay}</span>`:''}
+          </div>
+          ${langs.length?`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">${langs.map(l=>`<span class="lang-chip">🌍 ${l}</span>`).join('')}</div>`:''}
+        </div>
+      </div>
+      ${j.description?`<div class="job-card-body">${j.description.slice(0,160)}${j.description.length>160?'…':''}</div>`:''}
+      <div class="job-card-foot">
+        <button class="btn btn-ghost btn-sm" onclick="toggleJobOpen('${j.id}',${j.open})">${j.open?'Close Position':'Reopen'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="navigate('applicants',{jobId:'${j.id}',jobTitle:'${(j.title||'').replace(/'/g,"\\'")}'})" >📬 Applicants</button>
+        <div style="flex:1;"></div>
+        <button class="btn-icon" onclick="navigate('jobEditor',{jobId:'${j.id}'})">✏</button>
+        <button class="btn-icon" onclick="confirmDel('job_posts','${j.id}','${(j.title||'').replace(/'/g,"\\'")}')">🗑</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function toggleJobOpen(id, current){
+  await sb.from('job_posts').update({open:!current}).eq('id',id);
+  navigate('jobPosts');
+}
+
+// ============================================================
+// JOB EDITOR
+// ============================================================
+async function jobEditor(el){
+  const jobId = _ctx.jobId||'';
+  let job = null;
+  if(jobId){
+    const {data} = await sb.from('job_posts').select('*').eq('id',jobId).single();
+    job = data;
+  }
+  const {data:houses} = await sb.from('houses').select('*').order('name');
+  const selectedLangs = job?.languages||[];
+
+  document.getElementById('topbarActions').innerHTML=`
+    <button class="btn btn-ghost btn-sm" onclick="navigate('jobPosts')">← All Jobs</button>
+    <button class="btn btn-primary btn-sm" onclick="saveJobPost()">💾 Save Post</button>
+  `;
+
+  el.innerHTML=`<div class="page">
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-group">
+          <label class="form-label">Job Title *</label>
+          <input class="form-input" id="jf-title" placeholder="e.g. Full-Time Caregiver" style="font-size:17px;font-weight:700;padding:13px 15px;" value="${(job?.title||'').replace(/"/g,'&quot;')}"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">House / Location</label>
+            <select class="form-input form-select" id="jf-house">
+              <option value="">Any / Multiple houses</option>
+              ${(houses||[]).map(h=>`<option value="${h.id}" ${job?.house_id===h.id?'selected':''}>${h.name}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pay Range</label>
+            <input class="form-input" id="jf-pay" placeholder="e.g. $15–$18/hr" value="${(job?.pay||'').replace(/"/g,'&quot;')}"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Shift</label>
+            <select class="form-input form-select" id="jf-shift">
+              <option value="">— Any —</option>
+              ${Object.entries(SHIFT_LABELS).map(([v,l])=>`<option value="${v}" ${job?.shift===v?'selected':''}>${l}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Employment Type</label>
+            <select class="form-input form-select" id="jf-type">
+              <option value="">— Any —</option>
+              ${Object.entries(TYPE_LABELS).map(([v,l])=>`<option value="${v}" ${job?.type===v?'selected':''}>${l}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Job Description *</label>
+          <textarea class="form-input form-textarea" id="jf-desc" style="min-height:140px;" placeholder="Describe the role, responsibilities, and what a typical day looks like…">${job?.description||''}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Requirements</label>
+          <textarea class="form-input form-textarea" id="jf-requirements" style="min-height:100px;" placeholder="List any required experience, certifications, or qualities…">${job?.requirements||''}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notification Email</label>
+          <input class="form-input" id="jf-notify-email" placeholder="Email to notify when someone applies" value="${(job?.notify_email||currentUser?.email||'').replace(/"/g,'&quot;')}"/>
+          <div class="form-hint">You'll get an email every time someone submits an application for this post.</div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Language Preferences</div></div>
+          <div class="card-body">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Tag languages you prefer applicants to speak</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;" id="lang-chips">
+              ${LANGUAGES.map(l=>{
+                const sel = selectedLangs.includes(l);
+                return `<div class="quick-chip ${sel?'selected':''}" onclick="toggleLangChip(this,'${l}')" style="font-size:12px;">🌍 ${l}</div>`;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Visibility</div></div>
+          <div class="card-body">
+            <label style="display:flex;align-items:center;gap:12px;cursor:pointer;">
+              <input type="checkbox" id="jf-open" ${job?.open!==false?'checked':''} style="width:18px;height:18px;accent-color:var(--accent);">
+              <div>
+                <div style="font-size:13px;font-weight:700;">Post is Open</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">Visible on the public careers page</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">📋 Tips</div></div>
+          <div class="card-body" style="font-size:12px;color:var(--muted);line-height:1.7;">
+            <div style="margin-bottom:6px;">✅ Include the shift hours if possible</div>
+            <div style="margin-bottom:6px;">✅ Mention if experience is required or not</div>
+            <div style="margin-bottom:6px;">✅ Tag languages to attract the right candidates</div>
+            <div>✅ Add a notification email so you don't miss applications</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  el.dataset.jobId = jobId;
+}
+
+function toggleLangChip(el, lang){
+  el.classList.toggle('selected');
+}
+
+async function saveJobPost(){
+  const title = fv('jf-title');
+  if(!title){ alert('Job title is required.'); return; }
+  const desc = document.getElementById('jf-desc')?.value?.trim();
+  if(!desc){ alert('Please add a job description.'); return; }
+
+  const langs = Array.from(document.querySelectorAll('#lang-chips .quick-chip.selected'))
+    .map(c=>c.textContent.replace('🌍 ','').trim());
+
+  const payload = {
+    title,
+    house_id: document.getElementById('jf-house')?.value||null,
+    pay: fv('jf-pay'),
+    shift: document.getElementById('jf-shift')?.value||null,
+    type: document.getElementById('jf-type')?.value||null,
+    description: desc,
+    requirements: document.getElementById('jf-requirements')?.value?.trim()||'',
+    languages: langs,
+    open: document.getElementById('jf-open')?.checked!==false,
+    notify_email: fv('jf-notify-email'),
+    created_by: currentUser.id,
+  };
+
+  const btn = document.querySelector('#topbarActions .btn-primary');
+  btn.textContent='Saving…'; btn.disabled=true;
+
+  const el = document.getElementById('mainContent');
+  const jobId = el?.dataset?.jobId || _ctx.jobId||'';
+  let error;
+  if(jobId){ ({error}=await sb.from('job_posts').update(payload).eq('id',jobId)); }
+  else      { ({error}=await sb.from('job_posts').insert(payload)); }
+
+  btn.textContent='💾 Save Post'; btn.disabled=false;
+  if(error){ alert('Error: '+error.message); return; }
+
+  const toast=document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:24px;right:24px;background:var(--accent);color:white;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);';
+  toast.textContent='✅ Job post saved!';
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),2500);
+  navigate('jobPosts');
+}
+
+// ============================================================
+// APPLICANTS
+// ============================================================
+const STATUS_OPTIONS = ['new','reviewed','interviewed','hired','rejected'];
+const STATUS_LABELS  = {new:'New',reviewed:'Reviewed',interviewed:'Interviewed',hired:'Hired ✓',rejected:'Rejected'};
+
+async function applicants(el){
+  const jobId = _ctx.jobId||'';
+  const jobTitle = _ctx.jobTitle||'All Jobs';
+
+  let query = sb.from('job_applications').select('*, job_posts(title)').order('created_at',{ascending:false});
+  if(jobId) query = query.eq('job_id',jobId);
+  const {data:apps} = await query;
+
+  document.getElementById('topbarActions').innerHTML=`<button class="btn btn-ghost btn-sm" onclick="navigate('jobPosts')">← Job Posts</button>`;
+  document.getElementById('topbarTitle').textContent = jobId ? `Applicants — ${jobTitle}` : 'All Applicants';
+
+  // Clear new badge
+  if(!jobId){ const b=document.getElementById('applicantBadge'); if(b) b.classList.add('hidden'); }
+
+  el.innerHTML=`<div class="page">
+    ${!(apps||[]).length?`
+      <div class="empty">
+        <div class="empty-icon">📬</div>
+        <div class="empty-title">No applicants yet</div>
+        <div class="empty-sub">Share your careers page to start receiving applications.</div>
+      </div>
+    `:`
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📬 ${(apps||[]).length} Application${(apps||[]).length!==1?'s':''}</div>
+          <div style="display:flex;gap:6px;">
+            ${STATUS_OPTIONS.map(s=>{
+              const cnt=(apps||[]).filter(a=>a.status===s).length;
+              return cnt?`<span class="badge status-${s}">${STATUS_LABELS[s]} ${cnt}</span>`:'';
+            }).join('')}
+          </div>
+        </div>
+        <div id="app-list"></div>
+      </div>
+    `}
+  </div>`;
+
+  if(!(apps||[]).length) return;
+  const list = document.getElementById('app-list');
+  (apps||[]).forEach(a=>{
+    const initials=(a.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const date=new Date(a.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const row=document.createElement('div'); row.className='applicant-row';
+    row.innerHTML=`
+      <div class="applicant-avatar">${initials}</div>
+      <div class="applicant-body">
+        <div class="applicant-name">${a.name}</div>
+        <div class="applicant-meta">
+          <a href="mailto:${a.email}" style="color:var(--blue);text-decoration:none;font-weight:600;">📧 ${a.email}</a>
+          ${a.phone?`<a href="tel:${a.phone}" style="color:var(--blue);text-decoration:none;">📞 ${a.phone}</a>`:''}
+          <span>Applied ${date}</span>
+          ${a.job_posts?.title&&!jobId?`<span>→ <strong>${a.job_posts.title}</strong></span>`:''}
+          ${(a.languages||[]).length?`<span>${(a.languages||[]).map(l=>`<span class="lang-chip" style="font-size:10px;padding:2px 7px;">🌍 ${l}</span>`).join('')}</span>`:''}
+        </div>
+        ${a.message?`<div class="applicant-message">"${a.message}"</div>`:''}
+      </div>
+      <div class="applicant-actions">
+        <select class="status-select status-${a.status||'new'}" onchange="updateAppStatus('${a.id}',this)">
+          ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${a.status===s?'selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
+        </select>
+        <button class="btn-icon" style="font-size:11px;" onclick="confirmDel('job_applications','${a.id}','application from ${(a.name||'').replace(/'/g,"\\'")}')">🗑</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+async function updateAppStatus(id, selectEl){
+  const status = selectEl.value;
+  selectEl.className = `status-select status-${status}`;
+  await sb.from('job_applications').update({status}).eq('id',id);
 }
 
 // ============================================================
