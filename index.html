@@ -535,9 +535,17 @@ footer {
 .footer-legal a { font-size: 12px; color: rgba(255,255,255,.25); text-decoration: none; cursor: pointer; transition: color .15s; }
 .footer-legal a:hover { color: rgba(255,255,255,.6); }
 
-/* ─────────────────────────────────────────
-   SPINNER
-───────────────────────────────────────── */
+.career-filter { padding:8px 16px;border-radius:99px;border:1.5px solid var(--fog2);background:var(--surface);font-family:'Geist',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s; }
+.career-filter:hover { border-color:var(--accent-bd);color:var(--accent2); }
+.career-filter.active { background:var(--accent);color:white;border-color:var(--accent); }
+.job-public-card { background:var(--surface);border:1.5px solid var(--fog2);border-radius:var(--radius);overflow:hidden;transition:box-shadow .2s,transform .2s; }
+.job-public-card:hover { box-shadow:var(--shadow);transform:translateY(-3px); }
+.job-public-head { padding:22px 24px 16px; }
+.job-public-title { font-family:'Instrument Serif',serif;font-size:22px;margin-bottom:6px; }
+.job-public-meta { display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px; }
+.job-public-desc { font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:0; }
+.job-public-foot { padding:16px 24px;border-top:1.5px solid var(--fog2);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
+.apply-lang-chip.selected { background:var(--accent-lt);border-color:var(--accent-bd);color:var(--accent2); }
 .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--fog2); border-top-color: var(--accent2); border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -578,6 +586,7 @@ footer {
   <ul class="nav-links">
     <li><a onclick="showSection('home')" data-section="home">Home</a></li>
     <li><a onclick="showSection('blog')" data-section="blog">Blog</a></li>
+    <li><a onclick="showSection('careers')" data-section="careers">Careers</a></li>
     <li><a onclick="showSection('pricing')" data-section="pricing">Pricing</a></li>
     <li><a onclick="showSection('about')" data-section="about">About</a></li>
     <li><a onclick="showSection('contact')" data-section="contact">Contact</a></li>
@@ -597,6 +606,7 @@ footer {
 <div class="mobile-menu" id="mobileMenu">
   <a onclick="showSection('home');toggleMobileMenu()">🏠 Home</a>
   <a onclick="showSection('blog');toggleMobileMenu()">📖 Blog</a>
+  <a onclick="showSection('careers');toggleMobileMenu()">💼 Careers</a>
   <a onclick="showSection('pricing');toggleMobileMenu()">💰 Pricing</a>
   <a onclick="showSection('about');toggleMobileMenu()">🙋 About</a>
   <a onclick="showSection('contact');toggleMobileMenu()">📞 Contact</a>
@@ -1000,8 +1010,73 @@ footer {
 
 
 <!-- ══════════════════════════════════════
-     CONTACT SECTION
+     CAREERS SECTION
 ══════════════════════════════════════ -->
+<div id="section-careers" class="section">
+  <div style="background:var(--ink2);padding:120px 40px 80px;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 40% 60%,rgba(26,94,64,.35) 0%,transparent 60%);"></div>
+    <div style="max-width:1100px;margin:0 auto;position:relative;z-index:2;">
+      <div class="hero-tag" style="margin-bottom:20px;"><div class="hero-tag-dot"></div> We're hiring</div>
+      <h1 style="font-family:'Instrument Serif',serif;font-size:clamp(36px,4vw,54px);color:white;line-height:1.1;margin-bottom:16px;">Join a team that<br/><em style="color:var(--accent3);">makes a difference.</em></h1>
+      <p style="font-size:17px;color:rgba(255,255,255,.55);max-width:500px;line-height:1.6;">We're looking for dedicated, compassionate caregivers and supervisors to join our growing team. No prior experience required for many positions.</p>
+    </div>
+  </div>
+
+  <div class="light-section">
+    <div class="section-wrap">
+      <!-- Filters -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;align-items:center;">
+        <div style="font-size:14px;font-weight:700;color:var(--muted);margin-right:4px;">Filter:</div>
+        <button class="career-filter active" data-filter="all" onclick="filterJobs('all',this)">All Positions</button>
+        <button class="career-filter" data-filter="full_time" onclick="filterJobs('full_time',this)">Full Time</button>
+        <button class="career-filter" data-filter="part_time" onclick="filterJobs('part_time',this)">Part Time</button>
+        <button class="career-filter" data-filter="per_diem" onclick="filterJobs('per_diem',this)">Per Diem</button>
+      </div>
+
+      <div id="careers-grid">
+        <div style="text-align:center;padding:60px;color:var(--muted);"><div class="spinner"></div><div style="margin-top:14px;font-size:14px;">Loading positions…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Apply Modal -->
+<div class="modal-overlay" id="applyModal" style="z-index:300;">
+  <div class="modal modal-wide" style="max-width:560px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="applyModalTitle">Apply for Position</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="applyModalSub"></div>
+      </div>
+      <button class="close-btn" onclick="closeApplyModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="apply-success" style="display:none;background:var(--accent-lt);border:1.5px solid var(--accent-bd);border-radius:10px;padding:18px;text-align:center;margin-bottom:16px;">
+        <div style="font-size:28px;margin-bottom:8px;">🎉</div>
+        <div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:4px;">Application Submitted!</div>
+        <div style="font-size:13px;color:var(--muted);">We'll be in touch soon. Thank you for your interest!</div>
+      </div>
+      <div id="apply-form">
+        <div class="form-row" style="margin-bottom:14px;">
+          <div class="form-group" style="margin:0;"><label class="form-label">Full Name *</label><input class="form-input" id="ap-name" placeholder="Your full name"/></div>
+          <div class="form-group" style="margin:0;"><label class="form-label">Phone *</label><input class="form-input" id="ap-phone" placeholder="+1 (000) 000-0000"/></div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;"><label class="form-label">Email *</label><input class="form-input" type="email" id="ap-email" placeholder="your@email.com"/></div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label">Languages You Speak</label>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:2px;" id="ap-lang-chips">
+            ${['English','Spanish','Creole','Portuguese','French','Somali','Arabic','Other'].map(l=>`<div class="apply-lang-chip" data-lang="${l}" onclick="toggleApplyLang(this)" style="padding:6px 12px;border-radius:99px;border:1.5px solid var(--fog2);background:var(--fog);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;">🌍 ${l}</div>`).join('')}
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;"><label class="form-label">Why are you a good fit? <span style="font-weight:400;color:var(--muted2);">(optional)</span></label><textarea class="form-input form-textarea" id="ap-message" style="min-height:90px;" placeholder="Tell us a little about yourself and your experience…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer" id="apply-footer">
+      <button class="btn btn-ghost" onclick="closeApplyModal()">Cancel</button>
+      <button class="btn btn-primary btn-lg" onclick="submitApplication()" id="applySubmitBtn">Submit Application →</button>
+    </div>
+  </div>
+</div>
 <div id="section-contact" class="section">
   <div style="background:var(--ink2);padding:120px 40px 80px;position:relative;overflow:hidden;">
     <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 60% 40%,rgba(26,94,64,.3) 0%,transparent 60%);"></div>
@@ -1021,7 +1096,7 @@ footer {
           <p class="section-p">Whether you're a new agency exploring your options or an existing user needing support — we're here.</p>
           <div class="contact-method">
             <div class="contact-method-icon">📧</div>
-            <div><div class="contact-method-title">Email</div><div class="contact-method-val">hello@careguide.app</div></div>
+            <div><div class="contact-method-title">Email</div><div class="contact-method-val"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d8b0bdb4b4b798bbb9aabdbfadb1bcbdf6b9a8a8">[email&#160;protected]</a></div></div>
           </div>
           <div class="contact-method">
             <div class="contact-method-icon">📞</div>
@@ -1087,6 +1162,7 @@ footer {
         <ul class="footer-links">
           <li><a onclick="showSection('home')">Home</a></li>
           <li><a onclick="showSection('pricing')">Pricing</a></li>
+          <li><a onclick="showSection('careers')">Careers</a></li>
           <li><a href="app.html">Sign In</a></li>
           <li><a href="app.html">Get Started</a></li>
         </ul>
@@ -1095,6 +1171,7 @@ footer {
         <div class="footer-col-title">Resources</div>
         <ul class="footer-links">
           <li><a onclick="showSection('blog')">Blog</a></li>
+          <li><a onclick="showSection('careers')">Careers</a></li>
           <li><a onclick="showSection('about')">About</a></li>
           <li><a onclick="showSection('contact')">Contact</a></li>
           <li><a onclick="showSection('contact')">Support</a></li>
@@ -1120,7 +1197,7 @@ footer {
   </div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ══════════════════════════════════════
 // SUPABASE
 // ══════════════════════════════════════
@@ -1152,6 +1229,7 @@ function showSection(name) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   // Load blog if needed
   if (name === 'blog') loadBlog();
+  if (name === 'careers') loadCareers();
 }
 
 // ══════════════════════════════════════
@@ -1286,6 +1364,136 @@ function closeBlogPost() {
 }
 
 // ══════════════════════════════════════
+// CAREERS
+// ══════════════════════════════════════
+let _allJobs = [];
+let _currentJobId = null;
+let _currentNotifyEmail = null;
+let _careersLoaded = false;
+
+async function loadCareers(){
+  if(_careersLoaded) return;
+  _careersLoaded = true;
+  const {data:jobs} = await sb.from('job_posts').select('*, houses(name)').eq('open',true).order('created_at',{ascending:false});
+  _allJobs = jobs||[];
+  renderJobCards(_allJobs);
+}
+
+function renderJobCards(jobs){
+  const grid = document.getElementById('careers-grid');
+  if(!grid) return;
+  if(!jobs.length){
+    grid.innerHTML=`<div style="text-align:center;padding:60px 20px;">
+      <div style="font-size:40px;margin-bottom:12px;">💼</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px;">No open positions right now</div>
+      <div style="font-size:14px;color:var(--muted);">Check back soon or <a onclick="showSection('contact')" style="color:var(--accent2);cursor:pointer;">reach out</a> to express interest.</div>
+    </div>`;
+    return;
+  }
+
+  const SHIFT_L = {morning:'☀️ Morning',evening:'🌙 Evening',both:'☀️🌙 Both Shifts',weekends:'📅 Weekends'};
+  const TYPE_L  = {full_time:'Full Time',part_time:'Part Time',per_diem:'Per Diem'};
+
+  grid.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;">
+    ${jobs.map(j=>`
+      <div class="job-public-card">
+        <div class="job-public-head">
+          <div class="job-public-title">${j.title}</div>
+          <div class="job-public-meta">
+            ${j.houses?.name?`<span style="background:var(--fog);border:1px solid var(--fog2);padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;color:var(--muted);">🏠 ${j.houses.name}</span>`:''}
+            ${j.shift?`<span style="background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-border);padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;">${SHIFT_L[j.shift]||j.shift}</span>`:''}
+            ${j.type?`<span style="background:var(--blue-light);color:var(--blue);border:1px solid var(--blue-border);padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;">${TYPE_L[j.type]||j.type}</span>`:''}
+            ${j.pay?`<span style="background:var(--accent-lt);color:var(--accent2);border:1px solid var(--accent-bd);padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;">💵 ${j.pay}</span>`:''}
+          </div>
+          ${j.description?`<div class="job-public-desc">${j.description.slice(0,180)}${j.description.length>180?'…':''}</div>`:''}
+          ${(j.languages||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;">${(j.languages||[]).map(l=>`<span style="background:#f3edfb;color:#6d3fa0;border:1px solid #d4b8f0;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700;">🌍 ${l}</span>`).join('')}</div>`:''}
+        </div>
+        <div class="job-public-foot">
+          <div style="font-size:12px;color:var(--muted2);">Posted ${new Date(j.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+          <button class="btn btn-primary" onclick="openApplyModal('${j.id}','${(j.title||'').replace(/'/g,"\\'")}','${(j.notify_email||'').replace(/'/g,"\\'")}')">Apply Now →</button>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function filterJobs(filter, btn){
+  document.querySelectorAll('.career-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = filter==='all' ? _allJobs : _allJobs.filter(j=>j.type===filter);
+  renderJobCards(filtered);
+}
+
+function openApplyModal(jobId, jobTitle, notifyEmail){
+  _currentJobId = jobId;
+  _currentNotifyEmail = notifyEmail;
+  document.getElementById('applyModalTitle').textContent = jobTitle;
+  document.getElementById('applyModalSub').textContent = 'Fill in your details below — takes under a minute';
+  document.getElementById('apply-success').style.display='none';
+  document.getElementById('apply-form').style.display='block';
+  document.getElementById('apply-footer').style.display='flex';
+  document.getElementById('ap-name').value='';
+  document.getElementById('ap-phone').value='';
+  document.getElementById('ap-email').value='';
+  document.getElementById('ap-message').value='';
+  document.querySelectorAll('.apply-lang-chip').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('applyModal').classList.add('open');
+}
+
+function closeApplyModal(){
+  document.getElementById('applyModal').classList.remove('open');
+}
+
+function toggleApplyLang(el){ el.classList.toggle('selected'); }
+
+async function submitApplication(){
+  const name  = document.getElementById('ap-name').value.trim();
+  const phone = document.getElementById('ap-phone').value.trim();
+  const email = document.getElementById('ap-email').value.trim();
+  const message = document.getElementById('ap-message').value.trim();
+  const languages = Array.from(document.querySelectorAll('.apply-lang-chip.selected')).map(c=>c.dataset.lang);
+
+  if(!name){ alert('Please enter your name.'); return; }
+  if(!phone){ alert('Please enter your phone number.'); return; }
+  if(!email){ alert('Please enter your email.'); return; }
+
+  const btn = document.getElementById('applySubmitBtn');
+  btn.textContent='Submitting…'; btn.disabled=true;
+
+  try {
+    await sb.from('job_applications').insert({
+      job_id: _currentJobId,
+      name, phone, email, message,
+      languages,
+      status: 'new',
+    });
+
+    // Email notification via Supabase edge function or mailto fallback
+    if(_currentNotifyEmail){
+      try {
+        await sb.functions.invoke('notify-application',{
+          body:{ to:_currentNotifyEmail, applicantName:name, applicantEmail:email, applicantPhone:phone, jobId:_currentJobId }
+        });
+      } catch(e){
+        // Edge function not set up — open mailto as fallback
+        const subject = encodeURIComponent(`New Application — ${document.getElementById('applyModalTitle').textContent}`);
+        const body = encodeURIComponent(`New application received!\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nLanguages: ${languages.join(', ')||'Not specified'}\n\nMessage:\n${message||'None'}`);
+        window.open(`mailto:${_currentNotifyEmail}?subject=${subject}&body=${body}`);
+      }
+    }
+
+    // Show success
+    document.getElementById('apply-success').style.display='block';
+    document.getElementById('apply-form').style.display='none';
+    document.getElementById('apply-footer').style.display='none';
+  } catch(e){
+    alert('Something went wrong. Please try again.');
+  }
+
+  btn.textContent='Submit Application →'; btn.disabled=false;
+}
+
+// ══════════════════════════════════════
 // CONTACT FORM
 // ══════════════════════════════════════
 async function submitContact() {
@@ -1321,10 +1529,6 @@ async function submitContact() {
 
 // ══════════════════════════════════════
 // INIT
-// ══════════════════════════════════════
-// Check URL hash for deep linking
-const hash = window.location.hash.replace('#', '');
-if (['blog','pricing','about','contact'].includes(hash)) showSection(hash);
-</script>
-</body>
-</html>
+// ══════════════════════
+const _h = window.location.hash.replace('#','');
+if(['blog','pricing','about','contact','careers'].includes(_h)) showSection(_h);══ 
