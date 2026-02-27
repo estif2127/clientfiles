@@ -1241,7 +1241,7 @@ footer {
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false">
 // ══════════════════════════════════════
 // SUPABASE
 // ══════════════════════════════════════
@@ -1421,17 +1421,31 @@ let _careersLoaded = false;
 async function loadCareers(){
   if(_careersLoaded) return;
   _careersLoaded = true;
-  const {data:jobs} = await sb.from('job_posts').select('*, houses(name)').eq('open',true).order('created_at',{ascending:false});
-  _allJobs = jobs||[];
 
-  // Check if URL has a specific job id: #job/UUID
-  const hash = window.location.hash;
-  const jobMatch = hash.match(/^#job\/(.+)$/);
-  if(jobMatch){
-    const job = _allJobs.find(j=>j.id===jobMatch[1]);
-    if(job){ openJobDetail(job); return; }
+  const grid = document.getElementById('careers-grid');
+  if(grid) grid.innerHTML = '<div style="text-align:center;padding:60px;color:var(--muted);"><div class="spinner"></div><div style="margin-top:14px;font-size:14px;">Loading positions…</div></div>';
+
+  try {
+    const {data:jobs, error} = await sb.from('job_posts').select('*, houses(name)').eq('open',true).order('created_at',{ascending:false});
+
+    if(error){
+      if(grid) grid.innerHTML = `<div style="text-align:center;padding:48px 20px;"><div style="font-size:32px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:700;margin-bottom:8px;">Couldn't load jobs</div><div style="font-size:13px;color:var(--muted);font-family:monospace;background:#f5f5f5;padding:10px;border-radius:8px;text-align:left;">${error.message}</div></div>`;
+      return;
+    }
+
+    _allJobs = jobs||[];
+
+    // Check if URL has a specific job id: #job/UUID
+    const hash = window.location.hash;
+    const jobMatch = hash.match(/^#job\/(.+)$/);
+    if(jobMatch){
+      const job = _allJobs.find(j=>j.id===jobMatch[1]);
+      if(job){ openJobDetail(job); return; }
+    }
+    renderJobCards(_allJobs);
+  } catch(e) {
+    if(grid) grid.innerHTML = `<div style="text-align:center;padding:48px 20px;"><div style="font-size:32px;margin-bottom:12px;">⚠️</div><div style="font-size:16px;font-weight:700;margin-bottom:8px;">Connection error</div><div style="font-size:13px;color:var(--muted);font-family:monospace;background:#f5f5f5;padding:10px;border-radius:8px;text-align:left;">${e.message}</div><button class="btn btn-ghost" style="margin-top:16px;" onclick="_careersLoaded=false;loadCareers()">Try Again</button></div>`;
   }
-  renderJobCards(_allJobs);
 }
 
 function renderJobCards(jobs){
