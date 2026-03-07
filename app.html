@@ -108,9 +108,27 @@ body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--ink
 .sidebar-brand-text { transition:opacity .15s;white-space:nowrap; }
 .sidebar.collapsed .sidebar-brand-text { opacity:0;pointer-events:none; }
 
-/* Toggle button */
-.sidebar-toggle { margin-left:auto;flex-shrink:0;background:none;border:none;cursor:pointer;color:#6a7a6f;font-size:18px;padding:4px 0;display:flex;align-items:center;justify-content:center;transition:color .15s; }
-.sidebar-toggle:hover { color:white; }
+/* Toggle button — floats on the right edge of the sidebar, always visible */
+.sidebar-toggle {
+  position:fixed;
+  top:16px;
+  left:218px;
+  z-index:100;
+  background:var(--ink);
+  border:1.5px solid rgba(255,255,255,.15);
+  color:#8a9e94;
+  width:26px;height:26px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:11px;
+  transition:left .22s cubic-bezier(.4,0,.2,1), color .15s, background .15s;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+.sidebar-toggle:hover { color:white; background:#2a3a2f; border-color:rgba(255,255,255,.3); }
+body.sidebar-collapsed .sidebar-toggle { left:45px; }
+.sidebar.collapsed .sidebar-brand { justify-content:center; }
+@media(max-width:768px){ .sidebar-toggle { display:none !important; } }
 
 /* User strip */
 .sidebar-user { padding:12px 12px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;flex-shrink:0;overflow:hidden;white-space:nowrap; }
@@ -734,7 +752,6 @@ tr:hover td { background:var(--surface2); }
     <nav class="sidebar" id="mainSidebar">
       <div class="sidebar-brand">
         <span class="sidebar-brand-text">Care<em style="color:var(--accent2);font-style:italic;">Guide</em></span>
-        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar" id="sidebarToggleBtn">&#x2630;</button>
       </div>
       <div class="sidebar-user">
         <div class="sidebar-avatar" id="sidebarAvatar">?</div>
@@ -746,6 +763,8 @@ tr:hover td { background:var(--surface2); }
       <div class="sidebar-nav" id="sidebarNav"></div>
       <div class="sidebar-footer"><button onclick="signOut()"><span>←</span><span class="sign-out-label"> Sign Out</span></button></div>
     </nav>
+    <!-- Floating toggle — lives outside sidebar so overflow:hidden can't clip it -->
+    <button class="sidebar-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Collapse sidebar">&#x276E;</button>
     <div class="main">
       <div class="topbar">
         <div style="display:flex;align-items:center;gap:12px;">
@@ -1144,8 +1163,9 @@ async function signOut(){ await sb.auth.signOut(); location.reload(); }
 function toggleSidebar(){
   const sb2=document.getElementById('mainSidebar');
   const collapsed=sb2.classList.toggle('collapsed');
+  document.body.classList.toggle('sidebar-collapsed', collapsed);
   localStorage.setItem('sidebarCollapsed', collapsed?'1':'0');
-  document.getElementById('sidebarToggleBtn').innerHTML=collapsed?'&#x276F;':'&#x2630;';
+  document.getElementById('sidebarToggleBtn').innerHTML=collapsed?'&#x276F;':'&#x276E;';
   document.getElementById('sidebarToggleBtn').title=collapsed?'Expand sidebar':'Collapse sidebar';
 }
 function openMobileSidebar(){
@@ -1162,10 +1182,16 @@ function initSidebarState(){
     document.getElementById('mobileMenuBtn').style.display='flex';
     return;
   }
+  // Set correct icon for current state
+  const btn=document.getElementById('sidebarToggleBtn');
   if(localStorage.getItem('sidebarCollapsed')==='1'){
     document.getElementById('mainSidebar').classList.add('collapsed');
-    document.getElementById('sidebarToggleBtn').innerHTML='&#x276F;';
-    document.getElementById('sidebarToggleBtn').title='Expand sidebar';
+    document.body.classList.add('sidebar-collapsed');
+    btn.innerHTML='&#x276F;';
+    btn.title='Expand sidebar';
+  } else {
+    btn.innerHTML='&#x276E;';
+    btn.title='Collapse sidebar';
   }
 }
 window.addEventListener('resize',()=>{
