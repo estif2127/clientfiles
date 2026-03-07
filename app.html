@@ -838,13 +838,27 @@ tr:hover td { background:var(--surface2); }
 </div>
 
 <div class="modal-overlay" id="medModal">
-  <div class="modal">
+  <div class="modal" style="max-width:520px;">
     <div class="modal-header"><div class="modal-title" id="medMT">Add Medication</div><button class="close-btn" onclick="closeModal('medModal')">✕</button></div>
     <div class="modal-body"><div class="form-grid">
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Medication Name *</label><input class="form-input" id="mf-name"/></div>
-        <div class="form-group"><label class="form-label">Dose</label><input class="form-input" id="mf-dose" placeholder="e.g. 10mg"/></div>
+
+      <!-- Drug name with RxNorm autocomplete -->
+      <div class="form-group" style="position:relative;">
+        <label class="form-label">Medication Name *</label>
+        <input class="form-input" id="mf-name" autocomplete="off" placeholder="Start typing a drug name…" oninput="rxNormSearch(this.value)"/>
+        <div id="rxnorm-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:0 0 10px 10px;z-index:300;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.12);"></div>
       </div>
+
+      <!-- FDA auto-fill status banner -->
+      <div id="fda-banner" style="display:none;padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:500;align-items:center;gap:8px;"></div>
+
+      <!-- Dose + strength pill suggestions -->
+      <div class="form-group">
+        <label class="form-label">Dose</label>
+        <input class="form-input" id="mf-dose" placeholder="e.g. 10mg"/>
+        <div id="rxnorm-strengths" style="display:none;margin-top:6px;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+
       <div class="form-group"><label class="form-label">Schedule</label>
         <select class="form-input form-select" id="mf-schedule">
           <option value="morning">☀️ Morning</option>
@@ -854,8 +868,8 @@ tr:hover td { background:var(--surface2); }
           <option value="separate">🕐 Taken Separately</option>
         </select>
       </div>
-      <div class="form-group"><label class="form-label">Instructions</label><textarea class="form-input form-textarea" id="mf-instructions"></textarea></div>
-      <div class="form-group"><label class="form-label">⚠ Warnings</label><textarea class="form-input form-textarea" id="mf-warnings"></textarea></div>
+      <div class="form-group"><label class="form-label">Instructions</label><textarea class="form-input form-textarea" id="mf-instructions" placeholder="e.g. Take with food"></textarea></div>
+      <div class="form-group"><label class="form-label">⚠ Warnings / Side Effects</label><textarea class="form-input form-textarea" id="mf-warnings" placeholder="e.g. May cause drowsiness"></textarea></div>
     </div></div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('medModal')">Cancel</button><button class="btn btn-primary" onclick="saveMed()">Save Medication</button></div>
   </div>
@@ -2300,10 +2314,132 @@ async function openHouseModal(id=''){
   sf('hf-name',h?.name); sf('hf-address',h?.address); sf('hf-manager',h?.manager); sf('hf-phone',h?.phone); sf('hf-notes',h?.notes);
   openModal('houseModal');
 }
+// ============================================================
+// RXNORM AUTOCOMPLETE
+// ============================================================
+let _rxTimer=null;
+async function rxNormSearch(q){
+  const dd=document.getElementById('rxnorm-dropdown');
+  const str=document.getElementById('rxnorm-strengths');
+  q=q.trim();
+  if(q.length<2){ dd.style.display='none'; return; }
+  clearTimeout(_rxTimer);
+  _rxTimer=setTimeout(async()=>{
+    try{
+      const r=await fetch(`https://rxnav.nlm.nih.gov/REST/spellingsuggestions.json?name=${encodeURIComponent(q)}`);
+      const d=await r.json();
+      const suggestions=(d.suggestionGroup?.suggestionList?.suggestion)||[];
+      // Also try approximate match for display names
+      const r2=await fetch(`https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(q)}`);
+      const d2=await r2.json();
+      const conceptGroups=d2.drugGroup?.conceptGroup||[];
+      const exactNames=[...new Set(conceptGroups.flatMap(g=>(g.conceptProperties||[]).map(p=>p.name)))].slice(0,6);
+      const allNames=[...new Set([...exactNames,...suggestions])].slice(0,8);
+      if(!allNames.length){ dd.style.display='none'; return; }
+      dd.innerHTML=allNames.map(n=>`<div onclick="rxSelect('${n.replace(/'/g,"\\'")}'); event.stopPropagation();" style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:500;border-bottom:1px solid var(--border);transition:background .1s;" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">${n}</div>`).join('');
+      dd.style.display='block';
+      str.style.display='none';
+    }catch(e){ dd.style.display='none'; }
+  },280);
+}
+
+async function rxSelect(name){
+  document.getElementById('mf-name').value=name;
+  document.getElementById('rxnorm-dropdown').style.display='none';
+
+  // Show loading banner
+  const banner=document.getElementById('fda-banner');
+  banner.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:500;background:#f0f7ff;color:#2563eb;border:1.5px solid #bfdbfe;';
+  banner.innerHTML='<span style="display:inline-block;animation:spin 1s linear infinite;">⟳</span> Looking up drug info from FDA…';
+
+  // --- RxNorm strengths ---
+  try{
+    const r=await fetch(`https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(name)}`);
+    const d=await r.json();
+    const groups=d.drugGroup?.conceptGroup||[];
+    const strengths=[...new Set(
+      groups.flatMap(g=>(g.conceptProperties||[])
+        .map(p=>p.name)
+        .filter(n=>n.toLowerCase().startsWith(name.toLowerCase()) && n.length>name.length)
+        .map(n=>n.slice(name.length).trim().replace(/^[,\-]\s*/,''))
+        .filter(s=>s.length>0 && s.length<30)
+      )
+    )].slice(0,8);
+    const strEl=document.getElementById('rxnorm-strengths');
+    if(strengths.length){
+      strEl.innerHTML='<span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;width:100%;display:block;margin-bottom:2px;">Quick-fill strength:</span>'+
+        strengths.map(s=>`<button type="button" onclick="document.getElementById('mf-dose').value='${s.replace(/'/g,"\\'")}'" style="background:#f4f7f5;border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='#e8f5ee'" onmouseout="this.style.background='#f4f7f5'">${s}</button>`).join('');
+      strEl.style.display='flex';
+    } else { strEl.style.display='none'; }
+  }catch(e){}
+
+  // --- OpenFDA drug label ---
+  try{
+    let fdaData=null;
+    for(const query of [
+      `openfda.brand_name:"${name}"`,
+      `openfda.generic_name:"${name}"`,
+      `openfda.substance_name:"${name}"`
+    ]){
+      try{
+        const fr=await fetch(`https://api.fda.gov/drug/label.json?search=${encodeURIComponent(query)}&limit=1`);
+        if(fr.ok){ const fd=await fr.json(); if(fd.results?.length){ fdaData=fd.results[0]; break; } }
+      }catch(e){}
+    }
+
+    if(fdaData){
+      // Instructions: dosage first, fall back to indications
+      let instr='';
+      if(fdaData.dosage_and_administration?.[0]){
+        const sentences=(fdaData.dosage_and_administration[0].replace(/\s+/g,' ').match(/[^.!?]+[.!?]+/g)||[]);
+        instr=sentences.slice(0,2).join(' ').trim().slice(0,350);
+      } else if(fdaData.indications_and_usage?.[0]){
+        instr=fdaData.indications_and_usage[0].replace(/\s+/g,' ').trim().slice(0,300);
+      }
+
+      // Warnings: boxed warning + warnings + adverse reactions
+      const warnParts=[];
+      if(fdaData.boxed_warning?.[0]){
+        warnParts.push('BLACK BOX WARNING: '+fdaData.boxed_warning[0].replace(/\s+/g,' ').trim().slice(0,250));
+      }
+      if(fdaData.warnings?.[0]){
+        const ws=(fdaData.warnings[0].replace(/\s+/g,' ').match(/[^.!?]+[.!?]+/g)||[]);
+        warnParts.push(ws.slice(0,2).join(' ').trim().slice(0,250));
+      }
+      if(fdaData.adverse_reactions?.[0]){
+        const ar=fdaData.adverse_reactions[0].replace(/\s+/g,' ').trim();
+        const first=(ar.match(/[^.!?]+[.!?]+/)?.[0]||ar.slice(0,200)).trim();
+        warnParts.push('Common side effects: '+first);
+      }
+
+      const instrField=document.getElementById('mf-instructions');
+      const warnField=document.getElementById('mf-warnings');
+      if(!instrField.value.trim() && instr) instrField.value=instr;
+      if(!warnField.value.trim() && warnParts.length) warnField.value=warnParts.join('\n\n');
+
+      banner.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:500;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;';
+      banner.innerHTML='✓ Instructions &amp; warnings filled from FDA label — review and edit as needed.';
+      setTimeout(()=>{ banner.style.display='none'; },5000);
+    } else {
+      banner.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:500;background:#fffbeb;color:#92400e;border:1.5px solid #fde68a;';
+      banner.innerHTML='⚠ No FDA label found — fill in instructions and warnings manually.';
+      setTimeout(()=>{ banner.style.display='none'; },5000);
+    }
+  }catch(e){ banner.style.display='none'; }
+}
+
+// Close dropdown on outside click
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#medModal')) document.getElementById('rxnorm-dropdown').style.display='none';
+});
+
 function openMedModal(id='',clientId='',houseId=''){
   _editId=id||null; _ctx.clientId=clientId; _ctx.houseId=houseId;
   sf('mf-name',''); sf('mf-dose',''); sf('mf-instructions',''); sf('mf-warnings','');
   document.getElementById('mf-schedule').value='morning';
+  document.getElementById('rxnorm-dropdown').style.display='none';
+  document.getElementById('rxnorm-strengths').style.display='none';
+  document.getElementById('fda-banner').style.display='none';
   openModal('medModal');
 }
 function openTaskModal(id='',clientId='',houseId=''){
