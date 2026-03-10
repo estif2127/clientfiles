@@ -820,10 +820,13 @@ tr:hover td { background:rgba(0,0,0,.02); }
   .sidebar.collapsed ~ .main { margin-left:0 !important; }
   .mobile-menu-btn { display:flex !important; }
   .form-row { grid-template-columns:1fr; }
+  .content { padding:16px 16px 80px; }
+  .stats-grid { grid-template-columns:1fr 1fr; }
+  #appView .shell { min-height:100dvh; }
 }
 @media(max-width:640px){
-  .is-caregiver .shell { display:none !important; }
-  .is-caregiver .cg-mobile-shell { display:block !important; }
+  .force-mobile .shell { display:none !important; }
+  .force-mobile .cg-mobile-shell { display:block !important; }
 }
 @media(min-width:641px){
   .force-mobile .shell { display:none !important; }
@@ -1213,9 +1216,16 @@ function selectRole(r){ selectedSignUpRole=r; document.querySelectorAll('.role-o
 // BOOT
 // ============================================================
 async function boot(){
-  const {data:{session}} = await sb.auth.getSession();
-  if(session){ currentUser=session.user; await loadProfile(); showApp(); }
-  else showLogin();
+  try {
+    const {data,error} = await sb.auth.getSession();
+    if(error) throw error;
+    const session = data?.session;
+    if(session){ currentUser=session.user; await loadProfile(); showApp(); }
+    else showLogin();
+  } catch(e) {
+    console.error('Boot error:', e);
+    showLogin();
+  }
 }
 async function loadProfile(){
   for(let i=0;i<3;i++){
@@ -1226,7 +1236,11 @@ async function loadProfile(){
   const {data:ins} = await sb.from('user_profiles').upsert({id:currentUser.id,email:currentUser.email,full_name:currentUser.user_metadata?.full_name||currentUser.email,role:currentUser.user_metadata?.requested_role||'caregiver'},{onConflict:'id'}).select().single();
   currentProfile=ins;
 }
-function showLogin(){ document.getElementById('loadingScreen').classList.add('hidden'); document.getElementById('loginView').classList.remove('hidden'); }
+function showLogin(){
+  document.getElementById('loadingScreen').style.display='none';
+  document.getElementById('loadingScreen').classList.add('hidden');
+  document.getElementById('loginView').classList.remove('hidden');
+}
 
 async function showApp(){
   document.getElementById('loadingScreen').classList.add('hidden');
@@ -1300,7 +1314,16 @@ async function signUp(){
   btn.textContent='Create Account'; btn.disabled=false;
   setTimeout(()=>{document.getElementById('loginEmail').value=email;showSignIn();},3000);
 }
-async function signOut(){ await sb.auth.signOut(); location.reload(); }
+async function signOut(){
+  await sb.auth.signOut();
+  currentUser=null; currentProfile=null; currentPage=null;
+  document.getElementById('appView').style.display='none';
+  document.getElementById('appView').classList.add('hidden');
+  document.getElementById('loginView').classList.remove('hidden');
+  document.getElementById('loginEmail').value='';
+  document.getElementById('loginPassword').value='';
+  showSignIn();
+}
 
 // ── Sidebar collapse / mobile ──
 function toggleSidebar(){
@@ -1390,7 +1413,13 @@ async function renderPage(page){
   const el=document.getElementById('mainContent');
   el.innerHTML='<div class="empty"><div class="spinner"></div></div>';
   const map={dashboard,houses,houseDetail,clients,clientDetail,team,allMeds,allTasks,checkins,templates,blogAdmin,blogEditor,jobPosts,jobEditor,applicants};
-  if(map[page]) await map[page](el);
+  if(map[page]){
+    try { await map[page](el); }
+    catch(e){
+      console.error('Page render error:', e);
+      el.innerHTML=`<div class="page"><div class="notice notice-red">⚠️ Could not load this page. Please check your connection and try again.<br><small style="opacity:.7;">${e.message||''}</small></div><button class="btn btn-primary" style="margin-top:16px;" onclick="navigate('${page}')">Retry</button></div>`;
+    }
+  }
 }
 
 // ============================================================
