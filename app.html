@@ -832,6 +832,163 @@ tr:hover td { background:rgba(0,0,0,.02); }
   .force-mobile .shell { display:none !important; }
   .force-mobile .cg-mobile-shell { display:block !important; }
 }
+
+/* ── MESSAGING ── */
+.msg-layout { display:grid; grid-template-columns:280px 1fr; height:calc(100vh - 56px); overflow:hidden; gap:0; background:var(--surface); border-radius:var(--radius); box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.msg-sidebar { border-right:.5px solid rgba(60,60,67,.1); display:flex; flex-direction:column; overflow:hidden; }
+.msg-sidebar-head { padding:14px 16px; border-bottom:.5px solid rgba(60,60,67,.08); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.msg-sidebar-title { font-size:15px; font-weight:700; letter-spacing:-.1px; }
+.msg-search { padding:10px 14px; border-bottom:.5px solid rgba(60,60,67,.06); flex-shrink:0; }
+.msg-search input { width:100%; background:var(--bg); border:1.5px solid var(--border2); border-radius:10px; padding:8px 12px; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--ink); }
+.msg-search input:focus { outline:none; border-color:var(--accent); }
+.msg-thread-list { flex:1; overflow-y:auto; }
+.msg-thread-list::-webkit-scrollbar { width:3px; }
+.msg-thread-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:99px; }
+.msg-thread-item { display:flex; align-items:center; gap:11px; padding:12px 14px; cursor:pointer; transition:background .14s; border-bottom:.5px solid rgba(60,60,67,.05); position:relative; }
+.msg-thread-item:hover { background:var(--bg); }
+.msg-thread-item.active { background:var(--accent-light); }
+.msg-thread-avatar { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,var(--accent-light),var(--accent-border)); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex-shrink:0; }
+.msg-thread-avatar.house { background:linear-gradient(135deg,var(--blue-light),var(--blue-border)); color:var(--blue); }
+.msg-thread-avatar.group { background:linear-gradient(135deg,var(--purple-light),var(--purple-border)); color:var(--purple); }
+.msg-thread-info { flex:1; min-width:0; }
+.msg-thread-name { font-size:13.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.msg-thread-preview { font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.msg-thread-meta { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+.msg-thread-time { font-size:11px; color:var(--muted2); }
+.msg-unread-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); }
+.msg-main { display:flex; flex-direction:column; overflow:hidden; }
+.msg-header { padding:14px 18px; border-bottom:.5px solid rgba(60,60,67,.1); display:flex; align-items:center; gap:12px; flex-shrink:0; background:var(--surface); }
+.msg-header-avatar { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--accent-light),var(--accent-border)); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0; }
+.msg-header-name { font-size:15px; font-weight:700; letter-spacing:-.1px; }
+.msg-header-sub { font-size:12px; color:var(--muted); margin-top:1px; }
+.msg-body { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:10px; background:var(--bg); }
+.msg-body::-webkit-scrollbar { width:4px; }
+.msg-body::-webkit-scrollbar-thumb { background:var(--border2); border-radius:99px; }
+.msg-day-divider { text-align:center; font-size:11px; font-weight:600; color:var(--muted2); text-transform:uppercase; letter-spacing:.5px; padding:4px 0; }
+.msg-bubble-row { display:flex; gap:8px; align-items:flex-end; animation:fadeUp .18s ease both; }
+.msg-bubble-row.mine { flex-direction:row-reverse; }
+.msg-bubble-avatar { width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--accent-light),var(--accent-border)); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:10px; flex-shrink:0; margin-bottom:2px; }
+.msg-bubble { max-width:480px; padding:10px 14px; border-radius:18px; font-size:14px; line-height:1.55; position:relative; word-break:break-word; }
+.msg-bubble-row:not(.mine) .msg-bubble { background:var(--surface); border-radius:4px 18px 18px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+.msg-bubble-row.mine .msg-bubble { background:var(--accent); color:white; border-radius:18px 18px 4px 18px; }
+.msg-bubble-sender { font-size:11px; font-weight:700; color:var(--accent); margin-bottom:3px; }
+.msg-bubble-time { font-size:10px; opacity:.5; margin-top:4px; display:block; }
+.msg-bubble-row.mine .msg-bubble-time { text-align:right; }
+.msg-footer { padding:12px 16px; border-top:.5px solid rgba(60,60,67,.1); display:flex; align-items:flex-end; gap:10px; background:var(--surface); flex-shrink:0; }
+.msg-input { flex:1; background:var(--bg); border:1.5px solid var(--border2); border-radius:14px; padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--ink); resize:none; max-height:120px; line-height:1.5; transition:border-color .18s; }
+.msg-input:focus { outline:none; border-color:var(--accent); background:#fff; }
+.msg-send-btn { width:40px; height:40px; border-radius:12px; background:var(--accent); color:white; border:none; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .18s; box-shadow:0 2px 8px rgba(30,107,74,.3); }
+.msg-send-btn:hover { background:var(--accent2); transform:scale(1.05); }
+.msg-send-btn:active { transform:scale(.97); }
+.msg-empty-pane { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; background:var(--bg); color:var(--muted); }
+.msg-empty-pane .empty-icon { font-size:44px; opacity:.4; }
+.msg-new-btn { background:var(--accent); color:white; border:none; border-radius:10px; padding:8px 14px; font-family:'DM Sans',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all .18s; }
+.msg-new-btn:hover { background:var(--accent2); }
+/* Mobile messaging */
+.cg-msg-list { padding:0; }
+.cg-msg-thread { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--surface); border-bottom:.5px solid rgba(60,60,67,.06); cursor:pointer; transition:background .14s; }
+.cg-msg-thread:active { background:var(--bg); }
+.cg-msg-thread-avatar { width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; }
+.cg-msg-convo { display:none; flex-direction:column; height:calc(100dvh - 56px - 64px); }
+.cg-msg-convo.open { display:flex; }
+.cg-msg-convo-header { padding:12px 16px; background:var(--accent); color:white; display:flex; align-items:center; gap:12px; flex-shrink:0; }
+.cg-msg-convo-back { background:rgba(255,255,255,.15); border:none; color:white; font-size:18px; cursor:pointer; padding:4px 10px; border-radius:10px; }
+.cg-msg-convo-name { font-size:16px; font-weight:700; }
+.cg-msg-convo-body { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:8px; background:var(--bg); }
+.cg-msg-convo-footer { padding:10px 14px; border-top:.5px solid rgba(60,60,67,.1); display:flex; gap:8px; background:var(--surface); align-items:flex-end; flex-shrink:0; }
+.cg-msg-input { flex:1; background:var(--bg); border:1.5px solid var(--border2); border-radius:14px; padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--ink); resize:none; max-height:80px; line-height:1.5; }
+.cg-msg-input:focus { outline:none; border-color:var(--accent); }
+.cg-msg-send { width:40px; height:40px; border-radius:12px; background:var(--accent); color:white; border:none; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+/* ── eMAR ── */
+.emar-layout { display:grid; grid-template-columns:260px 1fr; gap:20px; align-items:start; }
+.emar-client-list { display:flex; flex-direction:column; gap:8px; }
+.emar-client-card { background:var(--surface); border-radius:14px; padding:14px 16px; cursor:pointer; transition:all .18s; border:2px solid transparent; box-shadow:0 1px 3px rgba(0,0,0,.06); display:flex; align-items:center; gap:12px; }
+.emar-client-card:hover { border-color:var(--accent-border); background:var(--accent-light); }
+.emar-client-card.active { border-color:var(--accent); background:var(--accent-light); }
+.emar-client-avatar { width:38px; height:38px; border-radius:11px; background:linear-gradient(135deg,var(--accent-light),var(--accent-border)); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0; }
+.emar-client-name { font-size:13.5px; font-weight:700; }
+.emar-client-sub { font-size:11.5px; color:var(--muted); margin-top:1px; }
+.emar-main { display:flex; flex-direction:column; gap:16px; }
+.emar-header-card { background:var(--surface); border-radius:var(--radius); padding:18px 22px; box-shadow:0 1px 3px rgba(0,0,0,.06); display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.emar-resident-name { font-size:20px; font-weight:700; letter-spacing:-.3px; }
+.emar-resident-meta { font-size:12.5px; color:var(--muted); margin-top:4px; display:flex; gap:14px; flex-wrap:wrap; }
+.emar-month-nav { display:flex; align-items:center; gap:10px; }
+.emar-month-label { font-size:15px; font-weight:700; min-width:120px; text-align:center; }
+.emar-month-btn { width:32px; height:32px; border-radius:9px; background:var(--bg); border:1.5px solid var(--border2); color:var(--muted); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.emar-month-btn:hover { background:var(--surface3); color:var(--ink); }
+/* Grid */
+.emar-table-wrap { background:var(--surface); border-radius:var(--radius); overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.emar-table-header { padding:14px 18px; border-bottom:.5px solid rgba(60,60,67,.1); display:flex; align-items:center; justify-content:space-between; }
+.emar-table-title { font-size:14px; font-weight:700; }
+.emar-grid-container { overflow-x:auto; }
+.emar-grid { border-collapse:collapse; width:100%; font-size:12px; min-width:900px; }
+.emar-grid th { background:var(--bg); padding:7px 5px; text-align:center; border:.5px solid rgba(60,60,67,.1); font-size:10px; font-weight:700; color:var(--muted2); text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; }
+.emar-grid th.med-col { text-align:left; padding:7px 12px; min-width:200px; }
+.emar-grid td { border:.5px solid rgba(60,60,67,.08); padding:0; vertical-align:middle; text-align:center; }
+.emar-grid td.med-cell { padding:10px 12px; text-align:left; background:var(--surface); vertical-align:top; min-width:200px; }
+.emar-med-name { font-size:13px; font-weight:700; color:var(--ink); }
+.emar-med-detail { font-size:11px; color:var(--muted); margin-top:2px; line-height:1.4; }
+.emar-med-time { font-size:10px; font-weight:600; color:var(--accent); margin-top:4px; }
+.emar-med-dates { font-size:10px; color:var(--muted2); margin-top:2px; }
+.emar-day-cell { width:32px; height:52px; cursor:pointer; transition:background .12s; position:relative; }
+.emar-day-cell:hover { background:rgba(30,107,74,.06); }
+.emar-day-cell.today { background:rgba(30,107,74,.04); }
+.emar-day-cell.future { cursor:default; background:rgba(0,0,0,.015); }
+.emar-day-cell.blocked { background:var(--bg); cursor:default; }
+.emar-initials { font-size:10px; font-weight:700; color:var(--accent); line-height:1; }
+.emar-refused { display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:2px solid var(--red); font-size:9px; font-weight:700; color:var(--red); margin:auto; }
+.emar-na { font-size:11px; color:var(--muted2); font-weight:600; }
+/* Legend */
+.emar-legend { padding:14px 18px; border-top:.5px solid rgba(60,60,67,.08); display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
+.emar-legend-item { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+.emar-legend-sig { padding:12px 18px; border-top:.5px solid rgba(60,60,67,.08); }
+.emar-sig-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--muted2); margin-bottom:10px; }
+.emar-sig-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.emar-sig-row { background:var(--bg); border-radius:9px; padding:7px 12px; font-size:12px; display:flex; gap:8px; align-items:center; }
+.emar-sig-initials { font-weight:800; color:var(--accent); font-family:'DM Mono',monospace; }
+.emar-sig-name { color:var(--ink2); }
+/* PRN section */
+.emar-prn-card { background:var(--surface); border-radius:var(--radius); overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+.emar-prn-row { padding:12px 18px; border-bottom:.5px solid rgba(60,60,67,.07); display:flex; gap:14px; align-items:flex-start; }
+.emar-prn-row:last-child { border-bottom:none; }
+/* Print styles */
+@media print {
+  body * { visibility:hidden; }
+  #emarPrintArea, #emarPrintArea * { visibility:visible; }
+  #emarPrintArea { position:fixed; top:0; left:0; width:100%; background:white; padding:0; }
+  .emar-print-page { page-break-after:always; padding:16px 20px; font-family:'DM Sans',Arial,sans-serif; font-size:11px; }
+  .emar-print-header { border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:10px; }
+  .emar-print-title { font-size:16px; font-weight:900; text-transform:uppercase; letter-spacing:1px; }
+  .emar-print-subtitle { font-size:11px; color:#444; margin-top:2px; }
+  .emar-print-info { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:10px; font-size:10px; }
+  .emar-print-info-box { border:1px solid #ccc; border-radius:4px; padding:5px 8px; }
+  .emar-print-info-label { font-weight:700; text-transform:uppercase; font-size:9px; color:#666; letter-spacing:.4px; margin-bottom:2px; }
+  .emar-print-grid { border-collapse:collapse; width:100%; font-size:9px; margin-bottom:8px; }
+  .emar-print-grid th, .emar-print-grid td { border:1px solid #999; padding:3px 2px; text-align:center; }
+  .emar-print-grid th { background:#eee; font-weight:700; font-size:8px; }
+  .emar-print-grid td.med-col { text-align:left; padding:4px 6px; min-width:160px; }
+  .emar-print-grid .day-cell { width:22px; height:32px; }
+  .emar-print-sig { border-top:1px solid #ccc; margin-top:8px; padding-top:6px; }
+  .emar-print-sig table { width:100%; border-collapse:collapse; font-size:9px; }
+  .emar-print-sig td { border:1px solid #ccc; padding:4px 6px; }
+  .emar-prn-print { margin-top:10px; border-top:1px solid #ccc; padding-top:8px; }
+}
+/* Mobile eMAR */
+.cg-emar-med-card { background:var(--surface); border-radius:18px; overflow:hidden; margin:0 16px 12px; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+.cg-emar-med-head { display:flex; align-items:flex-start; gap:14px; padding:16px; }
+.cg-emar-med-icon { width:48px; height:48px; border-radius:14px; background:linear-gradient(135deg,var(--accent-light),var(--accent-border)); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+.cg-emar-med-info { flex:1; min-width:0; }
+.cg-emar-med-name { font-size:16px; font-weight:700; letter-spacing:-.2px; }
+.cg-emar-med-dose { font-size:13px; color:var(--muted); margin-top:2px; }
+.cg-emar-record-btn { display:block; width:calc(100% - 32px); margin:0 16px 14px; background:var(--accent); color:white; border:none; border-radius:14px; padding:14px; font-family:'DM Sans',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all .18s; text-align:center; box-shadow:0 3px 10px rgba(30,107,74,.25); }
+.cg-emar-record-btn:active { transform:scale(.98); }
+.cg-emar-record-btn.given { background:var(--accent-light); color:var(--accent); box-shadow:none; cursor:default; }
+.cg-emar-record-btn.refused { background:var(--red-light); color:var(--red); box-shadow:none; }
+.cg-emar-stamp { display:none; align-items:center; justify-content:center; gap:8px; padding:10px 16px; background:var(--accent-light); font-size:13px; font-weight:700; color:var(--accent); border-top:.5px solid var(--accent-border); }
+.cg-emar-given .cg-emar-stamp { display:flex; }
+.cg-emar-refused-stamp { display:none; align-items:center; justify-content:center; gap:8px; padding:10px 16px; background:var(--red-light); font-size:13px; font-weight:700; color:var(--red); border-top:.5px solid var(--red-border); }
+.cg-emar-is-refused .cg-emar-refused-stamp { display:flex; }
 </style>
 </head>
 <body>
@@ -962,7 +1119,95 @@ tr:hover td { background:rgba(0,0,0,.02); }
         <span>Updates</span>
         <span class="nav-badge hidden" id="cgAnnBadge">0</span>
       </button>
+      <button class="cg-nav-btn" id="cgNavMessages" onclick="cgNavigate('messages')">
+        <span class="nav-icon">💬</span>
+        <span>Messages</span>
+        <span class="nav-badge hidden" id="cgMsgBadge">0</span>
+      </button>
+      <button class="cg-nav-btn" id="cgNavEmar" onclick="cgNavigate('emar')">
+        <span class="nav-icon">📋</span>
+        <span>eMAR</span>
+      </button>
     </nav>
+  </div>
+</div>
+
+<!-- hidden print target -->
+<div id="emarPrintArea" style="display:none;"></div>
+
+<!-- eMAR record modal -->
+<div class="modal-overlay" id="emarRecordModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title" id="emarRecordTitle">Record Administration</div>
+      <button class="close-btn" onclick="closeModal('emarRecordModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="emarRecordInfo" style="background:var(--accent-light);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.6;"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Your Initials *</label>
+          <input class="form-input" id="emarInitialsInput" placeholder="e.g. JD" maxlength="4" style="text-transform:uppercase;font-weight:700;font-family:'DM Mono',monospace;font-size:18px;letter-spacing:2px;"/>
+          <div class="form-hint">These will appear on the MAR for this dose.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-input form-select" id="emarStatusSelect">
+            <option value="given">✅ Given</option>
+            <option value="refused">⭕ Refused (circle)</option>
+            <option value="held">H — Held</option>
+            <option value="na">N/A</option>
+          </select>
+        </div>
+        <div class="form-group" id="emarRefusalGroup" style="display:none;">
+          <label class="form-label">Reason for Refusal / Omission *</label>
+          <textarea class="form-input form-textarea" id="emarRefusalReason" placeholder="Document reason per WAC 388-76-10475…" style="min-height:80px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <textarea class="form-input form-textarea" id="emarNotes" placeholder="e.g. Taken with food, site rotation noted…" style="min-height:60px;"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('emarRecordModal')">Cancel</button>
+      <button class="btn btn-primary" id="emarSaveBtn">💾 Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- eMAR PRN modal -->
+<div class="modal-overlay" id="emarPrnModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title">PRN Medication Administration</div>
+      <button class="close-btn" onclick="closeModal('emarPrnModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="emarPrnInfo" style="background:var(--amber-light);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.6;"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Your Initials *</label>
+          <input class="form-input" id="emarPrnInitials" placeholder="e.g. JD" maxlength="4" style="text-transform:uppercase;font-weight:700;font-family:'DM Mono',monospace;font-size:18px;letter-spacing:2px;"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reason Given (specific complaint) *</label>
+          <textarea class="form-input form-textarea" id="emarPrnReason" placeholder="Per WAC: specific descriptive complaint, e.g. 'Complaints of 6/10 lower back pain'" style="min-height:70px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Result / Response</label>
+          <textarea class="form-input form-textarea" id="emarPrnResult" placeholder="e.g. Pain reduced to 3/10 within 1 hour" style="min-height:60px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time Given</label>
+          <input class="form-input" type="time" id="emarPrnTime"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('emarPrnModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEmarPrn()">💾 Save PRN Record</button>
+    </div>
   </div>
 </div>
 
@@ -1273,8 +1518,9 @@ function buildSidebar(role){
   if(role==='admin'||role==='supervisor'){
     nav.innerHTML+=ss('Overview')+ni('dashboard','📊','Dashboard')+ni('checkins','✅',"Today's Check-ins");
     nav.innerHTML+=ss('Management')+ni('houses','🏠','Houses')+ni('clients','👤','Clients')+ni('team','👥','Team');
-    nav.innerHTML+=ss('Care Tools')+ni('templates','📋','Routine Templates')+ni('allMeds','💊','Medications')+ni('allTasks','📝','All Tasks');
+    nav.innerHTML+=ss('Care Tools')+ni('templates','📋','Routine Templates')+ni('allMeds','💊','Medications')+ni('allTasks','📝','All Tasks')+ni('emar','📄','eMAR');
     nav.innerHTML+=ss('Hiring')+ni('jobPosts','💼','Job Posts')+ni('applicants','📬','Applicants','applicantBadge');
+    nav.innerHTML+=ss('Communication')+ni('messages','💬','Messages','msgBadge');
     if(role==='admin'){
       nav.innerHTML+=ss('Website')+ni('blogAdmin','✍️','Blog Posts');
     }
@@ -1404,7 +1650,7 @@ async function createAnnouncement(houseId,clientId,type,title,body){
 function navigate(page,ctx={}){
   currentPage=page; Object.assign(_ctx,ctx);
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
-  const titles={dashboard:'Dashboard',houses:'Houses',clients:'All Clients',team:'Team',allMeds:'All Medications',allTasks:'All Tasks',checkins:"Today's Check-ins",clientDetail:'Client',houseDetail:'House',templates:'Routine Templates',blogAdmin:'Blog Posts',blogEditor:'Blog Editor',jobPosts:'Job Posts',jobEditor:'Job Editor',applicants:'Applicants'};
+  const titles={dashboard:'Dashboard',houses:'Houses',clients:'All Clients',team:'Team',allMeds:'All Medications',allTasks:'All Tasks',checkins:"Today's Check-ins",clientDetail:'Client',houseDetail:'House',templates:'Routine Templates',blogAdmin:'Blog Posts',blogEditor:'Blog Editor',jobPosts:'Job Posts',jobEditor:'Job Editor',applicants:'Applicants',messages:'Messages',emar:'eMAR — Medication Administration Record'};
   document.getElementById('topbarTitle').textContent=titles[page]||page;
   document.getElementById('topbarActions').innerHTML='';
   renderPage(page);
@@ -1412,7 +1658,7 @@ function navigate(page,ctx={}){
 async function renderPage(page){
   const el=document.getElementById('mainContent');
   el.innerHTML='<div class="empty"><div class="spinner"></div></div>';
-  const map={dashboard,houses,houseDetail,clients,clientDetail,team,allMeds,allTasks,checkins,templates,blogAdmin,blogEditor,jobPosts,jobEditor,applicants};
+  const map={dashboard,houses,houseDetail,clients,clientDetail,team,allMeds,allTasks,checkins,templates,blogAdmin,blogEditor,jobPosts,jobEditor,applicants,messages,emar};
   if(map[page]){
     try { await map[page](el); }
     catch(e){
@@ -1427,7 +1673,7 @@ async function renderPage(page){
 // ============================================================
 function cgNavigate(page){
   cgCurrentPage=page;
-  ['shift','meds','clients','announcements'].forEach(p=>{
+  ['shift','meds','clients','announcements','messages','emar'].forEach(p=>{
     const btn=document.getElementById('cgNav'+p.charAt(0).toUpperCase()+p.slice(1));
     if(btn) btn.classList.toggle('active',p===page);
   });
@@ -1437,6 +1683,8 @@ function cgNavigate(page){
   else if(page==='meds') cgRenderMeds(el);
   else if(page==='clients') cgRenderClients(el);
   else if(page==='announcements') cgRenderAnnouncements(el);
+  else if(page==='messages') cgRenderMessages(el);
+  else if(page==='emar') cgRenderEmar(el);
 }
 
 // ── CAREGIVER: MY SHIFT ──
@@ -2843,6 +3091,1193 @@ document.addEventListener('keydown',e=>{
   }
   if(e.key==='Escape') closeWizard();
 });
+
+// ============================================================
+// MESSAGING
+// ============================================================
+let msgCurrentThread = null;
+let msgRealtimeSub = null;
+
+// Get or create a DM thread between two users
+async function getOrCreateThread(otherUserId, otherName) {
+  // Check for existing DM thread
+  const { data: existing } = await sb.from('message_threads')
+    .select('*')
+    .eq('type', 'dm')
+    .or(`and(user_a.eq.${currentUser.id},user_b.eq.${otherUserId}),and(user_a.eq.${otherUserId},user_b.eq.${currentUser.id})`);
+  if (existing && existing.length) return existing[0];
+  const { data: created } = await sb.from('message_threads')
+    .insert({ type: 'dm', name: otherName, user_a: currentUser.id, user_b: otherUserId, created_by: currentUser.id })
+    .select().single();
+  return created;
+}
+
+async function getOrCreateHouseThread(houseId, houseName) {
+  const { data: existing } = await sb.from('message_threads')
+    .select('*').eq('type', 'house').eq('house_id', houseId);
+  if (existing && existing.length) return existing[0];
+  const { data: created } = await sb.from('message_threads')
+    .insert({ type: 'house', name: '🏠 ' + houseName, house_id: houseId, created_by: currentUser.id })
+    .select().single();
+  return created;
+}
+
+async function loadThreads() {
+  // Load threads where current user is a participant
+  const uid = currentUser.id;
+  const { data: threads } = await sb.from('message_threads')
+    .select('*, last_msg:messages(body,created_at,sender_id)')
+    .or(`user_a.eq.${uid},user_b.eq.${uid},created_by.eq.${uid}`)
+    .order('updated_at', { ascending: false });
+
+  // Also get house threads for user's houses
+  let houseThreads = [];
+  const { data: assignments } = await sb.from('caregiver_houses').select('house_id').eq('user_id', uid);
+  const houseIds = (assignments || []).map(a => a.house_id);
+  if (houseIds.length) {
+    const { data: ht } = await sb.from('message_threads')
+      .select('*').eq('type', 'house').in('house_id', houseIds);
+    houseThreads = ht || [];
+  }
+  // Merge and dedupe
+  const allMap = new Map();
+  [...(threads || []), ...houseThreads].forEach(t => allMap.set(t.id, t));
+  return Array.from(allMap.values()).sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+}
+
+async function loadMessages(threadId) {
+  const { data } = await sb.from('messages')
+    .select('*, sender:user_profiles(full_name)')
+    .eq('thread_id', threadId)
+    .order('created_at', { ascending: true });
+  return data || [];
+}
+
+async function sendMessage(threadId, body) {
+  if (!body.trim()) return;
+  await sb.from('messages').insert({
+    thread_id: threadId,
+    sender_id: currentUser.id,
+    body: body.trim()
+  });
+  await sb.from('message_threads').update({ updated_at: new Date().toISOString() }).eq('id', threadId);
+}
+
+async function markThreadRead(threadId) {
+  await sb.from('message_reads').upsert({ thread_id: threadId, user_id: currentUser.id, read_at: new Date().toISOString() }, { onConflict: 'thread_id,user_id' });
+}
+
+function formatMsgTime(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  if (isToday) return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function threadAvatarInfo(thread) {
+  if (thread.type === 'house') return { cls: 'house', initials: '🏠' };
+  if (thread.type === 'group') return { cls: 'group', initials: '👥' };
+  return { cls: '', initials: (thread.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() };
+}
+
+function renderMsgBubbles(messages, container) {
+  container.innerHTML = '';
+  let lastDay = '';
+  messages.forEach(m => {
+    const day = new Date(m.created_at).toDateString();
+    if (day !== lastDay) {
+      lastDay = day;
+      const div = document.createElement('div');
+      div.className = 'msg-day-divider';
+      const d = new Date(m.created_at);
+      div.textContent = d.toDateString() === new Date().toDateString() ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+      container.appendChild(div);
+    }
+    const mine = m.sender_id === currentUser.id;
+    const initials = (m.sender?.full_name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const row = document.createElement('div');
+    row.className = 'msg-bubble-row' + (mine ? ' mine' : '');
+    row.innerHTML = `${!mine ? `<div class="msg-bubble-avatar">${initials}</div>` : ''}
+      <div>
+        ${!mine ? `<div class="msg-bubble-sender">${m.sender?.full_name || 'Unknown'}</div>` : ''}
+        <div class="msg-bubble">
+          ${m.body.replace(/</g,'&lt;').replace(/\n/g,'<br>')}
+          <span class="msg-bubble-time">${formatMsgTime(m.created_at)}</span>
+        </div>
+      </div>`;
+    container.appendChild(row);
+  });
+  container.scrollTop = container.scrollHeight;
+}
+
+// ── ADMIN/SUPERVISOR: MESSAGES PAGE ──
+async function messages(el) {
+  document.getElementById('topbarActions').innerHTML = `<button class="btn btn-primary btn-sm" onclick="openNewMessageModal()">✉️ New Message</button>`;
+  el.innerHTML = `<div style="height:calc(100vh - 112px);animation:fadeUp .28s both;">
+    <div class="msg-layout" id="msgLayout">
+      <div class="msg-sidebar">
+        <div class="msg-sidebar-head">
+          <div class="msg-sidebar-title">💬 Messages</div>
+        </div>
+        <div class="msg-search"><input type="text" placeholder="Search conversations…" id="msgSearch" oninput="filterMsgThreads(this.value)"/></div>
+        <div class="msg-thread-list" id="msgThreadList"><div class="empty"><div class="spinner"></div></div></div>
+      </div>
+      <div class="msg-main" id="msgMain">
+        <div class="msg-empty-pane">
+          <div class="empty-icon">💬</div>
+          <div style="font-size:15px;font-weight:600;color:var(--ink2);">Select a conversation</div>
+          <div style="font-size:13px;">or start a new one</div>
+          <button class="msg-new-btn" style="margin-top:8px;" onclick="openNewMessageModal()">✉️ New Message</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  const threads = await loadThreads();
+  window._msgThreads = threads;
+  renderAdminThreadList(threads);
+}
+
+function renderAdminThreadList(threads) {
+  const list = document.getElementById('msgThreadList');
+  if (!list) return;
+  if (!threads.length) {
+    list.innerHTML = `<div class="empty" style="padding:32px 16px;"><div class="empty-icon">✉️</div><div class="empty-title" style="font-size:14px;">No conversations yet</div></div>`;
+    return;
+  }
+  list.innerHTML = '';
+  threads.forEach(t => {
+    const { cls, initials } = threadAvatarInfo(t);
+    const div = document.createElement('div');
+    div.className = 'msg-thread-item' + (msgCurrentThread?.id === t.id ? ' active' : '');
+    div.dataset.tid = t.id;
+    div.innerHTML = `<div class="msg-thread-avatar ${cls}">${initials}</div>
+      <div class="msg-thread-info">
+        <div class="msg-thread-name">${t.name || 'Conversation'}</div>
+        <div class="msg-thread-preview" id="thread-preview-${t.id}">Tap to open</div>
+      </div>
+      <div class="msg-thread-meta">
+        <div class="msg-thread-time" id="thread-time-${t.id}"></div>
+      </div>`;
+    div.onclick = () => openAdminThread(t);
+    list.appendChild(div);
+  });
+  // Load previews
+  threads.forEach(async t => {
+    const { data: last } = await sb.from('messages').select('body,created_at,sender_id').eq('thread_id', t.id).order('created_at', { ascending: false }).limit(1);
+    if (last && last[0]) {
+      const p = document.getElementById('thread-preview-' + t.id);
+      const ti = document.getElementById('thread-time-' + t.id);
+      if (p) p.textContent = (last[0].sender_id === currentUser.id ? 'You: ' : '') + last[0].body.slice(0, 50);
+      if (ti) ti.textContent = formatMsgTime(last[0].created_at);
+    }
+  });
+}
+
+function filterMsgThreads(q) {
+  const threads = (window._msgThreads || []).filter(t => (t.name || '').toLowerCase().includes(q.toLowerCase()));
+  renderAdminThreadList(threads);
+}
+
+async function openAdminThread(thread) {
+  msgCurrentThread = thread;
+  // Mark active
+  document.querySelectorAll('.msg-thread-item').forEach(el => el.classList.toggle('active', el.dataset.tid === thread.id));
+  const main = document.getElementById('msgMain'); if (!main) return;
+  const { cls, initials } = threadAvatarInfo(thread);
+  main.innerHTML = `
+    <div class="msg-header">
+      <div class="msg-header-avatar ${cls}">${initials}</div>
+      <div>
+        <div class="msg-header-name">${thread.name}</div>
+        <div class="msg-header-sub">${thread.type === 'house' ? 'House group chat' : thread.type === 'group' ? 'Group chat' : 'Direct message'}</div>
+      </div>
+    </div>
+    <div class="msg-body" id="msgBodyAdmin"></div>
+    <div class="msg-footer">
+      <textarea class="msg-input" id="msgInputAdmin" placeholder="Type a message…" rows="1" onkeydown="msgKeyDown(event,'admin')"></textarea>
+      <button class="msg-send-btn" onclick="msgSendAdmin()">➤</button>
+    </div>`;
+
+  const msgs = await loadMessages(thread.id);
+  renderMsgBubbles(msgs, document.getElementById('msgBodyAdmin'));
+  await markThreadRead(thread.id);
+
+  // Realtime subscription
+  if (msgRealtimeSub) { sb.removeChannel(msgRealtimeSub); msgRealtimeSub = null; }
+  msgRealtimeSub = sb.channel('msg-' + thread.id)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `thread_id=eq.${thread.id}` }, async payload => {
+      const { data: row } = await sb.from('messages').select('*, sender:user_profiles(full_name)').eq('id', payload.new.id).single();
+      if (row) {
+        const container = document.getElementById('msgBodyAdmin');
+        if (container) { const tempThreads = [row]; renderMsgBubbles([...msgs, row], container); msgs.push(row); }
+      }
+    }).subscribe();
+}
+
+async function msgSendAdmin() {
+  if (!msgCurrentThread) return;
+  const input = document.getElementById('msgInputAdmin'); if (!input) return;
+  const body = input.value.trim(); if (!body) return;
+  input.value = '';
+  await sendMessage(msgCurrentThread.id, body);
+}
+
+function msgKeyDown(e, side) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); side === 'admin' ? msgSendAdmin() : cgMsgSend(); }
+}
+
+async function openNewMessageModal() {
+  // Load team members
+  const { data: users } = await sb.from('user_profiles').select('*').neq('id', currentUser.id).order('full_name');
+  const { data: houses } = await sb.from('houses').select('*').order('name');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'newMsgModal';
+  overlay.innerHTML = `<div class="modal">
+    <div class="modal-header"><div class="modal-title">✉️ New Message</div><button class="close-btn" onclick="document.getElementById('newMsgModal').remove()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Start a conversation with</label>
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;">
+          ${(houses||[]).map(h=>`<div class="client-check-row" onclick="startHouseThread('${h.id}','${(h.name||'').replace(/'/g,"\\'")}')">
+            <div style="font-size:20px;">🏠</div>
+            <div class="client-check-info"><div class="client-check-name">${h.name}</div><div class="client-check-house">House group chat</div></div>
+          </div>`).join('')}
+          ${(users||[]).map(u=>`<div class="client-check-row" onclick="startDMThread('${u.id}','${(u.full_name||u.email||'').replace(/'/g,"\\'")}')">
+            <div style="width:32px;height:32px;border-radius:9px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">${(u.full_name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+            <div class="client-check-info"><div class="client-check-name">${u.full_name||u.email}</div><div class="client-check-house">${u.role||'team'}</div></div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+async function startDMThread(userId, userName) {
+  document.getElementById('newMsgModal')?.remove();
+  const thread = await getOrCreateThread(userId, userName);
+  window._msgThreads = window._msgThreads || [];
+  if (!window._msgThreads.find(t => t.id === thread.id)) window._msgThreads.unshift(thread);
+  renderAdminThreadList(window._msgThreads);
+  openAdminThread(thread);
+}
+
+async function startHouseThread(houseId, houseName) {
+  document.getElementById('newMsgModal')?.remove();
+  const thread = await getOrCreateHouseThread(houseId, houseName);
+  window._msgThreads = window._msgThreads || [];
+  if (!window._msgThreads.find(t => t.id === thread.id)) window._msgThreads.unshift(thread);
+  renderAdminThreadList(window._msgThreads);
+  openAdminThread(thread);
+}
+
+// ── CAREGIVER MOBILE: MESSAGES ──
+let cgMsgCurrentThread = null;
+let cgMsgMsgs = [];
+
+async function cgRenderMessages(el) {
+  el.innerHTML = `<div class="cg-page" id="cgMsgListPage">
+    <div class="cg-section-label">💬 Messages</div>
+    <div id="cgMsgThreadList"><div class="empty"><div class="spinner"></div></div></div>
+  </div>
+  <div class="cg-msg-convo" id="cgMsgConvo">
+    <div class="cg-msg-convo-header">
+      <button class="cg-msg-convo-back" onclick="cgMsgBack()">‹</button>
+      <div>
+        <div class="cg-msg-convo-name" id="cgMsgConvoName">Chat</div>
+      </div>
+    </div>
+    <div class="cg-msg-convo-body" id="cgMsgConvoBody"></div>
+    <div class="cg-msg-convo-footer">
+      <textarea class="cg-msg-input" id="cgMsgInput" placeholder="Message…" rows="1" onkeydown="msgKeyDown(event,'cg')"></textarea>
+      <button class="cg-msg-send" onclick="cgMsgSend()">➤</button>
+    </div>
+  </div>`;
+
+  const threads = await loadThreads();
+  window._cgMsgThreads = threads;
+  const list = document.getElementById('cgMsgThreadList');
+  if (!threads.length) {
+    list.innerHTML = `<div class="empty" style="padding:40px 16px;"><div class="empty-icon">💬</div><div class="empty-title">No conversations yet</div><div class="empty-sub">Your supervisor can message you here.</div></div>`;
+    return;
+  }
+  list.innerHTML = '';
+  threads.forEach(t => {
+    const { cls, initials } = threadAvatarInfo(t);
+    const row = document.createElement('div');
+    row.className = 'cg-msg-thread';
+    const bgMap = { house: 'background:linear-gradient(135deg,var(--blue-light),var(--blue-border));color:var(--blue)', group: 'background:linear-gradient(135deg,var(--purple-light),var(--purple-border));color:var(--purple)', '': 'background:linear-gradient(135deg,var(--accent-light),var(--accent-border));color:var(--accent)' };
+    row.innerHTML = `<div class="cg-msg-thread-avatar" style="${bgMap[cls]||bgMap['']}">${initials}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:15px;font-weight:700;">${t.name||'Conversation'}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="cgtp-${t.id}">Tap to open</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted2);" id="cgtt-${t.id}"></div>`;
+    row.onclick = () => cgOpenThread(t);
+    list.appendChild(row);
+  });
+  threads.forEach(async t => {
+    const { data: last } = await sb.from('messages').select('body,created_at,sender_id').eq('thread_id', t.id).order('created_at', { ascending: false }).limit(1);
+    if (last && last[0]) {
+      const p = document.getElementById('cgtp-' + t.id);
+      const ti = document.getElementById('cgtt-' + t.id);
+      if (p) p.textContent = (last[0].sender_id === currentUser.id ? 'You: ' : '') + last[0].body.slice(0, 45);
+      if (ti) ti.textContent = formatMsgTime(last[0].created_at);
+    }
+  });
+}
+
+async function cgOpenThread(thread) {
+  cgMsgCurrentThread = thread;
+  document.getElementById('cgMsgListPage').style.display = 'none';
+  const convo = document.getElementById('cgMsgConvo');
+  convo.classList.add('open');
+  document.getElementById('cgMsgConvoName').textContent = thread.name;
+  const body = document.getElementById('cgMsgConvoBody');
+  body.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+  cgMsgMsgs = await loadMessages(thread.id);
+  renderMsgBubbles(cgMsgMsgs, body);
+  await markThreadRead(thread.id);
+  if (msgRealtimeSub) { sb.removeChannel(msgRealtimeSub); msgRealtimeSub = null; }
+  msgRealtimeSub = sb.channel('cgmsg-' + thread.id)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `thread_id=eq.${thread.id}` }, async payload => {
+      const { data: row } = await sb.from('messages').select('*, sender:user_profiles(full_name)').eq('id', payload.new.id).single();
+      if (row) { cgMsgMsgs.push(row); renderMsgBubbles(cgMsgMsgs, document.getElementById('cgMsgConvoBody')); }
+    }).subscribe();
+}
+
+function cgMsgBack() {
+  document.getElementById('cgMsgConvo').classList.remove('open');
+  document.getElementById('cgMsgListPage').style.display = '';
+  if (msgRealtimeSub) { sb.removeChannel(msgRealtimeSub); msgRealtimeSub = null; }
+}
+
+async function cgMsgSend() {
+  if (!cgMsgCurrentThread) return;
+  const input = document.getElementById('cgMsgInput'); if (!input) return;
+  const body = input.value.trim(); if (!body) return;
+  input.value = '';
+  await sendMessage(cgMsgCurrentThread.id, body);
+}
+
+// ============================================================
+// eMAR — ELECTRONIC MEDICATION ADMINISTRATION RECORD
+// WAC 388-76-10475 compliant for Washington State Adult Family Homes
+// ============================================================
+
+let emarCurrentClient = null;
+let emarCurrentMonth = null; // {year, month} 0-indexed month
+let emarCurrentMedId = null;
+let emarCurrentDay = null;
+let emarCurrentSchedule = null;
+let emarMeds = [];
+let emarAdminMap = {}; // key: `${medId}_${day}_${schedule}` => record
+let emarPrnCurrentMedId = null;
+
+function emarMonthLabel(year, month) {
+  return new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+function daysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function getInitials(name) {
+  return (name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+// ── ADMIN: eMAR PAGE ──
+async function emar(el) {
+  const now = new Date();
+  if (!emarCurrentMonth) emarCurrentMonth = { year: now.getFullYear(), month: now.getMonth() };
+
+  document.getElementById('topbarActions').innerHTML = `
+    <button class="btn btn-ghost btn-sm" onclick="emarPrintMAR()">🖨️ Print MAR</button>
+    <select class="form-input form-select" id="emarMonthQuickSelect" style="width:auto;padding:7px 12px;font-size:12px;border-radius:10px;" onchange="emarQuickMonth(this.value)">
+      ${[-2,-1,0,1].map(offset=>{
+        const d=new Date(now.getFullYear(),now.getMonth()+offset,1);
+        const val=`${d.getFullYear()}-${d.getMonth()}`;
+        const sel=(d.getFullYear()===emarCurrentMonth.year&&d.getMonth()===emarCurrentMonth.month)?'selected':'';
+        return `<option value="${val}" ${sel}>${d.toLocaleDateString('en-US',{month:'short',year:'numeric'})}</option>`;
+      }).join('')}
+    </select>`;
+
+  const { data: clients } = await sb.from('clients').select('*, houses(name)').order('first_name');
+
+  el.innerHTML = `<div class="page">
+    <div class="emar-layout" id="emarLayout">
+      <div class="emar-client-list" id="emarClientList">
+        ${!(clients||[]).length ? '<div class="empty" style="padding:24px 12px;"><div class="empty-icon">👤</div><div class="empty-title" style="font-size:13px;">No clients yet</div></div>' :
+          (clients||[]).map(c => `
+            <div class="emar-client-card ${emarCurrentClient?.id===c.id?'active':''}" onclick="emarSelectClient('${c.id}')" id="emarCC-${c.id}">
+              <div class="emar-client-avatar">${getInitials(c.first_name+' '+c.last_name)}</div>
+              <div>
+                <div class="emar-client-name">${c.first_name} ${c.last_name}</div>
+                <div class="emar-client-sub">${c.houses?.name||'Unassigned'}</div>
+              </div>
+            </div>`).join('')}
+      </div>
+      <div id="emarMain">
+        <div class="empty" style="padding:60px 24px;">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">Select a resident</div>
+          <div class="empty-sub">Choose a resident from the left to view their MAR</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  if (emarCurrentClient) {
+    const found = (clients||[]).find(c => c.id === emarCurrentClient.id);
+    if (found) emarSelectClient(emarCurrentClient.id, clients);
+  }
+}
+
+async function emarSelectClient(clientId, cachedClients) {
+  document.querySelectorAll('.emar-client-card').forEach(el => el.classList.toggle('active', el.id === 'emarCC-' + clientId));
+
+  let client;
+  if (cachedClients) {
+    client = cachedClients.find(c => c.id === clientId);
+  } else {
+    const { data } = await sb.from('clients').select('*, houses(name)').eq('id', clientId).single();
+    client = data;
+  }
+  emarCurrentClient = client;
+  await emarRenderMain();
+}
+
+async function emarRenderMain() {
+  const el = document.getElementById('emarMain'); if (!el) return;
+  const { year, month } = emarCurrentMonth;
+  const c = emarCurrentClient;
+  el.innerHTML = '<div class="empty"><div class="spinner"></div></div>';
+
+  // Load meds
+  const { data: meds } = await sb.from('medications').select('*').eq('client_id', c.id).order('name');
+  emarMeds = meds || [];
+
+  // Load all admin records for this month
+  const startDate = `${year}-${String(month+1).padStart(2,'0')}-01`;
+  const endDate = `${year}-${String(month+1).padStart(2,'0')}-${String(daysInMonth(year,month)).padStart(2,'0')}`;
+  const { data: admins } = await sb.from('emar_records').select('*').eq('client_id', c.id).gte('admin_date', startDate).lte('admin_date', endDate);
+  emarAdminMap = {};
+  (admins||[]).forEach(r => {
+    const key = `${r.med_id}_${new Date(r.admin_date+'T00:00:00').getDate()}_${r.schedule}`;
+    if (!emarAdminMap[key]) emarAdminMap[key] = [];
+    emarAdminMap[key].push(r);
+  });
+
+  // Load PRN records
+  const { data: prns } = await sb.from('emar_prn_records').select('*').eq('client_id', c.id).gte('admin_date', startDate).lte('admin_date', endDate);
+
+  // Look up caregiver full names from user_profiles for the legend
+  const allCaregiverIds = [...new Set([...(admins||[]),...(prns||[])].map(r=>r.caregiver_id).filter(Boolean))];
+  const caregiverNames = {};
+  if (allCaregiverIds.length) {
+    const { data: profiles } = await sb.from('user_profiles').select('id,full_name').in('id', allCaregiverIds);
+    (profiles||[]).forEach(p => { caregiverNames[p.id] = p.full_name; });
+  }
+
+  // Build unique caregivers for legend
+  const sigMap = new Map();
+  [...(admins||[]),...(prns||[])].forEach(r => {
+    if (r.caregiver_initials && caregiverNames[r.caregiver_id]) {
+      sigMap.set(r.caregiver_initials, caregiverNames[r.caregiver_id]);
+    }
+  });
+
+  const days = daysInMonth(year, month);
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+  const todayDay = today.getDate();
+  const dob = c.date_of_birth ? new Date(c.date_of_birth).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+  const allergies = c.allergies || c.notes?.match(/allerg[yi]/i) ? (c.allergies || 'See chart') : 'NKDA';
+
+  const regularMeds = emarMeds.filter(m => m.schedule !== 'prn');
+  const prnMeds = emarMeds.filter(m => m.schedule === 'prn');
+
+  // Schedules: each med can have multiple times → one row per time
+  function medRows(med) {
+    const times = parseMedTimes(med);
+    return times.map((t, i) => ({med, time: t, isFirst: i===0, rowSpan: times.length}));
+  }
+
+  const allRows = regularMeds.flatMap(m => medRows(m));
+
+  el.innerHTML = `
+    <div class="emar-main">
+      <div class="emar-header-card">
+        <div>
+          <div class="emar-resident-name">${c.first_name} ${c.last_name}</div>
+          <div class="emar-resident-meta">
+            <span>DOB: ${dob}</span>
+            <span>Allergies: <strong style="color:var(--red);">${allergies}</strong></span>
+            <span>${c.houses?.name||'—'}</span>
+            ${c.physician ? `<span>Physician: ${c.physician}</span>` : ''}
+          </div>
+        </div>
+        <div class="emar-month-nav">
+          <button class="emar-month-btn" onclick="emarChangeMonth(-1)">‹</button>
+          <div class="emar-month-label">${emarMonthLabel(year, month)}</div>
+          <button class="emar-month-btn" onclick="emarChangeMonth(1)">›</button>
+        </div>
+      </div>
+
+      ${!emarMeds.length ? `<div class="empty"><div class="empty-icon">💊</div><div class="empty-title">No medications</div><div class="empty-sub">Add medications in the client's profile first.</div></div>` : `
+      <div class="emar-table-wrap">
+        <div class="emar-table-header">
+          <div class="emar-table-title">💊 Scheduled Medications — ${emarMonthLabel(year, month)}</div>
+          <div style="font-size:11px;color:var(--muted);">WAC 388-76-10475 · Click a cell to record administration</div>
+        </div>
+        <div class="emar-grid-container">
+          <table class="emar-grid" id="emarGridTable">
+            <thead>
+              <tr>
+                <th class="med-col">Medication / Dose / Route</th>
+                <th style="min-width:52px;">Time</th>
+                ${Array.from({length:days},(_,i)=>`<th>${i+1}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody id="emarTbody">
+              ${allRows.length ? allRows.map(row => emarBuildRow(row, days, isCurrentMonth, todayDay, year, month)).join('') :
+                `<tr><td colspan="${days+2}" style="padding:24px;text-align:center;color:var(--muted);">No scheduled medications this month.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="emar-legend">
+          <div class="emar-legend-item"><div style="width:22px;height:22px;border-radius:50%;border:2px solid var(--red);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--red);">JD</div> = Refused (circle)</div>
+          <div class="emar-legend-item"><span style="font-size:11px;font-weight:700;color:var(--muted2);font-family:'DM Mono',monospace;">H</span> = Held</div>
+          <div class="emar-legend-item"><span style="font-size:11px;font-weight:700;color:var(--muted2);font-family:'DM Mono',monospace;">N/A</span> = Not Applicable</div>
+          <div class="emar-legend-item"><span style="width:22px;height:22px;background:var(--bg);display:inline-block;border-radius:4px;border:.5px solid var(--border2);"></span> = Future / Not due</div>
+        </div>
+
+        ${sigMap.size ? `<div class="emar-legend-sig">
+          <div class="emar-sig-title">Caregiver Signature Legend</div>
+          <div class="emar-sig-grid">
+            ${Array.from(sigMap.entries()).map(([init,name])=>`<div class="emar-sig-row"><span class="emar-sig-initials">${init}</span><span class="emar-sig-name">= ${name}</span></div>`).join('')}
+          </div>
+        </div>` : ''}
+      </div>
+
+      ${prnMeds.length ? `<div class="emar-prn-card">
+        <div class="emar-table-header" style="padding:14px 18px;border-bottom:.5px solid rgba(60,60,67,.1);">
+          <div class="emar-table-title">⚡ PRN (As-Needed) Medications</div>
+          <div style="font-size:11px;color:var(--muted);">Reason and result required per WAC</div>
+        </div>
+        ${prnMeds.map(med => `
+          <div style="padding:12px 18px;border-bottom:.5px solid rgba(60,60,67,.08);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div>
+                <div style="font-size:13px;font-weight:700;">${med.name}</div>
+                <div style="font-size:11px;color:var(--muted);">${med.dose||''} ${med.route||''} · Max: ${med.max_per_day||'per order'}/day</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openEmarPrn('${med.id}')">+ Record PRN</button>
+            </div>
+            <div id="prnLog-${med.id}" style="margin-top:8px;">
+              ${(prns||[]).filter(p=>p.med_id===med.id).length ?
+                (prns||[]).filter(p=>p.med_id===med.id).sort((a,b)=>new Date(b.admin_date)-new Date(a.admin_date)).map(p=>`
+                  <div class="emar-prn-row" style="padding:8px 0;">
+                    <div style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--accent);min-width:28px;">${p.caregiver_initials}</div>
+                    <div style="flex:1;font-size:12px;">
+                      <div style="color:var(--muted2);">${new Date(p.admin_date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})} @ ${p.time_given||'—'}</div>
+                      <div style="font-weight:600;">Reason: ${p.reason||'—'}</div>
+                      ${p.result?`<div style="color:var(--muted);">Result: ${p.result}</div>`:''}
+                    </div>
+                  </div>`).join('') :
+                '<div style="font-size:12px;color:var(--muted2);padding:6px 0;">No PRN administrations this month.</div>'}
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
+      `}
+    </div>`;
+}
+
+function parseMedTimes(med) {
+  // Return array of time labels for this schedule
+  const s = med.schedule || 'morning';
+  if (s === 'morning') return ['AM'];
+  if (s === 'noon') return ['Noon'];
+  if (s === 'evening') return ['PM'];
+  if (s === 'prn') return ['PRN'];
+  if (s === 'separate') return ['Separate'];
+  return [s.toUpperCase()];
+}
+
+function emarBuildRow(row, days, isCurrentMonth, todayDay, year, month) {
+  const { med, time, isFirst } = row;
+  const medStart = med.start_date ? new Date(med.start_date + 'T00:00:00') : null;
+  const medStop = med.stop_date ? new Date(med.stop_date + 'T00:00:00') : null;
+
+  const cells = Array.from({length: days}, (_, i) => {
+    const day = i + 1;
+    const cellDate = new Date(year, month, day);
+    const isFuture = isCurrentMonth && day > todayDay;
+    const isBlocked = (medStart && cellDate < medStart) || (medStop && cellDate > medStop);
+
+    if (isBlocked) return `<td class="emar-day-cell blocked"><span class="emar-na" style="font-size:9px;color:var(--border2);">—</span></td>`;
+    if (isFuture) return `<td class="emar-day-cell future"></td>`;
+
+    const key = `${med.id}_${day}_${med.schedule}`;
+    const records = emarAdminMap[key] || [];
+    // Find record matching this time slot
+    const rec = records[0];
+
+    let inner = '';
+    if (rec) {
+      if (rec.status === 'refused') {
+        inner = `<div class="emar-refused">${rec.caregiver_initials||'?'}</div>`;
+      } else if (rec.status === 'held') {
+        inner = `<span style="font-size:10px;font-weight:700;color:var(--amber);font-family:'DM Mono',monospace;">H</span>`;
+      } else if (rec.status === 'na') {
+        inner = `<span class="emar-na">N/A</span>`;
+      } else {
+        inner = `<span class="emar-initials">${rec.caregiver_initials||'?'}</span>`;
+      }
+    }
+
+    const todayCls = isCurrentMonth && day === todayDay ? 'today' : '';
+    return `<td class="emar-day-cell ${todayCls}" onclick="openEmarRecord('${med.id}','${day}','${med.schedule}')" title="Day ${day} — ${med.name}">${inner}</td>`;
+  }).join('');
+
+  const startStr = med.start_date ? new Date(med.start_date+'T00:00:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric'}) : '—';
+  const stopStr = med.stop_date ? new Date(med.stop_date+'T00:00:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric'}) : 'Ongoing';
+
+  return `<tr>
+    ${isFirst ? `<td class="med-cell" rowspan="1">
+      <div class="emar-med-name">${med.name}</div>
+      <div class="emar-med-detail">${med.dose||''} ${med.route ? '· ' + med.route : ''}</div>
+      ${med.instructions ? `<div class="emar-med-detail" style="font-style:italic;">${med.instructions.slice(0,60)}</div>` : ''}
+      <div class="emar-med-dates">Start: ${startStr} · Stop: ${stopStr}</div>
+    </td>` : '<td class="med-cell"></td>'}
+    <td style="background:var(--bg);font-size:10px;font-weight:700;color:var(--muted2);white-space:nowrap;padding:0 6px;font-family:'DM Mono',monospace;">${time}</td>
+    ${cells}
+  </tr>`;
+}
+
+function emarChangeMonth(delta) {
+  const { year, month } = emarCurrentMonth;
+  const d = new Date(year, month + delta, 1);
+  emarCurrentMonth = { year: d.getFullYear(), month: d.getMonth() };
+  emarRenderMain();
+  // sync dropdown if visible
+  const sel = document.getElementById('emarMonthQuickSelect');
+  if (sel) sel.value = `${emarCurrentMonth.year}-${emarCurrentMonth.month}`;
+}
+
+function emarQuickMonth(val) {
+  const [y, m] = val.split('-').map(Number);
+  emarCurrentMonth = { year: y, month: m };
+  emarRenderMain();
+}
+
+// ── RECORD MODAL ──
+function openEmarRecord(medId, day, schedule) {
+  emarCurrentMedId = medId;
+  emarCurrentDay = parseInt(day);
+  emarCurrentSchedule = schedule;
+
+  const med = emarMeds.find(m => m.id === medId);
+  const { year, month } = emarCurrentMonth;
+  const dateStr = new Date(year, month, emarCurrentDay).toLocaleDateString('en-US', {weekday:'short', month:'long', day:'numeric', year:'numeric'});
+
+  document.getElementById('emarRecordTitle').textContent = `Record — Day ${day}`;
+  document.getElementById('emarRecordInfo').innerHTML = `<strong>${med?.name||'Medication'}</strong><br>${med?.dose||''} ${med?.route||''}<br><span style="color:var(--muted);">${dateStr}</span>`;
+
+  // Pre-fill initials from profile
+  const initials = getInitials(currentProfile?.full_name || '');
+  document.getElementById('emarInitialsInput').value = initials;
+  document.getElementById('emarStatusSelect').value = 'given';
+  document.getElementById('emarRefusalGroup').style.display = 'none';
+  document.getElementById('emarRefusalReason').value = '';
+  document.getElementById('emarNotes').value = '';
+
+  // Check if already recorded
+  const key = `${medId}_${day}_${schedule}`;
+  const existing = (emarAdminMap[key] || [])[0];
+  if (existing) {
+    document.getElementById('emarInitialsInput').value = existing.caregiver_initials || initials;
+    document.getElementById('emarStatusSelect').value = existing.status || 'given';
+    document.getElementById('emarNotes').value = existing.notes || '';
+    document.getElementById('emarRefusalReason').value = existing.refusal_reason || '';
+    if (existing.status === 'refused') document.getElementById('emarRefusalGroup').style.display = '';
+  }
+
+  document.getElementById('emarStatusSelect').onchange = function() {
+    document.getElementById('emarRefusalGroup').style.display = (this.value === 'refused') ? '' : 'none';
+  };
+
+  // Always wire save button to admin version
+  document.getElementById('emarSaveBtn').onclick = saveEmarRecord;
+
+  openModal('emarRecordModal');
+}
+
+async function saveEmarRecord() {
+  console.log('[eMAR] saveEmarRecord called', { emarCurrentMedId, emarCurrentDay, emarCurrentSchedule, emarCurrentClient });
+  const initials = document.getElementById('emarInitialsInput').value.trim().toUpperCase();
+  const status = document.getElementById('emarStatusSelect').value;
+  const notes = document.getElementById('emarNotes').value.trim() || null;
+  const refusalReason = document.getElementById('emarRefusalReason').value.trim() || null;
+
+  if (!initials) { alert('Please enter your initials.'); return; }
+  if (status === 'refused' && !refusalReason) { alert('Reason required for refusal per WAC 388-76-10475.'); return; }
+  if (!emarCurrentClient?.id) { alert('No client selected. Please select a resident first.'); return; }
+  if (!emarCurrentMedId) { alert('No medication selected.'); return; }
+
+  const { year, month } = emarCurrentMonth;
+  const adminDate = `${year}-${String(month+1).padStart(2,'0')}-${String(emarCurrentDay).padStart(2,'0')}`;
+
+  const payload = {
+    client_id: emarCurrentClient.id,
+    med_id: emarCurrentMedId,
+    admin_date: adminDate,
+    schedule: emarCurrentSchedule,
+    status,
+    caregiver_id: currentUser.id,
+    caregiver_initials: initials,
+    notes,
+    refusal_reason: status === 'refused' ? refusalReason : null,
+    recorded_at: new Date().toISOString()
+  };
+  console.log('[eMAR] payload', payload);
+
+  const btn = document.getElementById('emarSaveBtn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
+  // Check if record already exists for this slot
+  const { data: existing, error: fetchErr } = await sb.from('emar_records')
+    .select('id')
+    .eq('client_id', emarCurrentClient.id)
+    .eq('med_id', emarCurrentMedId)
+    .eq('admin_date', adminDate)
+    .eq('schedule', emarCurrentSchedule)
+    .maybeSingle();
+
+  if (fetchErr) console.warn('[eMAR] fetch existing error', fetchErr);
+
+  let error;
+  if (existing?.id) {
+    console.log('[eMAR] updating existing record', existing.id);
+    ({ error } = await sb.from('emar_records').update(payload).eq('id', existing.id));
+  } else {
+    console.log('[eMAR] inserting new record');
+    ({ error } = await sb.from('emar_records').insert(payload));
+  }
+
+  btn.textContent = '💾 Save Record'; btn.disabled = false;
+  btn.onclick = saveEmarRecord;
+
+  if (error) {
+    console.error('[eMAR] save error', error);
+    alert('Error saving: ' + error.message);
+    return;
+  }
+
+  console.log('[eMAR] saved successfully');
+  closeModal('emarRecordModal');
+  await emarRenderMain();
+}
+
+// ── PRN MODAL ──
+function openEmarPrn(medId) {
+  emarPrnCurrentMedId = medId;
+  const med = emarMeds.find(m => m.id === medId);
+  document.getElementById('emarPrnInfo').innerHTML = `<strong>${med?.name||'PRN Medication'}</strong><br>${med?.dose||''} ${med?.route||''}<br><span style="color:var(--amber);">⚡ PRN medications require reason + result per WAC 388-76-10475</span>`;
+  const initials = getInitials(currentProfile?.full_name || '');
+  document.getElementById('emarPrnInitials').value = initials;
+  document.getElementById('emarPrnReason').value = '';
+  document.getElementById('emarPrnResult').value = '';
+  const now = new Date();
+  document.getElementById('emarPrnTime').value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  openModal('emarPrnModal');
+}
+
+async function saveEmarPrn() {
+  const initials = document.getElementById('emarPrnInitials').value.trim().toUpperCase();
+  const reason = document.getElementById('emarPrnReason').value.trim();
+  const result = document.getElementById('emarPrnResult').value.trim();
+  const time = document.getElementById('emarPrnTime').value;
+
+  if (!initials) { alert('Please enter your initials.'); return; }
+  if (!reason) { alert('Reason is required for PRN medications per WAC 388-76-10475.'); return; }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const payload = {
+    client_id: emarCurrentClient.id,
+    med_id: emarPrnCurrentMedId,
+    admin_date: today,
+    time_given: time,
+    reason,
+    result,
+    caregiver_id: currentUser.id,
+    caregiver_initials: initials,
+    recorded_at: new Date().toISOString()
+  };
+
+  const btn = document.querySelector('#emarPrnModal .btn-primary');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
+  const { error } = await sb.from('emar_prn_records').insert(payload);
+  btn.textContent = '💾 Save PRN Record'; btn.disabled = false;
+
+  if (error) { alert('Error: ' + error.message); return; }
+
+  closeModal('emarPrnModal');
+  await emarRenderMain();
+}
+
+// ── PRINT MAR ──
+async function emarPrintMAR() {
+  if (!emarCurrentClient) { alert('Select a resident first.'); return; }
+  const { year, month } = emarCurrentMonth;
+  const c = emarCurrentClient;
+  const days = daysInMonth(year, month);
+  const monthLabel = emarMonthLabel(year, month);
+  const dob = c.date_of_birth ? new Date(c.date_of_birth+'T00:00:00').toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}) : '—';
+  const allergies = c.allergies || 'NKDA';
+
+  const startDate = `${year}-${String(month+1).padStart(2,'0')}-01`;
+  const endDate = `${year}-${String(month+1).padStart(2,'0')}-${String(days).padStart(2,'0')}`;
+  const { data: admins } = await sb.from('emar_records').select('*').eq('client_id', c.id).gte('admin_date', startDate).lte('admin_date', endDate);
+  const { data: prns } = await sb.from('emar_prn_records').select('*').eq('client_id', c.id).gte('admin_date', startDate).lte('admin_date', endDate);
+
+  const adminMap = {};
+  (admins||[]).forEach(r => {
+    const key = `${r.med_id}_${new Date(r.admin_date+'T00:00:00').getDate()}_${r.schedule}`;
+    adminMap[key] = r;
+  });
+
+  // Look up caregiver names separately (no FK to user_profiles)
+  const printCaregiverIds = [...new Set([...(admins||[]),...(prns||[])].map(r=>r.caregiver_id).filter(Boolean))];
+  const printCaregiverNames = {};
+  if (printCaregiverIds.length) {
+    const { data: profiles } = await sb.from('user_profiles').select('id,full_name').in('id', printCaregiverIds);
+    (profiles||[]).forEach(p => { printCaregiverNames[p.id] = p.full_name; });
+  }
+
+  const sigMap = new Map();
+  [...(admins||[]),...(prns||[])].forEach(r => {
+    if (r.caregiver_initials && printCaregiverNames[r.caregiver_id]) {
+      sigMap.set(r.caregiver_initials, printCaregiverNames[r.caregiver_id]);
+    }
+  });
+
+  const regularMeds = emarMeds.filter(m => m.schedule !== 'prn');
+  const prnMeds = emarMeds.filter(m => m.schedule === 'prn');
+
+  // Day headers (1-15 and 16-31 on separate columns for readability)
+  function dayHeaders(from, to) {
+    return Array.from({length: to-from+1}, (_,i)=>`<th style="width:22px;">${from+i}</th>`).join('');
+  }
+  function medCells(med, from, to) {
+    return Array.from({length: to-from+1}, (_,i) => {
+      const day = from + i;
+      if (day > days) return '<td style="background:#f0f0f0;"></td>';
+      const key = `${med.id}_${day}_${med.schedule}`;
+      const rec = adminMap[key];
+      let content = '';
+      if (rec) {
+        if (rec.status === 'refused') content = `<div style="border:1.5px solid #cc0000;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#cc0000;margin:auto;">${rec.caregiver_initials||'?'}</div>`;
+        else if (rec.status === 'held') content = `<span style="font-size:8px;font-weight:700;">H</span>`;
+        else if (rec.status === 'na') content = `<span style="font-size:8px;">N/A</span>`;
+        else content = `<span style="font-size:9px;font-weight:700;">${rec.caregiver_initials||'?'}</span>`;
+      }
+      return `<td class="day-cell">${content}</td>`;
+    }).join('');
+  }
+
+  const medRows = regularMeds.map(med => {
+    const startStr = med.start_date ? new Date(med.start_date+'T00:00:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'2-digit'}) : '';
+    const stopStr = med.stop_date ? new Date(med.stop_date+'T00:00:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'2-digit'}) : 'ongoing';
+    const timeLabel = parseMedTimes(med)[0];
+    return `<tr>
+      <td class="med-col" style="font-size:9px;line-height:1.4;">
+        <strong>${med.name}</strong><br>
+        ${med.dose||''} ${med.route ? '· '+med.route : ''}<br>
+        <span style="color:#555;">${timeLabel} · Start: ${startStr} Stop: ${stopStr}</span>
+        ${med.instructions ? `<br><em style="color:#777;">${med.instructions.slice(0,50)}</em>` : ''}
+      </td>
+      ${medCells(med, 1, 15)}
+    </tr>`;
+  }).join('');
+
+  const medRows2 = regularMeds.map(med => {
+    return `<tr>
+      <td class="med-col" style="font-size:9px;line-height:1.4;"><strong>${med.name}</strong> ${med.dose||''}</td>
+      ${medCells(med, 16, 31)}
+    </tr>`;
+  }).join('');
+
+  const prnLogRows = (prns||[]).sort((a,b)=>new Date(a.admin_date)-new Date(b.admin_date)).map(p => {
+    const med = emarMeds.find(m => m.id === p.med_id);
+    return `<tr>
+      <td>${new Date(p.admin_date+'T00:00:00').toLocaleDateString('en-US',{month:'numeric',day:'numeric'})}</td>
+      <td>${p.time_given||'—'}</td>
+      <td>${med?.name||'—'} ${med?.dose||''}</td>
+      <td>${p.caregiver_initials||'—'}</td>
+      <td>${p.reason||'—'}</td>
+      <td>${p.result||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const refusalRows = (admins||[]).filter(r=>r.status==='refused'||r.refusal_reason).map(r => {
+    const med = emarMeds.find(m => m.id === r.med_id);
+    const d = new Date(r.admin_date+'T00:00:00');
+    return `<tr>
+      <td>${d.toLocaleDateString('en-US',{month:'numeric',day:'numeric'})}</td>
+      <td>${med?.name||'—'}</td>
+      <td>${r.caregiver_initials||'—'}</td>
+      <td>${r.refusal_reason||'—'}</td>
+      <td>${r.notes||'—'}</td>
+    </tr>`;
+  }).join('');
+
+  const printEl = document.getElementById('emarPrintArea');
+  printEl.style.display = 'block';
+  printEl.innerHTML = `
+    <div class="emar-print-page">
+      <div class="emar-print-header">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="emar-print-title">Medication Administration Record (MAR)</div>
+            <div class="emar-print-subtitle">Electronic MAR — CareGuide · Washington State · WAC 388-76-10475</div>
+          </div>
+          <div style="text-align:right;font-size:10px;color:#555;">Page 1 of 2 — Days 1–15</div>
+        </div>
+      </div>
+      <div class="emar-print-info">
+        <div class="emar-print-info-box"><div class="emar-print-info-label">Resident Name</div><strong>${c.first_name} ${c.last_name}</strong></div>
+        <div class="emar-print-info-box"><div class="emar-print-info-label">Date of Birth</div>${dob}</div>
+        <div class="emar-print-info-box"><div class="emar-print-info-label">Month / Year</div><strong>${monthLabel}</strong></div>
+        <div class="emar-print-info-box"><div class="emar-print-info-label">Known Allergies</div><strong style="color:#cc0000;">${allergies}</strong></div>
+        <div class="emar-print-info-box"><div class="emar-print-info-label">Physician</div>${c.physician||'—'}</div>
+        <div class="emar-print-info-box"><div class="emar-print-info-label">House / Facility</div>${c.houses?.name||'—'}</div>
+      </div>
+      <table class="emar-print-grid">
+        <thead>
+          <tr>
+            <th style="text-align:left;min-width:160px;">Medication / Dose / Route / Instructions</th>
+            ${dayHeaders(1,15)}
+          </tr>
+        </thead>
+        <tbody>${medRows || '<tr><td colspan="16" style="padding:8px;color:#777;">No scheduled medications.</td></tr>'}</tbody>
+      </table>
+      <div class="emar-print-sig">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">Key: Initials = Given &nbsp;|&nbsp; ⊙Initials = Refused &nbsp;|&nbsp; H = Held &nbsp;|&nbsp; N/A = Not Applicable</div>
+        <table><tr><th>Initials</th><th>Full Name</th><th>Signature</th><th>Initials</th><th>Full Name</th><th>Signature</th></tr>
+          ${Array.from(sigMap.entries()).map(([init,name])=>`<tr><td style="font-weight:700;">${init}</td><td>${name}</td><td style="min-width:100px;"></td><td></td><td></td><td style="min-width:100px;"></td></tr>`).join('') || '<tr><td colspan="6" style="color:#999;padding:4px;">No administrations recorded.</td></tr>'}
+        </table>
+      </div>
+    </div>
+
+    <div class="emar-print-page">
+      <div class="emar-print-header">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="emar-print-title">Medication Administration Record (MAR)</div>
+            <div class="emar-print-subtitle">${c.first_name} ${c.last_name} · DOB: ${dob} · ${monthLabel}</div>
+          </div>
+          <div style="text-align:right;font-size:10px;color:#555;">Page 2 of 2 — Days 16–31 + PRN / Notes</div>
+        </div>
+      </div>
+      <table class="emar-print-grid" style="margin-bottom:14px;">
+        <thead>
+          <tr>
+            <th style="text-align:left;min-width:160px;">Medication / Dose</th>
+            ${dayHeaders(16,31)}
+          </tr>
+        </thead>
+        <tbody>${medRows2 || '<tr><td colspan="17"></td></tr>'}</tbody>
+      </table>
+
+      ${prnMeds.length ? `<div class="emar-prn-print">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:6px;">PRN / As-Needed Medication Log (Reason &amp; Result Required — WAC 388-76-10475)</div>
+        <table class="emar-print-grid">
+          <thead><tr><th>Date</th><th>Time</th><th>Medication / Dose</th><th>Init.</th><th>Reason Given</th><th>Result / Response</th></tr></thead>
+          <tbody>${prnLogRows || '<tr><td colspan="6" style="color:#999;padding:4px;">No PRN administrations this month.</td></tr>'}</tbody>
+        </table>
+      </div>` : ''}
+
+      ${refusalRows ? `<div class="emar-prn-print" style="margin-top:12px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:6px;">Refusal / Omission Notes (Back of MAR)</div>
+        <table class="emar-print-grid">
+          <thead><tr><th>Date</th><th>Medication</th><th>Init.</th><th>Reason for Refusal / Omission</th><th>Notes</th></tr></thead>
+          <tbody>${refusalRows}</tbody>
+        </table>
+      </div>` : ''}
+
+      <div style="margin-top:16px;border-top:1px solid #ccc;padding-top:8px;font-size:8px;color:#888;line-height:1.6;">
+        This MAR was generated by CareGuide eMAR. Per WAC 388-76-10475, this document is confidential and part of the resident's record.
+        Keep current month's MAR accessible. Retain for minimum 2 years per RCW 70.128. Never use White-Out — corrections: draw one line through, initial and date.
+        Printed: ${new Date().toLocaleString('en-US')}
+      </div>
+    </div>`;
+
+  window.print();
+  setTimeout(() => { printEl.style.display = 'none'; printEl.innerHTML = ''; }, 1000);
+}
+
+// ── CAREGIVER MOBILE eMAR ──
+async function cgRenderEmar(el) {
+  const { data: assignments } = await sb.from('caregiver_houses').select('house_id').eq('user_id', currentUser.id);
+  const houseIds = (assignments||[]).map(a=>a.house_id);
+  const { data: clients } = houseIds.length ?
+    await sb.from('clients').select('*').in('house_id', houseIds).order('first_name') :
+    { data: [] };
+
+  if (!(clients||[]).length) {
+    el.innerHTML = `<div class="cg-page"><div class="cg-section-label">📋 eMAR</div><div class="empty" style="padding:40px 16px;"><div class="empty-icon">📋</div><div class="empty-title">No clients assigned</div><div class="empty-sub">Contact your supervisor.</div></div></div>`;
+    return;
+  }
+
+  const today = new Date().toISOString().slice(0,10);
+  const todayDay = new Date().getDate();
+  const year = new Date().getFullYear();
+  const month = new Date().getMonth();
+
+  el.innerHTML = `<div class="cg-page" id="cgEmarList">
+    <div class="cg-section-label">📋 eMAR — Today</div>
+    <div style="font-size:12px;color:var(--muted);padding:0 16px 12px;">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
+    <div id="cgEmarContent"><div class="empty"><div class="spinner"></div></div></div>
+  </div>`;
+
+  const contentEl = document.getElementById('cgEmarContent');
+
+  // Load all meds for today
+  const clientIds = clients.map(c=>c.id);
+  const { data: meds } = await sb.from('medications').select('*, clients(first_name,last_name)').in('client_id', clientIds).order('name');
+  const { data: todayRecords } = await sb.from('emar_records').select('*').in('client_id', clientIds).eq('admin_date', today);
+
+  const todayMap = {};
+  (todayRecords||[]).forEach(r => { todayMap[`${r.med_id}_${r.schedule}`] = r; });
+
+  if (!(meds||[]).length) {
+    contentEl.innerHTML = `<div class="empty" style="padding:40px 16px;"><div class="empty-icon">💊</div><div class="empty-title">No medications to administer</div></div>`;
+    return;
+  }
+
+  // Group by client
+  const byClient = {};
+  (meds||[]).filter(m=>m.schedule!=='prn').forEach(m=>{
+    const cid = m.client_id;
+    if(!byClient[cid]) byClient[cid] = { client: m.clients, meds: [] };
+    byClient[cid].meds.push(m);
+  });
+
+  contentEl.innerHTML = Object.values(byClient).map(group => {
+    const c = group.client;
+    const cName = `${c?.first_name||''} ${c?.last_name||''}`.trim();
+    return `<div style="margin-bottom:4px;">
+      <div style="font-size:13px;font-weight:700;color:var(--muted);padding:8px 16px 4px;text-transform:uppercase;letter-spacing:.5px;">${cName}</div>
+      ${group.meds.map(med => {
+        const key = `${med.id}_${med.schedule}`;
+        const rec = todayMap[key];
+        const isGiven = rec?.status === 'given';
+        const isRefused = rec?.status === 'refused';
+        const timeLabel = parseMedTimes(med)[0];
+
+        return `<div class="cg-emar-med-card ${isGiven?'cg-emar-given':''} ${isRefused?'cg-emar-is-refused':''}" id="cgEmarCard-${med.id}">
+          <div class="cg-emar-med-head">
+            <div class="cg-emar-med-icon">💊</div>
+            <div class="cg-emar-med-info">
+              <div class="cg-emar-med-name">${med.name}</div>
+              <div class="cg-emar-med-dose">${med.dose||''} ${med.route?'· '+med.route:''}</div>
+              <div style="font-size:11px;color:var(--muted2);margin-top:3px;">${timeLabel} ${med.instructions?'· '+med.instructions.slice(0,40):''}</div>
+            </div>
+          </div>
+          ${isGiven ?
+            `<div class="cg-emar-stamp">✅ Recorded — ${rec.caregiver_initials} @ ${new Date(rec.recorded_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>` :
+            isRefused ?
+            `<div class="cg-emar-refused-stamp">⭕ Refused — ${rec.caregiver_initials}</div>` :
+            `<button class="cg-emar-record-btn" onclick="cgOpenEmarRecord('${med.id}','${med.name}','${(med.dose||'').replace(/'/g,"\\'")}','${med.schedule}','${cName.replace(/'/g,"\\'")}')">✓ Record Administration</button>`
+          }
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+let cgEmarRecordMedId = null, cgEmarRecordSchedule = null;
+
+function cgOpenEmarRecord(medId, medName, dose, schedule, clientName) {
+  cgEmarRecordMedId = medId;
+  cgEmarRecordSchedule = schedule;
+  const initials = getInitials(currentProfile?.full_name || '');
+  document.getElementById('emarRecordTitle').textContent = 'Record Administration';
+  document.getElementById('emarRecordInfo').innerHTML = `<strong>${medName}</strong> ${dose}<br><span style="color:var(--muted);">${clientName} · Today</span>`;
+  document.getElementById('emarInitialsInput').value = initials;
+  document.getElementById('emarStatusSelect').value = 'given';
+  document.getElementById('emarRefusalGroup').style.display = 'none';
+  document.getElementById('emarRefusalReason').value = '';
+  document.getElementById('emarNotes').value = '';
+  document.getElementById('emarStatusSelect').onchange = function() {
+    document.getElementById('emarRefusalGroup').style.display = (this.value==='refused') ? '' : 'none';
+  };
+  // Override save to use caregiver context
+  document.getElementById('emarSaveBtn').onclick = cgSaveEmarRecord;
+  openModal('emarRecordModal');
+}
+
+async function cgSaveEmarRecord() {
+  const initials = document.getElementById('emarInitialsInput').value.trim().toUpperCase();
+  const status = document.getElementById('emarStatusSelect').value;
+  const notes = document.getElementById('emarNotes').value.trim() || null;
+  const refusalReason = document.getElementById('emarRefusalReason').value.trim() || null;
+
+  if (!initials) { alert('Please enter your initials.'); return; }
+  if (status === 'refused' && !refusalReason) { alert('Reason required for refusal per WAC 388-76-10475.'); return; }
+
+  // Find the client for this med
+  const { data: med } = await sb.from('medications').select('client_id').eq('id', cgEmarRecordMedId).single();
+  const today = new Date().toISOString().slice(0,10);
+
+  const payload = {
+    client_id: med?.client_id,
+    med_id: cgEmarRecordMedId,
+    admin_date: today,
+    schedule: cgEmarRecordSchedule,
+    status,
+    caregiver_id: currentUser.id,
+    caregiver_initials: initials,
+    notes,
+    refusal_reason: status === 'refused' ? refusalReason : null,
+    recorded_at: new Date().toISOString()
+  };
+
+  const btn = document.getElementById('emarSaveBtn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
+  // Check if record already exists
+  const { data: existing } = await sb.from('emar_records')
+    .select('id')
+    .eq('client_id', med?.client_id)
+    .eq('med_id', cgEmarRecordMedId)
+    .eq('admin_date', today)
+    .eq('schedule', cgEmarRecordSchedule)
+    .maybeSingle();
+
+  let error;
+  if (existing?.id) {
+    ({ error } = await sb.from('emar_records').update(payload).eq('id', existing.id));
+  } else {
+    ({ error } = await sb.from('emar_records').insert(payload));
+  }
+
+  btn.textContent = '💾 Save Record'; btn.disabled = false;
+  // Reset to admin handler
+  btn.onclick = saveEmarRecord;
+
+  if (error) { alert('Error saving: ' + error.message); return; }
+
+  closeModal('emarRecordModal');
+  cgNavigate('emar');
+}
 
 boot();
 </script>
