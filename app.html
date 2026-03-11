@@ -900,6 +900,14 @@ tr:hover td { background:rgba(0,0,0,.02); }
 .cg-msg-input:focus { outline:none; border-color:var(--accent); }
 .cg-msg-send { width:40px; height:40px; border-radius:12px; background:var(--accent); color:white; border:none; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
+/* ── Med Batch Modal ── */
+.med-batch-row { background:var(--surface-alt);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;position:relative; }
+.med-batch-row .remove-row-btn { position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px; }
+.med-batch-row .remove-row-btn:hover { background:var(--red-light);color:var(--red); }
+.med-ndc-wrap { display:flex;align-items:center;gap:8px;margin-top:8px;background:#fff8ee;border:1.5px solid var(--amber-border);border-radius:8px;padding:8px 10px; }
+.med-ndc-wrap label { font-size:11.5px;font-weight:700;color:var(--amber);white-space:nowrap; }
+.controlled-badge { display:inline-flex;align-items:center;gap:4px;background:var(--amber-light);color:var(--amber);border:1px solid var(--amber-border);border-radius:20px;font-size:11px;font-weight:700;padding:2px 8px; }
+
 /* ── eMAR ── */
 .emar-layout { display:grid; grid-template-columns:260px 1fr; gap:20px; align-items:start; }
 .emar-client-list { display:flex; flex-direction:column; gap:8px; }
@@ -1212,6 +1220,49 @@ tr:hover td { background:rgba(0,0,0,.02); }
 </div>
 
 <!-- ══════════════════════════════════════════
+     BARCODE SCANNER MODAL
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="barcodeModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">🔍 Scan Medication Barcode</div>
+      <button class="close-btn" onclick="closeBarcodeModal()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <div id="barcode-med-info" style="background:var(--surface-alt);border-radius:10px;padding:12px;margin-bottom:16px;text-align:left;font-size:13px;"></div>
+      <!-- Camera viewfinder -->
+      <div id="barcode-camera-wrap" style="position:relative;border-radius:12px;overflow:hidden;background:#000;width:100%;aspect-ratio:4/3;margin-bottom:12px;">
+        <video id="barcode-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
+        <canvas id="barcode-canvas" style="display:none;"></canvas>
+        <!-- Targeting reticle -->
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <div style="width:70%;height:35%;border:3px solid rgba(255,255,255,0.8);border-radius:8px;box-shadow:0 0 0 2000px rgba(0,0,0,0.35);"></div>
+        </div>
+        <div id="barcode-scan-status" style="position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#fff;font-size:12px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.8);">Point camera at barcode on pill bottle</div>
+      </div>
+      <div id="barcode-camera-error" style="display:none;background:#fff3cd;border:1.5px solid #ffc107;border-radius:10px;padding:12px;font-size:13px;color:#856404;margin-bottom:12px;">📷 Camera unavailable — use manual entry below</div>
+      <!-- Manual fallback -->
+      <div style="margin-top:4px;">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Or enter NDC / barcode manually</div>
+        <div style="display:flex;gap:8px;">
+          <input class="form-input" id="barcode-manual-input" placeholder="e.g. 0071-0155-23" style="flex:1;font-family:var(--font-mono);font-size:13px;" oninput="barcodeManualCheck(this.value)"/>
+          <button class="btn btn-primary btn-sm" onclick="barcodeManualSubmit()">Check</button>
+        </div>
+      </div>
+      <!-- Result -->
+      <div id="barcode-result" style="display:none;margin-top:14px;border-radius:10px;padding:14px;font-size:13px;font-weight:600;"></div>
+      <!-- Warning override -->
+      <div id="barcode-override-wrap" style="display:none;margin-top:10px;">
+        <button class="btn btn-ghost btn-sm" style="border-color:var(--amber);color:var(--amber);" onclick="barcodeOverrideProceed()">⚠ Proceed Anyway (document reason)</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeBarcodeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
      NEW CLIENT WIZARD
 ══════════════════════════════════════════ -->
 <div class="wizard-overlay" id="wizardOverlay">
@@ -1248,40 +1299,32 @@ tr:hover td { background:rgba(0,0,0,.02); }
 </div>
 
 <div class="modal-overlay" id="medModal">
-  <div class="modal" style="max-width:520px;">
+  <div class="modal modal-wide" style="max-width:640px;">
     <div class="modal-header"><div class="modal-title" id="medMT">Add Medication</div><button class="close-btn" onclick="closeModal('medModal')">✕</button></div>
-    <div class="modal-body"><div class="form-grid">
+    <div class="modal-body">
 
-      <!-- Drug name with RxNorm autocomplete -->
-      <div class="form-group" style="position:relative;">
-        <label class="form-label">Medication Name *</label>
-        <input class="form-input" id="mf-name" autocomplete="off" placeholder="Start typing a drug name…" oninput="rxNormSearch(this.value)"/>
-        <div id="rxnorm-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:0 0 10px 10px;z-index:300;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.12);"></div>
+      <!-- Controlled drug toggle banner -->
+      <div id="controlled-toggle-wrap" style="background:var(--amber-light);border:1.5px solid var(--amber-border);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;">
+          <input type="checkbox" id="mf-controlled" style="width:18px;height:18px;accent-color:var(--amber);" onchange="toggleControlledFields()"/>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--amber);">🔒 Controlled / Hard Drug</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px;">Requires barcode scan by caregiver before administration</div>
+          </div>
+        </label>
       </div>
 
-      <!-- FDA auto-fill status banner -->
-      <div id="fda-banner" style="display:none;padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:500;align-items:center;gap:8px;"></div>
+      <!-- Batch med rows -->
+      <div id="med-batch-rows"></div>
 
-      <!-- Dose + strength pill suggestions -->
-      <div class="form-group">
-        <label class="form-label">Dose</label>
-        <input class="form-input" id="mf-dose" placeholder="e.g. 10mg"/>
-        <div id="rxnorm-strengths" style="display:none;margin-top:6px;flex-wrap:wrap;gap:6px;"></div>
-      </div>
-
-      <div class="form-group"><label class="form-label">Schedule</label>
-        <select class="form-input form-select" id="mf-schedule">
-          <option value="morning">☀️ Morning</option>
-          <option value="noon">🌤 Noon / Midday</option>
-          <option value="evening">🌙 Evening</option>
-          <option value="prn">⚡ PRN / As-Needed</option>
-          <option value="separate">🕐 Taken Separately</option>
-        </select>
-      </div>
-      <div class="form-group"><label class="form-label">Instructions</label><textarea class="form-input form-textarea" id="mf-instructions" placeholder="e.g. Take with food"></textarea></div>
-      <div class="form-group"><label class="form-label">⚠ Warnings / Side Effects</label><textarea class="form-input form-textarea" id="mf-warnings" placeholder="e.g. May cause drowsiness"></textarea></div>
-    </div></div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('medModal')">Cancel</button><button class="btn btn-primary" onclick="saveMed()">Save Medication</button></div>
+      <button class="add-task-row-btn" onclick="addMedBatchRow()" id="addMedRowBtn">
+        <span style="font-size:18px;">+</span> Add Another Medication
+      </button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('medModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMedBatch()">💾 Save Medication(s)</button>
+    </div>
   </div>
 </div>
 
@@ -2692,18 +2735,131 @@ async function saveHouse(){
   else await sb.from('houses').insert(data);
   closeModal('houseModal'); navigate(currentPage);
 }
-async function saveMed(){
-  const name=fv('mf-name'); if(!name){alert('Name required.');return;}
-  const clientId=_ctx.clientId, houseId=_ctx.houseId;
-  const data={name,dose:fv('mf-dose'),schedule:document.getElementById('mf-schedule').value,instructions:fv('mf-instructions'),warnings:fv('mf-warnings'),client_id:clientId};
-  if(_editId) await sb.from('medications').update(data).eq('id',_editId);
-  else{
-    await sb.from('medications').insert(data);
-    const {data:c}=await sb.from('clients').select('first_name').eq('id',clientId).single();
-    await createAnnouncement(houseId,clientId,'med_added',`New medication for ${c?.first_name||'client'}`,`${name}${data.dose?' '+data.dose:''}`);
+// ── Batch med row state ──
+let _medBatchRows = [];
+let _medRowCounter = 0;
+
+function addMedBatchRow(prefill=null) {
+  const rowId = 'medrow_' + (++_medRowCounter);
+  _medBatchRows.push(rowId);
+  const isControlled = document.getElementById('mf-controlled').checked;
+  const ndcHtml = isControlled ? `
+    <div class="med-ndc-wrap">
+      <label>🔒 NDC / Barcode #</label>
+      <input class="form-input" id="${rowId}_ndc" placeholder="e.g. 0071-0155-23" style="flex:1;font-family:var(--font-mono);font-size:12.5px;" />
+    </div>` : '';
+  const div = document.createElement('div');
+  div.className = 'med-batch-row';
+  div.id = rowId;
+  div.innerHTML = `
+    ${_medBatchRows.length > 1 ? `<button class="remove-row-btn" onclick="removeMedRow('${rowId}')">✕</button>` : ''}
+    <div class="form-grid" style="gap:10px;">
+      <div class="form-group" style="position:relative;">
+        <label class="form-label">Medication Name *</label>
+        <input class="form-input" id="${rowId}_name" autocomplete="off" placeholder="Start typing a drug name…"
+          oninput="rxNormSearchRow(this,'${rowId}')"/>
+        <div id="${rowId}_dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--border);border-radius:0 0 10px 10px;z-index:300;max-height:180px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.12);"></div>
+      </div>
+      <div id="${rowId}_fda" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:500;"></div>
+      <div class="form-group">
+        <label class="form-label">Dose</label>
+        <input class="form-input" id="${rowId}_dose" placeholder="e.g. 10mg"/>
+        <div id="${rowId}_str" style="display:none;margin-top:6px;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Schedule</label>
+        <select class="form-input form-select" id="${rowId}_schedule">
+          <option value="morning">☀️ Morning</option>
+          <option value="noon">🌤 Noon / Midday</option>
+          <option value="evening">🌙 Evening</option>
+          <option value="prn">⚡ PRN / As-Needed</option>
+          <option value="separate">🕐 Taken Separately</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Instructions</label>
+        <textarea class="form-input form-textarea" id="${rowId}_instructions" placeholder="e.g. Take with food" style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-group"><label class="form-label">⚠ Warnings</label>
+        <textarea class="form-input form-textarea" id="${rowId}_warnings" placeholder="e.g. May cause drowsiness" style="min-height:60px;"></textarea>
+      </div>
+      ${ndcHtml}
+    </div>`;
+  if(prefill) {
+    setTimeout(()=>{
+      const n=document.getElementById(rowId+'_name'); if(n) n.value=prefill.name||'';
+      const d=document.getElementById(rowId+'_dose'); if(d) d.value=prefill.dose||'';
+      const s=document.getElementById(rowId+'_schedule'); if(s) s.value=prefill.schedule||'morning';
+      const i=document.getElementById(rowId+'_instructions'); if(i) i.value=prefill.instructions||'';
+      const w=document.getElementById(rowId+'_warnings'); if(w) w.value=prefill.warnings||'';
+      const ndc=document.getElementById(rowId+'_ndc'); if(ndc) ndc.value=prefill.barcode_ndc||'';
+    },50);
   }
+  document.getElementById('med-batch-rows').appendChild(div);
+}
+
+function removeMedRow(rowId) {
+  _medBatchRows = _medBatchRows.filter(r=>r!==rowId);
+  const el=document.getElementById(rowId); if(el) el.remove();
+}
+
+function toggleControlledFields() {
+  const isControlled = document.getElementById('mf-controlled').checked;
+  _medBatchRows.forEach(rowId => {
+    let ndcWrap = document.getElementById(rowId+'_ndc_wrap');
+    if(isControlled && !ndcWrap) {
+      const row = document.getElementById(rowId);
+      const grid = row.querySelector('.form-grid');
+      const ndcDiv = document.createElement('div');
+      ndcDiv.id = rowId+'_ndc_wrap';
+      ndcDiv.className = 'med-ndc-wrap';
+      ndcDiv.innerHTML = `<label>🔒 NDC / Barcode #</label>
+        <input class="form-input" id="${rowId}_ndc" placeholder="e.g. 0071-0155-23" style="flex:1;font-family:var(--font-mono);font-size:12.5px;" />`;
+      grid.appendChild(ndcDiv);
+    } else if(!isControlled && ndcWrap) {
+      ndcWrap.remove();
+    }
+  });
+}
+
+async function saveMedBatch() {
+  const clientId=_ctx.clientId, houseId=_ctx.houseId;
+  const isControlled = document.getElementById('mf-controlled').checked;
+  let saved=0, errors=[];
+
+  for(const rowId of _medBatchRows) {
+    const name=(document.getElementById(rowId+'_name')?.value||'').trim();
+    if(!name){ errors.push('One row is missing a medication name.'); continue; }
+    const ndc=(document.getElementById(rowId+'_ndc')?.value||'').trim()||null;
+    if(isControlled && !ndc){ errors.push(`"${name}" is marked controlled but has no NDC/barcode number.`); continue; }
+    const data={
+      name,
+      dose:(document.getElementById(rowId+'_dose')?.value||'').trim()||null,
+      schedule:document.getElementById(rowId+'_schedule')?.value||'morning',
+      instructions:(document.getElementById(rowId+'_instructions')?.value||'').trim()||null,
+      warnings:(document.getElementById(rowId+'_warnings')?.value||'').trim()||null,
+      client_id:clientId,
+      is_controlled:isControlled,
+      barcode_ndc:isControlled?ndc:null
+    };
+    if(_editId) {
+      const {error}=await sb.from('medications').update(data).eq('id',_editId);
+      if(error) errors.push(error.message); else saved++;
+    } else {
+      const {error}=await sb.from('medications').insert(data);
+      if(error) { errors.push(error.message); }
+      else {
+        saved++;
+        const {data:c}=await sb.from('clients').select('first_name').eq('id',clientId).single();
+        await createAnnouncement(houseId,clientId,'med_added',`New medication for ${c?.first_name||'client'}`,
+          `${name}${data.dose?' '+data.dose:''}${isControlled?' 🔒':''}`);
+      }
+    }
+  }
+  if(errors.length){ alert('Issues:\n'+errors.join('\n')); return; }
   closeModal('medModal'); navigate(currentPage);
 }
+
+// Legacy alias so any remaining onclick="saveMed()" still works
+async function saveMed(){ return saveMedBatch(); }
 async function saveTask(){
   const task=fv('tf-task'); if(!task){alert('Task required.');return;}
   const clientId=_ctx.clientId, houseId=_ctx.houseId;
@@ -2761,80 +2917,70 @@ async function openHouseModal(id=''){
   openModal('houseModal');
 }
 // ============================================================
-// RXNORM AUTOCOMPLETE
+// RXNORM AUTOCOMPLETE (per batch row)
 // ============================================================
-let _rxTimer=null;
-async function rxNormSearch(q){
-  const dd=document.getElementById('rxnorm-dropdown');
-  const str=document.getElementById('rxnorm-strengths');
-  q=q.trim();
+let _rxTimers={};
+function rxNormSearchRow(inputEl, rowId){
+  const q=inputEl.value.trim();
+  const dd=document.getElementById(rowId+'_dd');
+  if(!dd) return;
   if(q.length<2){ dd.style.display='none'; return; }
-  clearTimeout(_rxTimer);
-  _rxTimer=setTimeout(async()=>{
+  clearTimeout(_rxTimers[rowId]);
+  _rxTimers[rowId]=setTimeout(async()=>{
     try{
       const r=await fetch(`https://rxnav.nlm.nih.gov/REST/spellingsuggestions.json?name=${encodeURIComponent(q)}`);
       const d=await r.json();
       const suggestions=(d.suggestionGroup?.suggestionList?.suggestion)||[];
-      // Also try approximate match for display names
       const r2=await fetch(`https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(q)}`);
       const d2=await r2.json();
-      const conceptGroups=d2.drugGroup?.conceptGroup||[];
-      const exactNames=[...new Set(conceptGroups.flatMap(g=>(g.conceptProperties||[]).map(p=>p.name)))].slice(0,6);
-      const allNames=[...new Set([...exactNames,...suggestions])].slice(0,8);
+      const groups=d2.drugGroup?.conceptGroup||[];
+      const exact=[...new Set(groups.flatMap(g=>(g.conceptProperties||[]).map(p=>p.name)))].slice(0,6);
+      const allNames=[...new Set([...exact,...suggestions])].slice(0,8);
       if(!allNames.length){ dd.style.display='none'; return; }
-      dd.innerHTML=allNames.map(n=>`<div onclick="rxSelect('${n.replace(/'/g,"\\'")}'); event.stopPropagation();" style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:500;border-bottom:1px solid var(--border);transition:background .1s;" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">${n}</div>`).join('');
+      dd.innerHTML=allNames.map(n=>`<div onclick="rxSelectRow('${n.replace(/'/g,"\\'")}','${rowId}');event.stopPropagation();" style="padding:10px 14px;cursor:pointer;font-size:13px;font-weight:500;border-bottom:1px solid var(--border);transition:background .1s;" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background=''">${n}</div>`).join('');
       dd.style.display='block';
-      str.style.display='none';
     }catch(e){ dd.style.display='none'; }
   },280);
 }
 
-async function rxSelect(name){
-  document.getElementById('mf-name').value=name;
-  document.getElementById('rxnorm-dropdown').style.display='none';
+async function rxSelectRow(name, rowId){
+  const nameEl=document.getElementById(rowId+'_name');
+  const dd=document.getElementById(rowId+'_dd');
+  const banner=document.getElementById(rowId+'_fda');
+  const strEl=document.getElementById(rowId+'_str');
+  if(nameEl) nameEl.value=name;
+  if(dd) dd.style.display='none';
+  if(!banner) return;
+  banner.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:500;background:#f0f7ff;color:#2563eb;border:1.5px solid #bfdbfe;';
+  banner.innerHTML='<span style="display:inline-block;animation:spin 1s linear infinite;">⟳</span> Looking up FDA info…';
 
-  // Show loading banner
-  const banner=document.getElementById('fda-banner');
-  banner.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:500;background:#f0f7ff;color:#2563eb;border:1.5px solid #bfdbfe;';
-  banner.innerHTML='<span style="display:inline-block;animation:spin 1s linear infinite;">⟳</span> Looking up drug info from FDA…';
-
-  // --- RxNorm strengths ---
+  // Strengths
   try{
     const r=await fetch(`https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(name)}`);
     const d=await r.json();
     const groups=d.drugGroup?.conceptGroup||[];
-    const strengths=[...new Set(
-      groups.flatMap(g=>(g.conceptProperties||[])
-        .map(p=>p.name)
-        .filter(n=>n.toLowerCase().startsWith(name.toLowerCase()) && n.length>name.length)
-        .map(n=>n.slice(name.length).trim().replace(/^[,\-]\s*/,''))
-        .filter(s=>s.length>0 && s.length<30)
-      )
-    )].slice(0,8);
-    const strEl=document.getElementById('rxnorm-strengths');
-    if(strengths.length){
+    const strengths=[...new Set(groups.flatMap(g=>(g.conceptProperties||[])
+      .map(p=>p.name)
+      .filter(n=>n.toLowerCase().startsWith(name.toLowerCase())&&n.length>name.length)
+      .map(n=>n.slice(name.length).trim().replace(/^[,\-]\s*/,''))
+      .filter(s=>s.length>0&&s.length<30)))].slice(0,8);
+    if(strengths.length&&strEl){
       strEl.innerHTML='<span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;width:100%;display:block;margin-bottom:2px;">Quick-fill strength:</span>'+
-        strengths.map(s=>`<button type="button" onclick="document.getElementById('mf-dose').value='${s.replace(/'/g,"\\'")}'" style="background:#f4f7f5;border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='#e8f5ee'" onmouseout="this.style.background='#f4f7f5'">${s}</button>`).join('');
+        strengths.map(s=>`<button type="button" onclick="var d=document.getElementById('${rowId}_dose');if(d)d.value='${s.replace(/'/g,"\\'")}'" style="background:#f4f7f5;border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;" onmouseover="this.style.background='#e8f5ee'" onmouseout="this.style.background='#f4f7f5'">${s}</button>`).join('');
       strEl.style.display='flex';
-    } else { strEl.style.display='none'; }
+    }
   }catch(e){}
 
-  // --- OpenFDA drug label ---
+  // FDA label
   try{
     let fdaData=null;
-    for(const query of [
-      `openfda.brand_name:"${name}"`,
-      `openfda.generic_name:"${name}"`,
-      `openfda.substance_name:"${name}"`
-    ]){
+    for(const query of [`openfda.brand_name:"${name}"`,`openfda.generic_name:"${name}"`,`openfda.substance_name:"${name}"`]){
       try{
         const fr=await fetch(`https://api.fda.gov/drug/label.json?search=${encodeURIComponent(query)}&limit=1`);
         if(fr.ok){ const fd=await fr.json(); if(fd.results?.length){ fdaData=fd.results[0]; break; } }
       }catch(e){}
     }
-
     if(fdaData){
-      // Instructions: dosage first, fall back to indications
       let instr='';
       if(fdaData.dosage_and_administration?.[0]){
         const sentences=(fdaData.dosage_and_administration[0].replace(/\s+/g,' ').match(/[^.!?]+[.!?]+/g)||[]);
@@ -2842,50 +2988,63 @@ async function rxSelect(name){
       } else if(fdaData.indications_and_usage?.[0]){
         instr=fdaData.indications_and_usage[0].replace(/\s+/g,' ').trim().slice(0,300);
       }
-
-      // Warnings: boxed warning + warnings + adverse reactions
       const warnParts=[];
-      if(fdaData.boxed_warning?.[0]){
-        warnParts.push('BLACK BOX WARNING: '+fdaData.boxed_warning[0].replace(/\s+/g,' ').trim().slice(0,250));
+      // Black box: store separately, inject as compact collapsible chip
+      const boxedWarning = fdaData.boxed_warning?.[0] ? fdaData.boxed_warning[0].replace(/\s+/g,' ').trim() : null;
+      if(fdaData.warnings?.[0]){ const ws=(fdaData.warnings[0].replace(/\s+/g,' ').match(/[^.!?]+[.!?]+/g)||[]); warnParts.push(ws.slice(0,2).join(' ').trim().slice(0,250)); }
+      if(fdaData.adverse_reactions?.[0]){ const ar=fdaData.adverse_reactions[0].replace(/\s+/g,' ').trim(); warnParts.push('Common side effects: '+(ar.match(/[^.!?]+[.!?]+/)?.[0]||ar.slice(0,200)).trim()); }
+      const iEl=document.getElementById(rowId+'_instructions');
+      const wEl=document.getElementById(rowId+'_warnings');
+      if(iEl&&!iEl.value.trim()&&instr) iEl.value=instr;
+      if(wEl&&!wEl.value.trim()&&warnParts.length) wEl.value=warnParts.join('\n\n');
+      // Inject black box chip above the warnings textarea (compact, collapsible)
+      if(boxedWarning && wEl) {
+        const existingChip = document.getElementById(rowId+'_bbw');
+        if(existingChip) existingChip.remove();
+        const chipId = rowId+'_bbw';
+        const chip = document.createElement('div');
+        chip.id = chipId;
+        chip.style.cssText = 'margin-top:6px;border-radius:8px;overflow:hidden;border:1.5px solid #fca5a5;';
+        chip.innerHTML = `<button type="button" onclick="var b=document.getElementById('${chipId}_body');var a=document.getElementById('${chipId}_arr');b.style.display=b.style.display==='none'?'block':'none';a.textContent=b.style.display==='none'?'▶':'▼';" style="width:100%;display:flex;align-items:center;gap:6px;background:#fef2f2;border:none;padding:6px 10px;cursor:pointer;font-size:11.5px;font-weight:700;color:#dc2626;text-align:left;">
+          <span>⚠ BLACK BOX WARNING</span><span id="${chipId}_arr" style="margin-left:auto;font-size:10px;">▶</span>
+        </button>
+        <div id="${chipId}_body" style="display:none;padding:8px 10px;background:#fff5f5;font-size:11.5px;color:#7f1d1d;line-height:1.5;">${boxedWarning.slice(0,400)}${boxedWarning.length>400?'…':''}</div>`;
+        wEl.parentNode.insertBefore(chip, wEl);
       }
-      if(fdaData.warnings?.[0]){
-        const ws=(fdaData.warnings[0].replace(/\s+/g,' ').match(/[^.!?]+[.!?]+/g)||[]);
-        warnParts.push(ws.slice(0,2).join(' ').trim().slice(0,250));
-      }
-      if(fdaData.adverse_reactions?.[0]){
-        const ar=fdaData.adverse_reactions[0].replace(/\s+/g,' ').trim();
-        const first=(ar.match(/[^.!?]+[.!?]+/)?.[0]||ar.slice(0,200)).trim();
-        warnParts.push('Common side effects: '+first);
-      }
-
-      const instrField=document.getElementById('mf-instructions');
-      const warnField=document.getElementById('mf-warnings');
-      if(!instrField.value.trim() && instr) instrField.value=instr;
-      if(!warnField.value.trim() && warnParts.length) warnField.value=warnParts.join('\n\n');
-
-      banner.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:500;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;';
-      banner.innerHTML='✓ Instructions &amp; warnings filled from FDA label — review and edit as needed.';
-      setTimeout(()=>{ banner.style.display='none'; },5000);
+      banner.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:500;background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0;';
+      banner.innerHTML='✓ Auto-filled from FDA label';
+      setTimeout(()=>{ banner.style.display='none'; },4000);
     } else {
-      banner.style.cssText='display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:500;background:#fffbeb;color:#92400e;border:1.5px solid #fde68a;';
-      banner.innerHTML='⚠ No FDA label found — fill in instructions and warnings manually.';
-      setTimeout(()=>{ banner.style.display='none'; },5000);
+      banner.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:12px;background:#fffbeb;color:#92400e;border:1.5px solid #fde68a;';
+      banner.innerHTML='⚠ No FDA label found — fill manually';
+      setTimeout(()=>{ banner.style.display='none'; },4000);
     }
   }catch(e){ banner.style.display='none'; }
 }
 
-// Close dropdown on outside click
+// Close row dropdowns on outside click
 document.addEventListener('click',e=>{
-  if(!e.target.closest('#medModal')) document.getElementById('rxnorm-dropdown').style.display='none';
+  if(!e.target.closest('#medModal')){
+    document.querySelectorAll('[id$="_dd"]').forEach(d=>d.style.display='none');
+  }
 });
 
 function openMedModal(id='',clientId='',houseId=''){
   _editId=id||null; _ctx.clientId=clientId; _ctx.houseId=houseId;
-  sf('mf-name',''); sf('mf-dose',''); sf('mf-instructions',''); sf('mf-warnings','');
-  document.getElementById('mf-schedule').value='morning';
-  document.getElementById('rxnorm-dropdown').style.display='none';
-  document.getElementById('rxnorm-strengths').style.display='none';
-  document.getElementById('fda-banner').style.display='none';
+  document.getElementById('mf-controlled').checked=false;
+  document.getElementById('addMedRowBtn').style.display='';
+  document.getElementById('medMT').textContent = id ? 'Edit Medication' : 'Add Medication';
+  const container = document.getElementById('med-batch-rows');
+  container.innerHTML=''; _medBatchRows=[];
+  if(id){
+    sb.from('medications').select('*').eq('id',id).single().then(({data:m})=>{
+      if(!m) return;
+      document.getElementById('mf-controlled').checked=!!m.is_controlled;
+      toggleControlledFields();
+      addMedBatchRow(m);
+      document.getElementById('addMedRowBtn').style.display='none';
+    });
+  } else { addMedBatchRow(); }
   openModal('medModal');
 }
 function openTaskModal(id='',clientId='',houseId=''){
@@ -4182,11 +4341,15 @@ async function cgRenderEmar(el) {
         const isRefused = rec?.status === 'refused';
         const timeLabel = parseMedTimes(med)[0];
 
+        const controlledBadge = med.is_controlled ? `<span class="controlled-badge" style="font-size:10px;margin-left:6px;">🔒 Controlled</span>` : '';
+        const recordBtn = med.is_controlled
+          ? `<button class="cg-emar-record-btn" style="background:var(--amber);border-color:var(--amber);" onclick="cgOpenEmarRecordScan('${med.id}','${med.name}','${med.dose||''}','${med.schedule}','${cName}','${med.client_id}')">🔍 Scan &amp; Record</button>`
+          : `<button class="cg-emar-record-btn" onclick="cgOpenEmarRecord('${med.id}','${med.name}','${med.dose||''}','${med.schedule}','${cName}')">✓ Record Administration</button>`;
         return `<div class="cg-emar-med-card ${isGiven?'cg-emar-given':''} ${isRefused?'cg-emar-is-refused':''}" id="cgEmarCard-${med.id}">
           <div class="cg-emar-med-head">
-            <div class="cg-emar-med-icon">💊</div>
+            <div class="cg-emar-med-icon">${med.is_controlled?'🔒':'💊'}</div>
             <div class="cg-emar-med-info">
-              <div class="cg-emar-med-name">${med.name}</div>
+              <div class="cg-emar-med-name">${med.name}${controlledBadge}</div>
               <div class="cg-emar-med-dose">${med.dose||''} ${med.route?'· '+med.route:''}</div>
               <div style="font-size:11px;color:var(--muted2);margin-top:3px;">${timeLabel} ${med.instructions?'· '+med.instructions.slice(0,40):''}</div>
             </div>
@@ -4195,7 +4358,7 @@ async function cgRenderEmar(el) {
             `<div class="cg-emar-stamp">✅ Recorded — ${rec.caregiver_initials} @ ${new Date(rec.recorded_at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</div>` :
             isRefused ?
             `<div class="cg-emar-refused-stamp">⭕ Refused — ${rec.caregiver_initials}</div>` :
-            `<button class="cg-emar-record-btn" onclick="cgOpenEmarRecord('${med.id}','${med.name}','${(med.dose||'').replace(/'/g,"\\'")}','${med.schedule}','${cName.replace(/'/g,"\\'")}')">✓ Record Administration</button>`
+            recordBtn
           }
         </div>`;
       }).join('')}
@@ -4204,6 +4367,23 @@ async function cgRenderEmar(el) {
 }
 
 let cgEmarRecordMedId = null, cgEmarRecordSchedule = null;
+
+// Controlled drug: open barcode scanner first, then record modal on success
+function cgOpenEmarRecordScan(medId, medName, dose, schedule, clientName, clientId) {
+  // Ensure med is in emarMeds so scanner can find it
+  const doScan = () => openBarcodeScanner(medId, null, schedule, clientId, () => {
+    cgOpenEmarRecord(medId, medName, dose, schedule, clientName);
+  });
+  if(emarMeds && emarMeds.find(m=>m.id===medId)) {
+    doScan();
+  } else {
+    sb.from('medications').select('*').eq('id',medId).single().then(({data:m})=>{
+      if(!emarMeds) emarMeds=[];
+      if(m && !emarMeds.find(x=>x.id===m.id)) emarMeds.push(m);
+      doScan();
+    });
+  }
+}
 
 function cgOpenEmarRecord(medId, medName, dose, schedule, clientName) {
   cgEmarRecordMedId = medId;
@@ -4277,6 +4457,182 @@ async function cgSaveEmarRecord() {
 
   closeModal('emarRecordModal');
   cgNavigate('emar');
+}
+
+
+// ============================================================
+// BARCODE SCANNER
+// ============================================================
+let _barcodeStream = null;
+let _barcodeAnimFrame = null;
+let _barcodeContext = null; // { medId, day, schedule, clientId, onSuccess }
+let _barcodeAllMeds = []; // all meds across all clients for cross-check
+
+async function openBarcodeScanner(medId, day, schedule, clientId, onSuccess) {
+  _barcodeContext = { medId, day, schedule, clientId, onSuccess };
+  document.getElementById('barcode-result').style.display='none';
+  document.getElementById('barcode-override-wrap').style.display='none';
+  document.getElementById('barcode-manual-input').value='';
+  document.getElementById('barcode-camera-error').style.display='none';
+  document.getElementById('barcode-scan-status').textContent='Point camera at barcode on pill bottle';
+
+  // Show med info
+  const med = (emarMeds||[]).find(m=>m.id===medId);
+  const infoEl = document.getElementById('barcode-med-info');
+  if(med){
+    infoEl.innerHTML = `<div style="font-weight:700;font-size:14px;margin-bottom:4px;">${med.name}${med.dose?' — '+med.dose:''}</div>
+      <div style="font-size:12px;color:var(--muted);">Expected NDC: <span style="font-family:var(--font-mono);font-weight:600;">${med.barcode_ndc||'—'}</span></div>`;
+  }
+
+  // Load all meds for cross-client check
+  const { data: allMeds } = await sb.from('medications').select('id,name,barcode_ndc,client_id,clients(first_name,last_name)').not('barcode_ndc','is',null);
+  _barcodeAllMeds = allMeds || [];
+
+  openModal('barcodeModal');
+  startBarcodeCamera();
+}
+
+async function startBarcodeCamera() {
+  const video = document.getElementById('barcode-video');
+  const errEl = document.getElementById('barcode-camera-error');
+  try {
+    _barcodeStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:720} }
+    });
+    video.srcObject = _barcodeStream;
+    await video.play();
+    errEl.style.display='none';
+    scanBarcodeLoop();
+  } catch(e) {
+    console.warn('[Barcode] Camera error:', e);
+    errEl.style.display='block';
+    video.style.display='none';
+  }
+}
+
+function scanBarcodeLoop() {
+  const video = document.getElementById('barcode-video');
+  const canvas = document.getElementById('barcode-canvas');
+  if(!video || video.readyState < 2) { _barcodeAnimFrame=requestAnimationFrame(scanBarcodeLoop); return; }
+
+  // Use BarcodeDetector API if available (Chrome/Safari)
+  if('BarcodeDetector' in window) {
+    const detector = new BarcodeDetector({ formats: ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code','data_matrix'] });
+    const detect = async () => {
+      if(!_barcodeStream) return;
+      try {
+        const codes = await detector.detect(video);
+        if(codes.length > 0) {
+          const rawValue = codes[0].rawValue;
+          document.getElementById('barcode-scan-status').textContent='✓ Barcode detected!';
+          stopBarcodeCamera();
+          processBarcodeValue(rawValue);
+          return;
+        }
+      } catch(e){}
+      _barcodeAnimFrame = requestAnimationFrame(detect);
+    };
+    detect();
+  } else {
+    // Fallback: draw to canvas for manual processing hint
+    document.getElementById('barcode-scan-status').textContent='Auto-detect unavailable — use manual entry below';
+    stopBarcodeCamera();
+    document.getElementById('barcode-camera-error').style.display='block';
+    document.getElementById('barcode-camera-error').textContent='📷 Your browser does not support auto barcode scanning. Please enter the NDC number manually from the pill bottle.';
+  }
+}
+
+function stopBarcodeCamera() {
+  if(_barcodeAnimFrame) { cancelAnimationFrame(_barcodeAnimFrame); _barcodeAnimFrame=null; }
+  if(_barcodeStream) { _barcodeStream.getTracks().forEach(t=>t.stop()); _barcodeStream=null; }
+}
+
+function closeBarcodeModal() {
+  stopBarcodeCamera();
+  closeModal('barcodeModal');
+}
+
+function processBarcodeValue(scannedValue) {
+  const { medId, clientId } = _barcodeContext;
+  const scanned = scannedValue.trim().replace(/[^0-9A-Za-z\-]/g,'');
+  const resultEl = document.getElementById('barcode-result');
+  const overrideEl = document.getElementById('barcode-override-wrap');
+
+  // Find the expected med
+  const expectedMed = (emarMeds||[]).find(m=>m.id===medId);
+  const expectedNdc = (expectedMed?.barcode_ndc||'').replace(/[^0-9A-Za-z\-]/g,'');
+
+  // Normalize NDC for comparison (strip leading zeros, dashes)
+  const normalize = s => s.replace(/[-\s]/g,'').replace(/^0+/,'');
+
+  if(!expectedNdc) {
+    // No NDC set — just let through with a note
+    showBarcodeResult('warn', '⚠ No barcode on file for this medication. Proceeding.', true);
+    return;
+  }
+
+  if(normalize(scanned)===normalize(expectedNdc) || scanned===expectedNdc) {
+    // ✅ Match!
+    showBarcodeResult('ok', `✅ Correct medication confirmed — ${expectedMed?.name}`, false);
+    setTimeout(()=>{ closeBarcodeModal(); _barcodeContext.onSuccess(); }, 1200);
+    return;
+  }
+
+  // Check if scanned NDC belongs to a different client's med
+  const wrongMed = _barcodeAllMeds.find(m => normalize(m.barcode_ndc||'')===normalize(scanned) && m.id!==medId);
+  if(wrongMed) {
+    const ownerName = wrongMed.clients ? `${wrongMed.clients.first_name} ${wrongMed.clients.last_name}` : 'another resident';
+    showBarcodeResult('error',
+      `🚫 Wrong resident! This bottle belongs to <strong>${ownerName}</strong>, not this client.<br>Please locate the correct medication.`,
+      true);
+    return;
+  }
+
+  // NDC doesn't match anything — unknown bottle
+  showBarcodeResult('error',
+    `⚠ Barcode <code style="font-family:var(--font-mono);">${scanned}</code> does not match the expected medication.<br>Expected: <code style="font-family:var(--font-mono);">${expectedNdc}</code>`,
+    true);
+}
+
+function showBarcodeResult(type, html, showOverride) {
+  const el = document.getElementById('barcode-result');
+  const colors = {
+    ok:    { bg:'#f0fdf4', border:'#bbf7d0', color:'#15803d' },
+    warn:  { bg:'#fff8ee', border:'var(--amber-border)', color:'var(--amber)' },
+    error: { bg:'#fef2f2', border:'#fca5a5', color:'#dc2626' }
+  };
+  const c = colors[type]||colors.warn;
+  el.style.cssText=`display:block;background:${c.bg};border:1.5px solid ${c.border};color:${c.color};border-radius:10px;padding:14px;font-size:13px;font-weight:600;`;
+  el.innerHTML = html;
+  document.getElementById('barcode-override-wrap').style.display = showOverride ? 'block' : 'none';
+}
+
+function barcodeManualCheck(val) {
+  // Just clear old result as user types
+  if(val.length < 3) {
+    document.getElementById('barcode-result').style.display='none';
+    document.getElementById('barcode-override-wrap').style.display='none';
+  }
+}
+
+function barcodeManualSubmit() {
+  const val = document.getElementById('barcode-manual-input').value.trim();
+  if(!val){ alert('Please enter an NDC or barcode number.'); return; }
+  stopBarcodeCamera();
+  processBarcodeValue(val);
+}
+
+function barcodeOverrideProceed() {
+  // Show warning and let caregiver proceed — gets logged in eMAR notes
+  const scanned = document.getElementById('barcode-manual-input').value.trim() || 'camera scan';
+  closeBarcodeModal();
+  // Attach override note to the record
+  const noteEl = document.getElementById('emarNotes');
+  if(noteEl) {
+    const existing = noteEl.value.trim();
+    noteEl.value = (existing?existing+'\n':'') + `⚠ Barcode mismatch override — scanned: ${scanned}`;
+  }
+  if(_barcodeContext?.onSuccess) _barcodeContext.onSuccess();
 }
 
 boot();
