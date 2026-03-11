@@ -1936,8 +1936,8 @@ async function cgRenderMeds(el){
   const {data:cls}=await sb.from('clients').select('*').in('house_id',houseIds.length?houseIds:['none']);
   const clientIds=(cls||[]).map(c=>c.id);
   const {data:meds}=await sb.from('medications').select('*, clients(first_name,last_name)').in('client_id',clientIds.length?clientIds:['none']).order('name');
-  const {data:given}=await sb.from('medication_given').select('medication_id').eq('given_by',currentUser.id).eq('given_date',today);
-  const givenSet=new Set((given||[]).map(g=>g.medication_id));
+  const {data:given}=await sb.from('emar_records').select('med_id').eq('caregiver_id',currentUser.id).eq('admin_date',today).eq('status','given');
+  const givenSet=new Set((given||[]).map(g=>g.med_id));
 
   const allMeds=meds||[];
   const tabs=[
@@ -2038,15 +2038,31 @@ function renderCgMedList(allMeds, givenSet, today){
 async function cgMarkMedGiven(medId, btn, today){
   btn.textContent='Saving…'; btn.disabled=true;
   try {
-    await sb.from('medication_given').upsert({medication_id:medId,given_by:currentUser.id,given_date:today},{onConflict:'medication_id,given_by,given_date'});
-    const card=document.getElementById(`med-card-${medId}`);
-    if(card){
-      card.classList.add('given');
-      btn.textContent='✓ Given';
+    // Get client_id for this med
+    const {data:med} = await sb.from('medications').select('client_id,schedule').eq('id',medId).single();
+    // Check if record already exists
+    const {data:existing} = await sb.from('emar_records')
+      .select('id').eq('med_id',medId).eq('admin_date',today).eq('schedule',med?.schedule||'morning').maybeSingle();
+    const payload = {
+      med_id: medId,
+      client_id: med?.client_id,
+      admin_date: today,
+      schedule: med?.schedule||'morning',
+      status: 'given',
+      caregiver_id: currentUser.id,
+      caregiver_initials: getInitials(currentProfile?.full_name||''),
+      recorded_at: new Date().toISOString()
+    };
+    if(existing?.id) {
+      await sb.from('emar_records').update(payload).eq('id',existing.id);
+    } else {
+      await sb.from('emar_records').insert(payload);
     }
-    // Update tab count badges
+    const card=document.getElementById(`med-card-${medId}`);
+    if(card){ card.classList.add('given'); btn.textContent='✓ Given'; }
     cgNavigate('meds');
   } catch(e){
+    console.error('cgMarkMedGiven error', e);
     btn.textContent='Mark as Given'; btn.disabled=false;
     alert('Could not save. Please try again.');
   }
