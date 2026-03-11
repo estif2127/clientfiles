@@ -900,6 +900,26 @@ tr:hover td { background:rgba(0,0,0,.02); }
 .cg-msg-input:focus { outline:none; border-color:var(--accent); }
 .cg-msg-send { width:40px; height:40px; border-radius:12px; background:var(--accent); color:white; border:none; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
+/* ── Batch Paste Review ── */
+.batch-med-row { border-radius:12px;border:1.5px solid var(--border);background:var(--surface);overflow:hidden; }
+.batch-med-row.batch-ok { border-color:#bbf7d0; }
+.batch-med-row.batch-warn { border-color:var(--amber-border); }
+.batch-med-row.batch-danger { border-color:#fca5a5; }
+.batch-med-row.batch-notfound { border-color:var(--border);background:var(--surface-alt); }
+.batch-med-header { display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer; }
+.batch-med-header:hover { background:var(--hover); }
+.batch-status-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+.dot-ok { background:#22c55e; }
+.dot-warn { background:var(--amber); }
+.dot-danger { background:#ef4444; }
+.dot-notfound { background:var(--muted2); }
+.batch-med-name { font-size:13px;font-weight:700;flex:1; }
+.batch-med-sub { font-size:11.5px;color:var(--muted);margin-top:1px; }
+.batch-confirm-toggle { display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;flex-shrink:0; }
+.batch-med-body { padding:10px 14px;border-top:1px solid var(--border);background:var(--surface-alt);display:none; }
+.batch-med-body.open { display:block; }
+.batch-ndc-required { background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;font-weight:600;color:#dc2626;display:flex;align-items:center;gap:8px; }
+
 /* ── Med Batch Modal ── */
 .med-batch-row { background:var(--surface-alt);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;position:relative; }
 .med-batch-row .remove-row-btn { position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px; }
@@ -1215,6 +1235,43 @@ tr:hover td { background:rgba(0,0,0,.02); }
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('emarPrnModal')">Cancel</button>
       <button class="btn btn-primary" onclick="saveEmarPrn()">💾 Save PRN Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     BATCH PASTE MEDS MODAL
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="batchPasteModal">
+  <div class="modal" style="max-width:680px;max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div class="modal-title">⚡ Batch Add Medications</div>
+      <button class="close-btn" onclick="closeModal('batchPasteModal')">✕</button>
+    </div>
+    <div class="modal-body" style="flex:1;overflow-y:auto;padding-bottom:0;">
+
+      <!-- Step 1: Paste -->
+      <div id="batchStep1">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Paste or type one medication per line. We'll look each one up, fix spelling, and flag anything that needs your attention.</p>
+        <textarea id="batchPasteInput" class="form-input form-textarea" style="min-height:180px;font-family:var(--font-mono);font-size:13px;line-height:1.7;" placeholder="amphetamine/dextroamphetamine&#10;senna&#10;lisinopril&#10;aspirin&#10;vitamin D3&#10;hydroxyzine pamoate"></textarea>
+        <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="runBatchLookup()">🔍 Look Up Meds</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Review results -->
+      <div id="batchStep2" style="display:none;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+          <span id="batchSummary"></span>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('batchStep1').style.display='';document.getElementById('batchStep2').style.display='none';">← Edit list</button>
+        </div>
+        <div id="batchResultsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+
+    <div class="modal-footer" id="batchFooter" style="display:none;">
+      <button class="btn btn-ghost" onclick="closeModal('batchPasteModal')">Cancel</button>
+      <button class="btn btn-primary" id="batchSaveBtn" onclick="saveBatchPaste()">💾 Save All Confirmed</button>
     </div>
   </div>
 </div>
@@ -2594,7 +2651,7 @@ async function clientDetail(el){
     <div class="breadcrumb"><a onclick="navigate('houses')">Houses</a><span>›</span><a onclick="navigate('houseDetail',{houseId:'${hid}'})">${house?.name||'House'}</a><span>›</span><span>${c.first_name} ${c.last_name||''}</span></div>
     <div class="card" style="margin-bottom:18px;"><div class="card-header"><div><div class="card-title">${c.first_name} ${c.last_name||''}</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${c.room||'No room'} · ${house?.name||''}</div></div><div style="display:flex;gap:8px;"><button class="btn btn-ghost btn-sm" id="applyTplBtn">Apply Template</button></div></div>${c.notes?`<div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.6;">${c.notes}</div>`:''}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-      <div class="card"><div class="card-header"><div class="card-title">💊 Medications</div><button class="btn btn-primary btn-sm" onclick="openMedModal('','${cid}','${hid}')">+ Add</button></div><div style="padding:12px;" id="med-list"></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">💊 Medications</div><div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-sm" onclick="openBatchPasteModal('${cid}','${hid}')">⚡ Batch Add</button><button class="btn btn-primary btn-sm" onclick="openMedModal('','${cid}','${hid}')">+ Add</button></div></div><div style="padding:12px;" id="med-list"></div></div>
       <div class="card"><div class="card-header"><div class="card-title">📋 Routine Tasks</div><button class="btn btn-primary btn-sm" onclick="openTaskModal('','${cid}','${hid}')">+ Add</button></div><div style="padding:12px;" id="task-list"></div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
@@ -4633,6 +4690,293 @@ function barcodeOverrideProceed() {
     noteEl.value = (existing?existing+'\n':'') + `⚠ Barcode mismatch override — scanned: ${scanned}`;
   }
   if(_barcodeContext?.onSuccess) _barcodeContext.onSuccess();
+}
+
+
+// ============================================================
+// BATCH PASTE MEDS
+// ============================================================
+let _batchClientId = null, _batchHouseId = null;
+let _batchResults = []; // [{raw, name, dose, schedule, instructions, warnings, isControlled, boxedWarning, notFound, confirmed, ndc}]
+
+// Drugs that require barcode (controlled substances + high-alert)
+const CONTROLLED_KEYWORDS = [
+  'amphetamine','dextroamphetamine','methylphenidate','adderall','ritalin','concerta',
+  'buprenorphine','suboxone','methadone','oxycodone','hydrocodone','oxycontin','percocet','vicodin',
+  'fentanyl','morphine','codeine','tramadol','hydromorphone','dilaudid',
+  'alprazolam','clonazepam','diazepam','lorazepam','xanax','klonopin','valium','ativan',
+  'zolpidem','ambien','temazepam','triazolam',
+  'carisoprodol','soma','pregabalin','lyrica','gabapentin',
+  'testosterone','anabolic',
+  'warfarin','coumadin','heparin','apixaban','rivaroxaban','eliquis','xarelto',
+  'lithium','clozapine','clozaril'
+];
+
+function isLikelyControlled(name) {
+  const n = name.toLowerCase();
+  return CONTROLLED_KEYWORDS.some(k => n.includes(k));
+}
+
+function openBatchPasteModal(clientId, houseId) {
+  _batchClientId = clientId;
+  _batchHouseId = houseId;
+  _batchResults = [];
+  document.getElementById('batchPasteInput').value = '';
+  document.getElementById('batchStep1').style.display = '';
+  document.getElementById('batchStep2').style.display = 'none';
+  document.getElementById('batchFooter').style.display = 'none';
+  openModal('batchPasteModal');
+}
+
+async function runBatchLookup() {
+  const raw = document.getElementById('batchPasteInput').value.trim();
+  if(!raw) { alert('Please enter at least one medication name.'); return; }
+
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const btn = document.querySelector('#batchStep1 .btn-primary');
+  btn.textContent = '⟳ Looking up…'; btn.disabled = true;
+
+  _batchResults = [];
+
+  await Promise.all(lines.map(async (line, idx) => {
+    const result = await lookupMedLine(line);
+    _batchResults[idx] = { ...result, raw: line, confirmed: !result.notFound, ndc: '' };
+  }));
+
+  btn.textContent = '🔍 Look Up Meds'; btn.disabled = false;
+  renderBatchResults();
+}
+
+async function lookupMedLine(rawName) {
+  const q = rawName.trim();
+  let resolvedName = q;
+  let dose = null, schedule = 'morning', instructions = null, warnings = null;
+  let isControlled = isLikelyControlled(q);
+  let boxedWarning = null;
+  let notFound = false;
+
+  // 1. RxNorm spell-correct
+  try {
+    const r = await fetch(`https://rxnav.nlm.nih.gov/REST/spellingsuggestions.json?name=${encodeURIComponent(q)}`);
+    const d = await r.json();
+    const suggestions = d.suggestionGroup?.suggestionList?.suggestion || [];
+    if(suggestions.length) resolvedName = suggestions[0]; // take best suggestion
+  } catch(e) {}
+
+  // 2. RxNorm exact match — if no match found, mark notFound
+  try {
+    const r2 = await fetch(`https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(resolvedName)}`);
+    const d2 = await r2.json();
+    const groups = d2.drugGroup?.conceptGroup || [];
+    const allNames = groups.flatMap(g=>(g.conceptProperties||[]).map(p=>p.name));
+    if(!allNames.length) notFound = true;
+    else {
+      // Try to find a name that starts with our resolved name (for better display)
+      const match = allNames.find(n=>n.toLowerCase().startsWith(resolvedName.toLowerCase())) || allNames[0];
+      // Keep original casing from RxNorm but use resolvedName if it looks better
+      resolvedName = resolvedName; // keep corrected spelling
+    }
+  } catch(e) { notFound = true; }
+
+  // 3. FDA label for instructions / warnings / black box
+  try {
+    for(const query of [
+      `openfda.brand_name:"${resolvedName}"`,
+      `openfda.generic_name:"${resolvedName}"`,
+      `openfda.substance_name:"${resolvedName}"`
+    ]) {
+      const fr = await fetch(`https://api.fda.gov/drug/label.json?search=${encodeURIComponent(query)}&limit=1`);
+      if(!fr.ok) continue;
+      const fd = await fr.json();
+      if(!fd.results?.length) continue;
+      const fda = fd.results[0];
+
+      if(fda.dosage_and_administration?.[0]) {
+        const sents = (fda.dosage_and_administration[0].replace(/\s+/g,' ').match(/[^.!?]+[.!?]+/g)||[]);
+        instructions = sents.slice(0,2).join(' ').trim().slice(0,300);
+      } else if(fda.indications_and_usage?.[0]) {
+        instructions = fda.indications_and_usage[0].replace(/\s+/g,' ').trim().slice(0,250);
+      }
+
+      const warnParts = [];
+      if(fda.warnings?.[0]) {
+        const ws = (fda.warnings[0].replace(/\s+/g,' ').match(/[^.!?]+[.!?]+/g)||[]);
+        warnParts.push(ws.slice(0,2).join(' ').trim().slice(0,250));
+      }
+      if(fda.adverse_reactions?.[0]) {
+        const ar = fda.adverse_reactions[0].replace(/\s+/g,' ').trim();
+        warnParts.push('Common side effects: ' + (ar.match(/[^.!?]+[.!?]+/)?.[0]||ar.slice(0,180)).trim());
+      }
+      if(warnParts.length) warnings = warnParts.join('\n\n');
+
+      if(fda.boxed_warning?.[0]) {
+        boxedWarning = fda.boxed_warning[0].replace(/\s+/g,' ').trim();
+        isControlled = true; // black box = always flag as high-alert
+      }
+      break;
+    }
+  } catch(e) {}
+
+  // Capitalize first letter of each word for display
+  resolvedName = resolvedName.split('/').map(part =>
+    part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+  ).join('/');
+
+  return { name: resolvedName, dose, schedule, instructions, warnings, isControlled, boxedWarning, notFound };
+}
+
+function renderBatchResults() {
+  const ok = _batchResults.filter(r=>!r.notFound&&!r.isControlled).length;
+  const controlled = _batchResults.filter(r=>r.isControlled).length;
+  const notFound = _batchResults.filter(r=>r.notFound).length;
+
+  let summaryParts = [];
+  if(ok) summaryParts.push(`<span style="color:#16a34a;font-weight:700;">${ok} ready</span>`);
+  if(controlled) summaryParts.push(`<span style="color:#dc2626;font-weight:700;">${controlled} need barcode</span>`);
+  if(notFound) summaryParts.push(`<span style="color:var(--muted);font-weight:700;">${notFound} not found — confirm</span>`);
+  document.getElementById('batchSummary').innerHTML = summaryParts.join(' · ');
+
+  const list = document.getElementById('batchResultsList');
+  list.innerHTML = '';
+
+  _batchResults.forEach((r, idx) => {
+    const rowClass = r.notFound ? 'batch-notfound' : r.isControlled ? 'batch-danger' : 'batch-ok';
+    const dotClass = r.notFound ? 'dot-notfound' : r.isControlled ? 'dot-danger' : 'dot-ok';
+    const statusLabel = r.notFound
+      ? '⚠ Not found — please confirm'
+      : r.isControlled
+        ? (r.boxedWarning ? '☠ BLACK BOX — controlled' : '🔒 Controlled / High-alert')
+        : '✓ Found';
+    const statusColor = r.notFound ? 'var(--muted)' : r.isControlled ? '#dc2626' : '#16a34a';
+
+    const div = document.createElement('div');
+    div.className = `batch-med-row ${rowClass}`;
+    div.id = `batchrow_${idx}`;
+    div.innerHTML = `
+      <div class="batch-med-header" onclick="toggleBatchRow(${idx})">
+        <div class="batch-status-dot ${dotClass}"></div>
+        <div style="flex:1;">
+          <div class="batch-med-name">${r.name}</div>
+          <div class="batch-med-sub" style="color:${statusColor};">${statusLabel}${r.raw.toLowerCase()!==r.name.toLowerCase()?' · <span style="color:var(--muted);">was: <em>'+r.raw+'</em></span>':''}</div>
+        </div>
+        <label class="batch-confirm-toggle" onclick="event.stopPropagation()">
+          <input type="checkbox" id="batchConfirm_${idx}" ${r.confirmed?'checked':''} onchange="_batchResults[${idx}].confirmed=this.checked;updateBatchSaveBtn();" style="accent-color:var(--accent);width:16px;height:16px;"/>
+          Include
+        </label>
+      </div>
+      <div class="batch-med-body" id="batchbody_${idx}">
+        ${r.isControlled ? `
+          <div class="batch-ndc-required">
+            🔒 Controlled medication — NDC / barcode number required
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label">NDC / Barcode Number *</label>
+            <input class="form-input" id="batchNdc_${idx}" placeholder="e.g. 0071-0155-23" style="font-family:var(--font-mono);font-size:13px;" oninput="_batchResults[${idx}].ndc=this.value.trim()"/>
+          </div>` : ''}
+        ${r.notFound ? `
+          <div style="background:var(--amber-light);border:1.5px solid var(--amber-border);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--amber);font-weight:600;">
+            ⚠ Could not find this medication in RxNorm. Check the spelling or enter details manually.
+          </div>` : ''}
+        ${r.boxedWarning ? `
+          <div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:8px 10px;margin-bottom:10px;">
+            <div style="font-size:11.5px;font-weight:700;color:#dc2626;margin-bottom:4px;">⚠ Black Box Warning</div>
+            <div style="font-size:11.5px;color:#7f1d1d;line-height:1.5;">${r.boxedWarning.slice(0,300)}${r.boxedWarning.length>300?'…':''}</div>
+          </div>` : ''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input class="form-input" value="${r.name}" oninput="_batchResults[${idx}].name=this.value" style="font-size:13px;"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Dose</label>
+            <input class="form-input" placeholder="e.g. 10mg" oninput="_batchResults[${idx}].dose=this.value||null" style="font-size:13px;"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Schedule</label>
+          <select class="form-input form-select" onchange="_batchResults[${idx}].schedule=this.value" style="font-size:13px;">
+            <option value="morning">☀️ Morning</option>
+            <option value="noon">🌤 Noon / Midday</option>
+            <option value="evening">🌙 Evening</option>
+            <option value="prn">⚡ PRN / As-Needed</option>
+            <option value="separate">🕐 Taken Separately</option>
+          </select>
+        </div>
+        ${r.instructions ? `<div style="font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.5;"><strong>Instructions:</strong> ${r.instructions.slice(0,180)}…</div>` : ''}
+      </div>`;
+    list.appendChild(div);
+  });
+
+  // Auto-open rows that need attention
+  _batchResults.forEach((r, idx) => {
+    if(r.isControlled || r.notFound) toggleBatchRow(idx, true);
+  });
+
+  document.getElementById('batchStep1').style.display = 'none';
+  document.getElementById('batchStep2').style.display = '';
+  document.getElementById('batchFooter').style.display = '';
+  updateBatchSaveBtn();
+}
+
+function toggleBatchRow(idx, forceOpen=false) {
+  const body = document.getElementById(`batchbody_${idx}`);
+  if(!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', forceOpen || !isOpen);
+}
+
+function updateBatchSaveBtn() {
+  const toSave = _batchResults.filter(r=>r.confirmed);
+  const needsNdc = toSave.filter(r=>r.isControlled && !r.ndc);
+  const btn = document.getElementById('batchSaveBtn');
+  if(!btn) return;
+  if(needsNdc.length) {
+    btn.textContent = `⚠ ${needsNdc.length} controlled med(s) missing NDC`;
+    btn.disabled = true;
+  } else if(!toSave.length) {
+    btn.textContent = 'No meds selected';
+    btn.disabled = true;
+  } else {
+    btn.textContent = `💾 Save ${toSave.length} Medication${toSave.length>1?'s':''}`;
+    btn.disabled = false;
+  }
+}
+
+async function saveBatchPaste() {
+  const toSave = _batchResults.filter(r=>r.confirmed);
+  if(!toSave.length) return;
+
+  const btn = document.getElementById('batchSaveBtn');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+
+  let saved = 0, errors = [];
+  for(const r of toSave) {
+    const ndcEl = document.getElementById(`batchNdc_${_batchResults.indexOf(r)}`);
+    const ndc = ndcEl ? ndcEl.value.trim() : r.ndc;
+    const payload = {
+      name: r.name,
+      dose: r.dose || null,
+      schedule: r.schedule || 'morning',
+      instructions: r.instructions || null,
+      warnings: r.warnings || null,
+      client_id: _batchClientId,
+      is_controlled: !!r.isControlled,
+      barcode_ndc: r.isControlled ? (ndc||null) : null
+    };
+    const { error } = await sb.from('medications').insert(payload);
+    if(error) errors.push(`${r.name}: ${error.message}`);
+    else saved++;
+  }
+
+  if(errors.length) { alert('Some errors:\n'+errors.join('\n')); }
+  if(saved) {
+    const { data: c } = await sb.from('clients').select('first_name').eq('id',_batchClientId).single();
+    if(saved > 1) await createAnnouncement(_batchHouseId, _batchClientId, 'med_added',
+      `${saved} medications added for ${c?.first_name||'client'}`, toSave.map(r=>r.name).join(', ').slice(0,120));
+  }
+
+  closeModal('batchPasteModal');
+  navigate(currentPage);
 }
 
 boot();
