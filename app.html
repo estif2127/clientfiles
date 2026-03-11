@@ -375,6 +375,8 @@ tr:hover td { background:rgba(0,0,0,.02); }
 .list-item-sub { font-size:12px;color:var(--muted);margin-top:2px; }
 .list-del { background:none;border:none;color:var(--muted2);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:6px;flex-shrink:0; }
 .list-del:hover { color:var(--red);background:var(--red-light); }
+.list-edit { background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;padding:4px 6px;border-radius:6px;line-height:1;transition:all .15s; }
+.list-edit:hover { background:var(--accent-light);color:var(--accent); }
 
 /* ── SECTION HEADERS ── */
 .section-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:14px; }
@@ -2696,7 +2698,7 @@ function renderMedList(meds){
   if(!meds.length){el.innerHTML=`<div class="empty" style="padding:20px;"><div class="empty-sub">No medications yet.</div></div>`;return;}
   const sb2={morning:'badge-blue',noon:'badge-green',evening:'badge-purple',prn:'badge-amber',separate:'badge-gray'};
   const sl={morning:'☀️ Morning',noon:'🌤 Noon',evening:'🌙 Evening',prn:'⚡ PRN',separate:'🕐 Separate'};
-  el.innerHTML=meds.map(m=>`<div class="med-item"><div class="med-dot"></div><div style="flex:1;"><div class="med-name">${m.name}${m.dose?` <span style="font-weight:400;color:var(--muted);">${m.dose}</span>`:''} <span class="badge ${sb2[m.schedule]||'badge-gray'}" style="margin-left:4px;">${sl[m.schedule]||m.schedule}</span></div>${m.instructions?`<div class="med-detail">${m.instructions}</div>`:''}${m.warnings?`<div class="med-warn">⚠ ${m.warnings}</div>`:''}</div><button class="list-del" onclick="delRecord('medications','${m.id}','${m.name}')">✕</button></div>`).join('');
+  el.innerHTML=meds.map(m=>`<div class="med-item"><div class="med-dot" style="${m.is_controlled?'background:#ef4444;':''}"></div><div style="flex:1;"><div class="med-name">${m.name}${m.dose?` <span style="font-weight:400;color:var(--muted);">${m.dose}</span>`:''} <span class="badge ${sb2[m.schedule]||'badge-gray'}" style="margin-left:4px;">${sl[m.schedule]||m.schedule}</span>${m.is_controlled?` <span class="controlled-badge">🔒 Controlled</span>`:''}</div>${m.is_controlled&&!m.barcode_ndc?`<div class="med-warn" style="color:#dc2626;">⚠ No NDC barcode on file — edit to add</div>`:''} ${m.is_controlled&&m.barcode_ndc?`<div class="med-detail" style="font-family:var(--font-mono);font-size:11px;">NDC: ${m.barcode_ndc}</div>`:''}${m.instructions?`<div class="med-detail">${m.instructions}</div>`:''}${m.warnings?`<div class="med-warn">⚠ ${m.warnings.slice(0,100)}${m.warnings.length>100?'…':''}</div>`:''}</div><div style="display:flex;gap:4px;"><button class="list-edit" onclick="openMedModal('${m.id}','${m.client_id||''}','')">✏</button><button class="list-del" onclick="delRecord('medications','${m.id}','${m.name}')">✕</button></div></div>`).join('');
 }
 function renderTaskListAdmin(tasks){
   const el=document.getElementById('task-list'); if(!el) return;
@@ -3112,7 +3114,7 @@ function openMedModal(id='',clientId='',houseId=''){
   if(id){
     sb.from('medications').select('*').eq('id',id).single().then(({data:m})=>{
       if(!m) return;
-      document.getElementById('mf-controlled').checked=!!m.is_controlled;
+      document.getElementById('mf-controlled').checked=!!(m.is_controlled || m.barcode_ndc);
       toggleControlledFields();
       addMedBatchRow(m);
       document.getElementById('addMedRowBtn').style.display='none';
@@ -4414,13 +4416,14 @@ async function cgRenderEmar(el) {
         const isRefused = rec?.status === 'refused';
         const timeLabel = parseMedTimes(med)[0];
 
-        const controlledBadge = med.is_controlled ? `<span class="controlled-badge" style="font-size:10px;margin-left:6px;">🔒 Controlled</span>` : '';
-        const recordBtn = med.is_controlled
+        const controlledBadge = (med.is_controlled || !!med.barcode_ndc) ? `<span class="controlled-badge" style="font-size:10px;margin-left:6px;">🔒 Controlled</span>` : '';
+        const needsScan = med.is_controlled || !!med.barcode_ndc;
+        const recordBtn = needsScan
           ? `<button class="cg-emar-record-btn" style="background:var(--amber);border-color:var(--amber);" onclick="cgOpenEmarRecordScan('${med.id}','${med.name}','${med.dose||''}','${med.schedule}','${cName}','${med.client_id}')">🔍 Scan &amp; Record</button>`
           : `<button class="cg-emar-record-btn" onclick="cgOpenEmarRecord('${med.id}','${med.name}','${med.dose||''}','${med.schedule}','${cName}')">✓ Record Administration</button>`;
         return `<div class="cg-emar-med-card ${isGiven?'cg-emar-given':''} ${isRefused?'cg-emar-is-refused':''}" id="cgEmarCard-${med.id}">
           <div class="cg-emar-med-head">
-            <div class="cg-emar-med-icon">${med.is_controlled?'🔒':'💊'}</div>
+            <div class="cg-emar-med-icon">${(med.is_controlled||med.barcode_ndc)?'🔒':'💊'}</div>
             <div class="cg-emar-med-info">
               <div class="cg-emar-med-name">${med.name}${controlledBadge}</div>
               <div class="cg-emar-med-dose">${med.dose||''} ${med.route?'· '+med.route:''}</div>
